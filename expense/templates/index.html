@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    {% load static %}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/index.css' %}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="{% url 'index' %}" class="logo">Expense</a>
+            {% if user %}
+                <form action="{% url 'logout' %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="logout-button">Logout</button>
+                </form>
+            {% else %}
+                <a href="{% url 'login' %}" class="login-button">Login</a>
+            {% endif %}
+        </div>
+    </nav>
+    <section class="auth-section">
+            {% if user %}
+                <h1>Welcome <span class="user-span">{% if full_name %}{{ full_name }}{% else %}User{% endif %}</span></h1>                <h4>You are authenticated.</h4>
+            {% else %}
+                <h1>You are not authenticated.</h1>
+            {% endif %}
+    </section>
+    <footer>
+        <p>&copy; 2024 Expense. All rights reserved.</p>
+    </footer>
+</body>
+</html>
