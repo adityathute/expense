@@ -53,10 +53,21 @@ def authorize_view(request):
             return HttpResponse('Access token not found in the response', status=400)
 
         # Get user info and store access token in session
-        userinfo = get_userinfo(access_token)
-        if userinfo:
-            request.session['user'] = {'access_token': access_token}
-            return redirect('index')  # Redirect to a protected view or homepage
+        if access_token:
+            # Create a response object
+            response = redirect('index')  # Redirect to homepage or protected page
+
+            # Set the access token in the cookie
+            response.set_cookie(
+                'access_token',           # Cookie name
+                access_token,             # Cookie value (the access token)
+                max_age=3600,             # Expiry in seconds (e.g., 1 hour)
+                httponly=True,            # Ensures the cookie is inaccessible to JavaScript (mitigates XSS)
+                secure=True,              # Ensures the cookie is only sent over HTTPS (for production)
+                samesite='Lax'            # Helps prevent CSRF attacks
+            )
+
+            return response
         return HttpResponse('Authentication failed', status=401)
 
     except requests.exceptions.HTTPError as http_err:
@@ -70,5 +81,16 @@ def authorize_view(request):
 
 # View to handle user logout
 def logout_view(request):
+    # Delete the access token cookie
+    response = redirect('index')  # Or redirect to login page
+
+    # Delete the access token from the cookies
+    response.delete_cookie('access_token')
+
+    # Optionally, clear session data if used (not necessary if you only use cookies)
+    # request.session.flush()
+
+    # Perform Django's default logout functionality (if using sessions too)
     logout(request)
-    return redirect('index')
+
+    return response

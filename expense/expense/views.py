@@ -10,7 +10,8 @@ def index(request):
 
     # Get user data from session
     user_data = request.session.get('user', {})
-    access_token = user_data.get('access_token')
+    # access_token = user_data.get('access_token')
+    access_token = request.COOKIES.get('access_token')
 
     # Get all session data
     session_data = request.session.items()
