@@ -81,16 +81,36 @@ def authorize_view(request):
 
 # View to handle user logout
 def logout_view(request):
-    # Delete the access token cookie
-    response = redirect('index')  # Or redirect to login page
+    user_id = request.user.get('sub')  # Get the `sub` identifier from the user data
+    print(user_id)
+    # Get the access token from cookies (if available)
+    access_token = request.COOKIES.get('access_token')
 
-    # Delete the access token from the cookies
+    if not access_token:
+        print("No access token found in cookies.")
+        return redirect('index')  # If no token is found, just log out locally.
+
+    # URL for the auth server logout endpoint
+    auth_logout_url = settings.AUTH_SERVER_URL + '/auth/o/logout/'  # Replace with actual URL
+
+    # Send POST request to the auth server to log out the user and invalidate the token
+    try:
+        headers = {'Authorization': f'Bearer {access_token}'}
+        response = requests.post(auth_logout_url, data={'user_id': user_id}, headers=headers)
+        print('response', response)
+        # Check if the request was successful
+        if response.status_code == 200:
+            print("Successfully logged out from auth server.")
+        else:
+            print(f"Error logging out from auth server: {response.status_code}")
+    except requests.exceptions.RequestException as e:
+        print(f"Error communicating with auth server: {e}")
+
+    # Now, delete the access token cookie
+    response = redirect('index')  # Or redirect to your desired page after logout
     response.delete_cookie('access_token')
 
-    # Optionally, clear session data if used (not necessary if you only use cookies)
-    # request.session.flush()
-
-    # Perform Django's default logout functionality (if using sessions too)
+    # Log out the user locally
     logout(request)
 
     return response
