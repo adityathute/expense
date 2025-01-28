@@ -7,6 +7,7 @@ from django.conf import settings
 from django.http import HttpResponse
 from django.contrib.auth import logout
 from account.userinfo import get_userinfo
+from django.http import JsonResponse
 
 # View to redirect user to the OIDC authorization endpoint for login
 def login_view(request):
@@ -114,3 +115,6 @@ def logout_view(request):
     logout(request)
 
     return response
+
+def check_login(request):
+    return JsonResponse({'status': 'logged_in'})
