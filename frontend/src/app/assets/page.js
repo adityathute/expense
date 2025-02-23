@@ -9,7 +9,7 @@ export default function Dashboard() {
       <div className="container">
         <Sidebar />
         <div className="main-content">
-          <h1>Welcome to the Categories</h1>
+          <h1>Welcome to the Assets</h1>
           <p>Manage your transactions, categories, and more. </p>
         </div>
       </div>
