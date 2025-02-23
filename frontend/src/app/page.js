@@ -1,14 +1,15 @@
-// page.js
+"use client";
+import Sidebar from "./components/Sidebar";
+import TopBar from "./components/TopBar";
 
-export default function HomePage() {
+export default function Dashboard() {
   return (
-    <div className="homepage">
-      <div className="container">
-        <h1 className="title">Welcome to</h1>
-        <h2 className="subtitle">Shivanya Multiservices</h2>
-        <p className="description">
-          Your trusted partner for exceptional services and solutions.
-        </p>
+    <div className="dashboard">
+      <Sidebar />
+      <div className="main-content">
+        <TopBar />
+        <h1>Welcome to the Dashboard</h1>
+        <p>Manage your transactions, categories, and more.</p>
       </div>
     </div>
   );
