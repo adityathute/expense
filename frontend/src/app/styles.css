@@ -1,4 +1,11 @@
 /* Apple-Inspired Theme */
+:root {
+  --navbar-height: 40px;
+  --navbar-height1: 60px;
+  --navbar-height2: 70px;
+  --sidebar-width: 300px;
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -7,24 +14,69 @@ body {
   color: #333;
 }
 
+.content {
+  margin: 0;
+}
+
+/* Top Bar */
+.topbarOuter {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
+.topbar {
+  display: flex;
+  padding: 15px;
+  background: #1d1d1f;
+  height: var(--navbar-height);
+}
+
+.leftTopbar{
+  display: flex;
+  align-items: center;
+  color: white;
+  margin-left: 15px;
+  font-size: 24px;
+  font-weight: 600;
+  user-select: none;
+  cursor: context-menu;
+}
+
+.rightTopbar{
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  justify-content: flex-end;
+  color: white;
+  padding-left: 12px;
+}
+
+.container{
+  display: flex;
+  flex-basis: 100%;
+}
+
 /* Sidebar */
 .sidebar {
-  width: 250px;
-  background: #1d1d1f;
-  height: 100vh;
-  padding: 20px;
   position: fixed;
   left: 0;
-  top: 90px;
+  top: var(--navbar-height2);
+  background: #1d1d1f;
+  width: var(--sidebar-width);
+  height: 100vh;
 }
 
 .sidebar ul {
   list-style: none;
   padding: 0;
+  margin: 0;
+  width: 100%;
 }
 
 .sidebar li {
-  margin-bottom: 15px;
+  margin: 5px;
 }
 
 .sidebar a {
@@ -33,22 +85,25 @@ body {
   font-size: 1.2rem;
   display: block;
   padding: 10px;
+  padding-left: 25px;
   border-radius: 5px;
   transition: background 0.3s;
+  cursor: pointer;
 }
 
 .sidebar a:hover {
   background: #333;
 }
 
-/* Top Bar */
-.topbar {
-  display: flex;
-  justify-content: flex-end;
-  padding: 15px;
-  background: white;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+/* Main Content */
+.main-content {
+  padding: 20px;
+  margin-left: var(--sidebar-width);
+  margin-top: var(--navbar-height2);
 }
+
+
+
 
 /* Buttons */
 .btn {
@@ -63,6 +118,7 @@ body {
 .btn-primary {
   background: #0071e3;
   color: white;
+  margin-right: 12px;
 }
 
 .btn-primary:hover {
@@ -78,9 +134,3 @@ body {
   background: #333;
 }
 
-/* Main Content */
-.main-content {
-  margin-left: 260px;
-  padding: 20px;
-  padding-left: 50px;
-}
