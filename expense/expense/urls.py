@@ -16,12 +16,25 @@ Including another URLconf
 """
 # 📦 Import necessary modules and classes
 from account.admin import admin_site # 📝 Import custom admin site
-from django.urls import path, include
+from django.urls import path, include, re_path
+import requests
 from . import views
+from django.http import HttpResponse
+
+# Function to proxy Next.js frontend requests
+def proxy_nextjs(request, path=""):
+    nextjs_url = f"http://localhost:3000/{path}"  # Point to Next.js server
+    response = requests.get(nextjs_url)
+
+    # Return the Next.js response to Django
+    return HttpResponse(response.content, status=response.status_code, content_type=response.headers['Content-Type'])
 
 # 📜 Define URL patterns for the account app
 urlpatterns = [
     path('admin/', admin_site.urls),
+    path('auth/', include('account.urls')), # 🔒 URL for account authenticatio
+    path('', include('api.urls')),
     path('', views.index, name='index'),
-    path('auth/', include('account.urls')), # 🔒 URL for account authentication
+    # re_path(r"^(?!api/).*", proxy_nextjs),  # Proxy all non-API routes to Next.js
 ]
+

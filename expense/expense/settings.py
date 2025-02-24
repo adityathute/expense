@@ -44,6 +44,8 @@ INSTALLED_APPS = [
     # Installed Applications 📁
     'account.apps.AccountConfig',
     'corsheaders',
+    'rest_framework',
+    'api',
 ]
 
 # MIDDLEWARE configuration for handling HTTP requests and responses
