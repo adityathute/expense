@@ -1,0 +1,32 @@
+/* Background Styling */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: black;
+    backdrop-filter: blur(50px);
+    /* Blurred background effect */
+}
+
+/* Centered Box */
+.login-box {
+    background: rgba(255, 255, 255, 0.2);
+    /* Semi-transparent white */
+    backdrop-filter: blur(20px);
+    /* Frosted glass effect */
+    padding: 40px;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 400px;
+}
+
+/* Heading */
+
+.login-box h1 {
+    font-size: 24px;
+    color: #fff;
+    margin-bottom: 20px;
+}

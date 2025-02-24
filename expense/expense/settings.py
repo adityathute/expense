@@ -9,6 +9,7 @@ import os
 PROJECT_NAME = config("PROJECT_NAME")
 AUTH_SERVER_URL = config('AUTH_SERVER_URL')
 HOST_URL = config('HOST_URL')
+EXPENSE_URL = config('EXPENSE_URL')
 
 # Check if the PROJECT_NAME is properly set
 if not isinstance(PROJECT_NAME, str):
@@ -140,11 +141,12 @@ AUTH_USER_MODEL = 'account.User'
 SESSION_COOKIE_NAME = f'{PROJECT_NAME}_sessionid'
 
 # Define CORS settings
-CORS_ALLOWED_ORIGINS = [AUTH_SERVER_URL, HOST_URL]
+CORS_ALLOWED_ORIGINS = [AUTH_SERVER_URL, HOST_URL, EXPENSE_URL]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_HEADERS = ['Content-Type', 'Authorization', 'X-Requested-With']
 CORS_ALLOWED_METHODS = ['GET', 'POST', 'PUT', 'DELETE']
 CORS_EXPOSE_HEADERS = ['Content-Length', 'X-Total-Count']
+CSRF_TRUSTED_ORIGINS = [EXPENSE_URL]  # Match Next.js frontend
 
 # Define OIDC Provider settings
 OIDC_PROVIDER = {

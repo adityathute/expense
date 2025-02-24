@@ -9,7 +9,7 @@ export default function TopBar() {
         <div className="leftTopbar">Shivanya Multiservices</div>
         <div className="rightTopbar">
         <Link href="/add-transactions"><button className="btn btn-primary">Add Transaction</button></Link>
-        <Link href="/"><button className="btn btn-dark">Login</button></Link>
+        <Link href="/login"><button className="btn btn-dark">Login</button></Link>
         </div>
       </div>
     </div>

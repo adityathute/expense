@@ -118,3 +118,17 @@ def logout_view(request):
 
 def check_login(request):
     return JsonResponse({'status': 'logged_in'})
+
+def request_token(request):
+    """Check if token exists and return status without login URL"""
+
+    # Get token from cookies
+    access_token = request.COOKIES.get("access_token")
+
+    if access_token:
+        print("✅ Token found in cookies, returning to frontend.")
+        return JsonResponse({"access_token": access_token, "found": True})
+
+    print("🔄 No token found.")
+    return JsonResponse({"access_token": None, "found": False}, status=200)  # ✅ No login URL, just a status
+
