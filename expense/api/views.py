@@ -1,33 +1,41 @@
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-import json
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 from .models import Category
+from .serializers import CategorySerializer
 
-@csrf_exempt
+@api_view(['GET', 'POST'])
 def category_list(request):
-    if request.method == "GET":
-        categories = list(Category.objects.values())
-        return JsonResponse({"categories": categories}, safe=False)
+    if request.method == "POST":
+        serializer = CategorySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
 
-    elif request.method == "POST":
-        data = json.loads(request.body)
-        category = Category.objects.create(name=data["name"], description=data.get("description", ""))
-        return JsonResponse({"id": category.id, "name": category.name, "description": category.description})
+    core_category_names = [c[0] for c in Category.CORE_CATEGORIES]  # Extract core category names
+    categories = Category.objects.exclude(name__in=core_category_names)
+    return Response({
+        "categories": CategorySerializer(categories, many=True).data,
+        "core_categories": core_category_names  # Return names, not objects
+    })
 
-@csrf_exempt
+@api_view(['GET', 'PUT', 'DELETE'])
 def category_detail(request, category_id):
     try:
         category = Category.objects.get(id=category_id)
     except Category.DoesNotExist:
-        return JsonResponse({"error": "Category not found"}, status=404)
+        return Response({"error": "Category not found"}, status=404)
 
     if request.method == "PUT":
-        data = json.loads(request.body)
-        category.name = data.get("name", category.name)
-        category.description = data.get("description", category.description)
-        category.save()
-        return JsonResponse({"id": category.id, "name": category.name, "description": category.description})
+        serializer = CategorySerializer(category, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
 
     elif request.method == "DELETE":
         category.delete()
-        return JsonResponse({"message": "Category deleted successfully"})
+        return Response({"message": "Category deleted successfully"}, status=204)
+
+    return Response(CategorySerializer(category).data)

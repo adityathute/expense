@@ -1,8 +1,18 @@
 from django.db import models
 
 class Category(models.Model):
-    name = models.CharField(max_length=255, unique=True)
-    description = models.TextField(blank=True, null=True)
+    CORE_CATEGORIES = [
+        ("Income", "Income"),
+        ("Expense", "Expense"),
+        ("Money", "Money"),
+        ("Debt", "Debt"),
+        ("Invest", "Invest"),
+    ]
+
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    parent = models.ForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="subcategories")
+    core_category = models.CharField(max_length=20, choices=CORE_CATEGORIES, null=True, blank=True)
 
     def __str__(self):
         return self.name
