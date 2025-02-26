@@ -9,8 +9,8 @@ export default function Dashboard() {
       <div className="container">
         <Sidebar />
         <div className="main-content">
-          <h1>Welcome to the Help Center</h1>
-          <p>Manage your transactions, categories, and more. </p>
+          <h1>Welcome to the Services</h1>
+          <p>Manage your Services like Election card, Pancard, FarmerId Cards Details and much more. </p>
         </div>
       </div>
     </div>

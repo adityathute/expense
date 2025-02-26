@@ -9,12 +9,12 @@ export default function Sidebar() {
         <li><Link href="/transactions">Transactions</Link></li>
         <li><Link href="/accounts">Accounts</Link></li>
         <li><Link href="/categories">Categories</Link></li>
+        <li><Link href="/services">Services</Link></li>
         <li><Link href="/users">Users</Link></li>
-        <li><Link href="/assets">Assets</Link></li>
+        <li><Link href="/shop-details">Shop Details</Link></li>
         <li><Link href="/analytics">Analytics</Link></li>
         <li><Link href="/report">Report</Link></li>
         <li><Link href="/settings">Settings</Link></li>
-        <li><Link href="/help">Help</Link></li>
       </ul>
     </div>
   );

@@ -1,66 +1,196 @@
+/* Form Styles */
+.form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 500px;
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease-in-out;
+}
+
+.form-container input,
+.form-container select {
+  padding: 14px;
+  border-radius: 8px;
+  border: 1px solid #d1d1d6;
+  font-size: 15px;
+  transition: all 0.3s ease-in-out;
+}
+
+.form-container input:focus,
+.form-container select:focus {
+  border-color: #007aff;
+  outline: none;
+  box-shadow: 0 0 8px rgba(0, 122, 255, 0.4);
+}
+
+.form-container button {
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  background: #007aff;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease-in-out, transform 0.2s ease;
+}
+
+.form-container button:hover {
+  background: #005ecb;
+  transform: translateY(-2px);
+}
+
+/* Category Table */
+.category-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.category-table th,
+.category-table td {
+  padding: 14px 18px;
+  text-align: left;
+}
+
+.category-table th {
+  background: #f2f2f7;
+  font-weight: 600;
+  color: #1d1d1f;
+}
+
+.category-table tr {
+  border-bottom: 1px solid #e5e5ea;
+}
+
+.category-table tr:last-child {
+  border-bottom: none;
+}
+
+.category-table td {
+  font-size: 15px;
+  color: #333;
+}
+
+/* Category Actions */
+.category-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.category-actions button {
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+}
+
+.category-actions button.edit {
+  background: #34c759;
+  color: white;
+}
+
+.category-actions button.delete {
+  background: #ff3b30;
+  color: white;
+}
+
+.category-actions button:hover {
+  opacity: 0.8;
+  transform: scale(1.05);
+}
+
+/* Category Cards */
 .category-list {
   list-style-type: none;
   padding: 0;
+  margin-top: 20px;
 }
 
 .category-item {
-  padding: 10px;
+  background: white;
+  padding: 16px;
   margin: 10px 0;
-  border-radius: 5px;
-  background: #f8f9fa;
-  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease-in-out;
+}
+
+.category-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
 .category-details {
   font-size: 16px;
   font-weight: bold;
+  color: #1d1d1f;
+  margin-bottom: 4px;
 }
 
 .category-meta {
-  font-size: 12px;
+  font-size: 14px;
   color: #666;
 }
 
-.category-actions button {
-  margin-right: 5px;
-  padding: 5px 10px;
-  border: none;
-  cursor: pointer;
-  border-radius: 3px;
+.category-hierarchy {
+  font-size: 12px;
+  color: #999;
 }
 
-.category-actions button:hover {
-  opacity: 0.8;
+/* Colored Level Indicators */
+.category-indicator {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 8px;
 }
 
+/* Color Assignments */
+.category-core .category-indicator { background: #ff9500; }
+.category-main .category-indicator { background: #007aff; }
+.category-sub .category-indicator { background: #34c759; }
+
+/* Nested Categories */
 .subcategory-list {
-  margin-left: 20px;
-  border-left: 2px solid #ccc;
-  padding-left: 10px;
+  margin-left: 25px;
+  border-left: 3px solid #ccc;
+  padding-left: 15px;
 }
 
-.form-container {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  max-width: 400px;
-  margin-bottom: 20px;
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.form-container input,
-.form-container select,
-.form-container button {
-  padding: 8px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
+.category-item {
+  animation: fadeIn 0.5s ease-in-out;
 }
 
-.form-container button {
-  background: #007bff;
-  color: white;
-  cursor: pointer;
-}
+/* Responsive Design */
+@media (max-width: 768px) {
 
-.form-container button:hover {
-  background: #0056b3;
+  .form-container {
+    width: 100%;
+  }
+
+  .category-table {
+    font-size: 13px;
+  }
+
+  .category-actions button {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
 }
