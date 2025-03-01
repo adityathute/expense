@@ -1,8 +1,9 @@
 from django.http import JsonResponse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .models import Category
-from .serializers import CategorySerializer
+from .models import Category, Service, User, UserService
+from .serializers import CategorySerializer, UserSerializer, ServiceSerializer, UserServiceSerializer
+from rest_framework import generics
 
 @api_view(['GET', 'POST'])
 def category_list(request):
@@ -50,3 +51,28 @@ def category_detail(request, category_id):
         return Response({"message": "Category deleted successfully"}, status=204)
 
     return Response(CategorySerializer(category).data)
+
+
+class UserListCreateView(generics.ListCreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+class ServiceListCreateView(generics.ListCreateAPIView):
+    queryset = Service.objects.all()
+    serializer_class = ServiceSerializer
+
+class ServiceDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Service.objects.all()
+    serializer_class = ServiceSerializer
+
+class UserServiceListCreateView(generics.ListCreateAPIView):
+    queryset = UserService.objects.all()
+    serializer_class = UserServiceSerializer
+
+class UserServiceDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = UserService.objects.all()
+    serializer_class = UserServiceSerializer

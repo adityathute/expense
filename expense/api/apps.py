@@ -12,13 +12,34 @@ class ApiConfig(AppConfig):
         post_migrate.connect(create_core_categories, sender=self)
 
 def create_core_categories(sender, **kwargs):
-    """Ensures core categories exist after migrations"""
+    """Ensures core categories and predefined categories exist after migrations"""
     from api.models import Category
 
-    core_categories = ["Income", "Expense", "Money", "Debt", "Invest"]
+    # Core categories
+    CORE_CATEGORIES = [
+        ("Income", "Income"),
+        ("Expense", "Expense"),
+        ("Money", "Money"),
+        ("Debt", "Debt"),
+        ("Invest", "Invest"),
+    ]
 
-    for category in core_categories:
-        try:
-            Category.objects.get_or_create(name=category, parent=None)
-        except (IntegrityError, ImproperlyConfigured):
-            pass  # Ignore errors due to multiple workers or misconfiguration
+    try:
+        # Ensure core categories exist
+        core_category_objects = {}
+        for key, name in CORE_CATEGORIES:
+            obj, _ = Category.objects.get_or_create(name=name, core_category=key, parent=None)
+            core_category_objects[key] = obj  # Store references
+
+        # Ensure "Services" exists under "Income"
+        if "Income" in core_category_objects:
+            Category.objects.get_or_create(
+                name="Services",
+                core_category="Income",
+                parent=core_category_objects["Income"]
+            )
+
+        print("✅ Core categories and 'Services' created successfully!")
+
+    except (IntegrityError, ImproperlyConfigured):
+        pass  # Ignore errors due to multiple workers or misconfiguration
