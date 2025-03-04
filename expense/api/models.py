@@ -42,7 +42,7 @@ class Service(models.Model):
 
 
 class User(models.Model):
-    full_name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255)
     address = models.TextField()
     mobile_number = models.CharField(max_length=15, unique=True)
     email = models.EmailField(unique=True)

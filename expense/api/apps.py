@@ -31,15 +31,16 @@ def create_core_categories(sender, **kwargs):
             obj, _ = Category.objects.get_or_create(name=name, core_category=key, parent=None)
             core_category_objects[key] = obj  # Store references
 
-        # Ensure "Services" exists under "Income"
-        if "Income" in core_category_objects:
-            Category.objects.get_or_create(
-                name="Services",
-                core_category="Income",
-                parent=core_category_objects["Income"]
-            )
+        # # Ensure "Services" exists under "Income"
+        # if "Income" in core_category_objects:
+        #     Category.objects.get_or_create(
+        #         name="Services",
+        #         core_category="Income",
+        #         category_type="Shop",
+        #         parent=core_category_objects["Income"]
+        #     )
 
-        print("✅ Core categories and 'Services' created successfully!")
+        # print("✅ Core categories and 'Services' created successfully!")
 
     except (IntegrityError, ImproperlyConfigured):
         pass  # Ignore errors due to multiple workers or misconfiguration
