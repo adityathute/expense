@@ -8,6 +8,6 @@ urlpatterns = [
     path('api/services/<int:pk>/', views.ServiceDetailView.as_view(), name='service-detail'),
     path('api/users/', views.UserListCreateView.as_view(), name='user-list-create'),
     path('api/users/<int:pk>/', views.UserDetailView.as_view(), name='user-detail'),
-      path("api/user-services/", views.UserServiceListCreateView.as_view(), name="user-service-list-create"),
+    path("api/user-services/", views.UserServiceListCreateView.as_view(), name="user-service-list-create"),
     path("api/user-services/<int:pk>/", views.UserServiceDetailView.as_view(), name="user-service-detail"),
 ]

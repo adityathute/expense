@@ -1,9 +1,10 @@
 from django.http import JsonResponse
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 from .models import Category, Service, User, UserService
 from .serializers import CategorySerializer, UserSerializer, ServiceSerializer, UserServiceSerializer
-from rest_framework import generics
+from rest_framework import generics, status, viewsets
+from rest_framework.response import Response
 
 @api_view(['GET', 'POST'])
 def category_list(request):
@@ -60,10 +61,11 @@ class UserListCreateView(generics.ListCreateAPIView):
 class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-
+    
 class ServiceListCreateView(generics.ListCreateAPIView):
     queryset = Service.objects.all()
     serializer_class = ServiceSerializer
+
 
 class ServiceDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Service.objects.all()
@@ -76,3 +78,20 @@ class UserServiceListCreateView(generics.ListCreateAPIView):
 class UserServiceDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = UserService.objects.all()
     serializer_class = UserServiceSerializer
+
+class ServiceViewSet(viewsets.ModelViewSet):
+    queryset = Service.objects.all()
+    serializer_class = ServiceSerializer
+
+    # Automatic calculation of total_fees (already in serializer)
+    def perform_create(self, serializer):
+        serializer.save()
+
+    def perform_update(self, serializer):
+        serializer.save()
+
+    # DELETE Service
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response({"message": "Service deleted successfully"}, status=status.HTTP_204_NO_CONTENT)

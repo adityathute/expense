@@ -14,7 +14,7 @@ class Category(models.Model):
         ("Invest", "Invest"),
     ]
 
-    name = models.CharField(max_length=255, unique=True)  # Prevent duplicate category names
+    name = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True)
     parent = models.ForeignKey(
         "self", on_delete=models.CASCADE, null=True, blank=True, related_name="subcategories"
@@ -30,16 +30,23 @@ class Category(models.Model):
         return self.name
 
     class Meta:
-        ordering = ["core_category", "name"]  # Sort categories alphabetically within each core category
+        ordering = ["core_category", "name"]
 
 class Service(models.Model):
     name = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True, null=True)
+    agent_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    service_charge = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    required_documents = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    @property
+    def total_fees(self):
+        return self.agent_fee + self.service_charge  # ✅ Correctly calculate total fees
 
     def __str__(self):
         return self.name
-
 
 class User(models.Model):
     name = models.CharField(max_length=255)
@@ -56,13 +63,6 @@ class User(models.Model):
         return self.total_charge - self.paid_charge
 
     def __str__(self):
-        return self.full_name
-
-class Service(models.Model):
-    name = models.CharField(max_length=255)
-    description = models.TextField()
-
-    def __str__(self):
         return self.name
 
 class UserService(models.Model):
@@ -73,4 +73,4 @@ class UserService(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
-        return f"{self.user.full_name} - {self.service.name}"
+        return f"{self.user.name} - {self.service.name}"
