@@ -23,22 +23,25 @@ class ServiceSerializer(serializers.ModelSerializer):
         return obj.total_fees  # ✅ Get the computed total fees
 
 class UserServiceSerializer(serializers.ModelSerializer):
-    service_name = serializers.CharField(source="service.name", read_only=True)  # ✅ Correctly fetch service name
-    service_total_fees = serializers.DecimalField(source="service.total_fees", max_digits=10, decimal_places=2, read_only=True)  # ✅ Fetch total fees
+    user_name = serializers.CharField(source="user.name", read_only=True)
+    service_name = serializers.CharField(source="service.name", read_only=True)
 
     class Meta:
         model = UserService
-        fields = ["id", "service", "service_name", "service_total_fees", "acknowledgment_number", "tracking_number", "amount"]
+        fields = '__all__'
+
+    def create(self, validated_data):
+        if 'user' not in validated_data:
+            raise serializers.ValidationError({"user": "This field is required."})
+        return super().create(validated_data)
 
 class UserSerializer(serializers.ModelSerializer):
+    services_used = serializers.PrimaryKeyRelatedField(many=True, queryset=UserService.objects.all())
+    remaining_charge = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+
     class Meta:
         model = User
         fields = "__all__"
-
-    services_used = serializers.PrimaryKeyRelatedField(
-        queryset=Service.objects.all(),
-        many=True
-    )
 
 
     def update(self, instance, validated_data):

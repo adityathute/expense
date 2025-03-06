@@ -95,3 +95,20 @@ class ServiceViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         self.perform_destroy(instance)
         return Response({"message": "Service deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+class UserServiceViewSet(viewsets.ModelViewSet):
+    queryset = UserService.objects.all()
+    serializer_class = UserServiceSerializer
+
+    def create(self, request, *args, **kwargs):
+        data = request.data.copy()
+
+        if not data.get("user"):
+            return Response({"error": "User is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = User.objects.get(id=data["user"])  # Get user manually
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=user)  # Assign user properly
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+

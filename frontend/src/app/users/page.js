@@ -153,11 +153,11 @@ export default function Users() {
         <div className="main-content">
           <h1>Users</h1>
 
-          <button onClick={() => setShowForm(true)}>Add User</button>
+          <button onClick={() => setShowForm(true)}>Add</button>
 
           {showForm && (
             <form onSubmit={handleSubmit}>
-              <label>Full Name:
+              <label>Name:
                 <input type="text" name="name" onChange={handleChange} value={newUser.name} required />
               </label>
               <label>Address:
@@ -169,7 +169,7 @@ export default function Users() {
               <label>Email:
                 <input type="email" name="email" onChange={handleChange} value={newUser.email} required />
               </label>
-              <label>Total Charge:
+              <label>Charge:
                 <input type="number" name="total_charge" value={newUser.total_charge} readOnly />
               </label>
               <label>Paid Charge:
@@ -202,23 +202,19 @@ export default function Users() {
             <thead>
               <tr>
                 <th>Name</th>
-                <th>Address</th>
-                <th>Mobile</th>
-                <th>Email</th>
-                <th>Services Used</th>
-                <th>Total Charge</th>
+                <th>Contact</th>
+                <th>Service</th>
+                <th>Charge</th>
                 <th>Paid</th>
                 <th>Remaining</th>
-                <th>Actions</th>
+                <th>Status</th>
               </tr>
             </thead>
             <tbody>
               {users.map((user) => (
                 <tr key={user.id}>
                   <td>{user.name}</td>
-                  <td>{user.address}</td>
                   <td>{user.mobile_number}</td>
-                  <td>{user.email}</td>
                   <td>
                     <ul>
                       {user.services_used.map((service, index) => (
@@ -231,9 +227,10 @@ export default function Users() {
                   <td>{user.total_charge}</td>
                   <td>{user.paid_charge}</td>
                   <td>{user.total_charge - user.paid_charge}</td>
-                  <td>
+                  <td></td>
+                  {/* <td>
                     <button onClick={() => handleEdit(user)}>Edit</button>
-                  </td>
+                  </td> */}
                 </tr>
               ))}
             </tbody>
