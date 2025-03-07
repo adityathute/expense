@@ -102,13 +102,20 @@ class UserServiceViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         data = request.data.copy()
 
+        print("Received data:", data)  # Debugging: Log incoming request
+
         if not data.get("user"):
             return Response({"error": "User is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        user = User.objects.get(id=data["user"])  # Get user manually
+        try:
+            user = User.objects.get(id=data["user"])  # Ensure user exists
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        if not serializer.is_valid():
+            print("Serializer errors:", serializer.errors)  # Debugging
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
         serializer.save(user=user)  # Assign user properly
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-

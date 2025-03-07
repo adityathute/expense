@@ -6,17 +6,13 @@ import TopBar from "../components/TopBar";
 
 export default function Users() {
   const [users, setUsers] = useState([]);
-  const [services, setServices] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [editingUser, setEditingUser] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
   const [newUser, setNewUser] = useState({
     name: "",
-    address: "",
     mobile_number: "",
-    email: "",
-    total_charge: 0,
-    paid_charge: 0,
-    services_used: [],
   });
 
   useEffect(() => {
@@ -24,126 +20,104 @@ export default function Users() {
       .then((res) => res.json())
       .then((data) => setUsers(data))
       .catch((err) => console.error(err));
-
-    fetch("http://127.0.0.1:8001/api/services/")
-      .then((res) => res.json())
-      .then((data) => setServices(data))
-      .catch((err) => console.error(err));
-      console.log("Fetched services:", services);
-
   }, []);
 
-  const handleChange = (e) => {
-    setNewUser({ ...newUser, [e.target.name]: e.target.value });
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
   };
 
-  const handleServiceChange = (service) => {
-    if (!service || !service.id) return; // Ensure service has a valid ID
+  const filteredUsers = users.filter((user) =>
+    user.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
-    setNewUser((prevUser) => {
-        const existingService = prevUser.services_used.find((s) => s.service === service.id);
-    
-        let updatedServices;
-        if (existingService) {
-            updatedServices = prevUser.services_used.filter((s) => s.service !== service.id);
-        } else {
-            updatedServices = [
-                ...prevUser.services_used,
-                {
-                    service: service.id,  // Ensure only valid ID is stored
-                    service_name: service.name,
-                    service_total_fees: Number(service.fees) || 0,
-                    acknowledgment_number: `ACK-${Date.now()}`,
-                    tracking_number: `TRK-${Date.now()}`,
-                    amount: Number(service.fees) || 0,
-                },
-            ];
-        }
+  const handleShowUserDetails = (user) => {
+    setSelectedUser(user);
+    setIsEditing(false); // Ensure it's in view mode initially
+  };
 
-        const newTotalCharge = updatedServices.reduce((sum, s) => sum + (Number(s.service_total_fees) || 0), 0);
-        return { ...prevUser, services_used: updatedServices, total_charge: newTotalCharge };
-    });
-};
+  const handleCloseDetails = () => {
+    setSelectedUser(null);
+    setIsEditing(false);
+  };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    // Ensure services_used only contains valid service IDs
-    const formattedUser = {
-        ...newUser,
-        services_used: newUser.services_used
-            .map(s => s.service) // Extract only service IDs
-            .filter(id => id !== null && id !== undefined) // Remove null/undefined
-    };
-
-    console.log("Formatted Data Sent to API:", JSON.stringify(formattedUser, null, 2));
-
-    const method = editingUser ? "PUT" : "POST";
-    const url = editingUser
-        ? `http://127.0.0.1:8001/api/users/${editingUser.id}/`
-        : "http://127.0.0.1:8001/api/users/";
-
-    try {
-        const response = await fetch(url, {
-            method: method,
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(formattedUser),
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Failed to update user: ${errorText}`);
-        }
-
-        const result = await response.json();
-        console.log("API Response:", result);
-
-        if (editingUser) {
-            setUsers(users.map(user => user.id === editingUser.id ? result : user));
-        } else {
-            setUsers([...users, result]);
-        }
-
-        handleCancel();
-    } catch (error) {
-        console.error("Error updating user:", error);
+  const capitalizeWords = (str) => {
+    return str.replace(/\b\w/g, (char) => char.toUpperCase());
+  };
+  
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    const capitalizedValue = capitalizeWords(value);
+  
+    if (isEditing) {
+      setSelectedUser({ ...selectedUser, [name]: capitalizedValue });
+    } else {
+      setNewUser({ ...newUser, [name]: capitalizedValue });
     }
-};
+  };
+  
 
-  const handleEdit = (user) => {
-    setEditingUser(user);
-    setNewUser({
-      name: user.name,
-      address: user.address,
-      mobile_number: user.mobile_number,
-      email: user.email,
-      total_charge: user.total_charge,
-      paid_charge: user.paid_charge,
-      services_used: user.services_used.map(service => ({
-        service: service.service,
-        service_name: service.service_name,
-        service_total_fees: service.service_total_fees,
-        acknowledgment_number: service.acknowledgment_number,
-        tracking_number: service.tracking_number,
-        amount: service.amount,
-      })),
-    });
-    setShowForm(true);
+  const handleEditClick = () => {
+    setIsEditing(true);
   };
 
-  const handleCancel = () => {
-    setEditingUser(null);
-    setNewUser({
-      name: "",
-      address: "",
-      mobile_number: "",
-      email: "",
-      total_charge: 0,
-      paid_charge: 0,
-      services_used: [],
-    });
-    setShowForm(false);
+  const handleSaveEdit = async () => {
+    try {
+      const response = await fetch(`http://127.0.0.1:8001/api/users/${selectedUser.id}/`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(selectedUser),
+      });
+
+      if (response.ok) {
+        const updatedUser = await response.json();
+        setUsers(users.map((u) => (u.id === updatedUser.id ? updatedUser : u))); // Update list
+        setIsEditing(false);
+      } else {
+        console.error("Failed to update user");
+      }
+    } catch (error) {
+      console.error("Error updating user:", error);
+    }
   };
+
+  const handleAddUser = async () => {
+    const requestData = {
+      name: newUser.name,
+      mobile_number: newUser.mobile_number,
+    };
+  
+    console.log("Sending request:", JSON.stringify(requestData, null, 2));
+  
+    try {
+      const response = await fetch("http://localhost:8001/api/users/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestData),
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        console.error("Error Response:", response.status, data);
+      } else {
+        console.log("User added successfully:", data);
+  
+        // ✅ Update user list immediately
+        setUsers([...users, data]);
+  
+        // ✅ Clear form fields
+        setNewUser({ name: "", mobile_number: "" });
+  
+        // ✅ Close the popup
+        setShowForm(false);
+      }
+    } catch (error) {
+      console.error("Error adding user:", error);
+    }
+  };
+  
 
   return (
     <div className="content">
@@ -153,90 +127,128 @@ export default function Users() {
         <div className="main-content">
           <h1>Users</h1>
 
-          <button onClick={() => setShowForm(true)}>Add</button>
+          {/* Search and Add User */}
+          <div className="search-container">
+            <input
+              type="text"
+              placeholder="Search users..."
+              value={searchQuery}
+              onChange={handleSearchChange}
+            />
+            <button className="add-button" onClick={() => setShowForm(true)}>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Add
+            </button>
+          </div>
 
+          {/* Add User Form */}
           {showForm && (
-            <form onSubmit={handleSubmit}>
-              <label>Name:
-                <input type="text" name="name" onChange={handleChange} value={newUser.name} required />
-              </label>
-              <label>Address:
-                <input type="text" name="address" onChange={handleChange} value={newUser.address} required />
-              </label>
-              <label>Mobile:
-                <input type="text" name="mobile_number" onChange={handleChange} value={newUser.mobile_number} required />
-              </label>
-              <label>Email:
-                <input type="email" name="email" onChange={handleChange} value={newUser.email} required />
-              </label>
-              <label>Charge:
-                <input type="number" name="total_charge" value={newUser.total_charge} readOnly />
-              </label>
-              <label>Paid Charge:
-                <input type="number" name="paid_charge" onChange={handleChange} value={newUser.paid_charge} required />
-              </label>
-
-              <fieldset>
-                <legend>Services Used:</legend>
-                {services.map((service) => (
-                  <div key={service.id}>
-                    <input
-                      type="checkbox"
-                      id={`service-${service.id}`}
-                      checked={newUser.services_used.some(s => s.service === service.id)}
-                      onChange={() => handleServiceChange(service)}
-                    />
-                    <label htmlFor={`service-${service.id}`}>
-                      {service.name} (Fees: {service.fees})
-                    </label>
-                  </div>
-                ))}
-              </fieldset>
-
-              <button type="submit">{editingUser ? "Update User" : "Add User"}</button>
-              <button type="button" onClick={handleCancel}>Cancel</button>
-            </form>
+            <div className="modal">
+              <div className="modal-content">
+                <span className="close-button" onClick={() => setShowForm(false)}>
+                  &times;
+                </span>
+                <h2>Add User</h2>
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="Enter Name"
+                  value={newUser.name}
+                  onChange={handleInputChange}
+                  required
+                />
+                <input
+                  type="text"
+                  name="mobile_number"
+                  placeholder="Enter Mobile Number"
+                  value={newUser.mobile_number}
+                  onChange={handleInputChange}
+                  required
+                />
+                <button onClick={handleAddUser}>Save</button>
+              </div>
+            </div>
           )}
 
-          <table border="1">
+          {/* User Table */}
+          <table>
             <thead>
               <tr>
                 <th>Name</th>
-                <th>Contact</th>
-                <th>Service</th>
-                <th>Charge</th>
-                <th>Paid</th>
-                <th>Remaining</th>
-                <th>Status</th>
+                <th>Mobile</th>
               </tr>
             </thead>
             <tbody>
-              {users.map((user) => (
+              {filteredUsers.map((user) => (
                 <tr key={user.id}>
-                  <td>{user.name}</td>
-                  <td>{user.mobile_number}</td>
                   <td>
-                    <ul>
-                      {user.services_used.map((service, index) => (
-                        <li key={service.id || `service-${index}`}>
-                          {service.service_name} (Fees: {service.service_total_fees}, Amount: {service.amount})
-                        </li>
-                      ))}
-                    </ul>
+                    <span className="user-link" onClick={() => handleShowUserDetails(user)}>
+                      {user.name}
+                    </span>
                   </td>
-                  <td>{user.total_charge}</td>
-                  <td>{user.paid_charge}</td>
-                  <td>{user.total_charge - user.paid_charge}</td>
-                  <td></td>
-                  {/* <td>
-                    <button onClick={() => handleEdit(user)}>Edit</button>
-                  </td> */}
+                  <td>{user.mobile_number}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       </div>
+
+      {/* User Details Popup */}
+      {selectedUser && (
+        <div className="modal">
+          <div className="modal-content">
+            <span className="close-button" onClick={handleCloseDetails}>
+              &times;
+            </span>
+            {isEditing ? (
+              <>
+                <h2>Edit User</h2>
+                <input
+                  type="text"
+                  name="name"
+                  value={selectedUser.name}
+                  onChange={handleInputChange}
+                />
+                <input
+                  type="text"
+                  name="mobile_number"
+                  value={selectedUser.mobile_number}
+                  onChange={handleInputChange}
+                />
+                <button className="save-button" onClick={handleSaveEdit}>
+                  Save
+                </button>
+              </>
+            ) : (
+              <>
+                <h2>{selectedUser.name}</h2>
+                <p><strong>Address:</strong> {selectedUser.address || "N/A"}</p>
+                <p><strong>Mobile:</strong> {selectedUser.mobile_number}</p>
+                <p><strong>Email:</strong> {selectedUser.email || "N/A"}</p>
+                <p><strong>Total Charge:</strong> {selectedUser.total_charge}</p>
+                <p><strong>Paid:</strong> {selectedUser.paid_charge}</p>
+                <p><strong>Remaining:</strong> {selectedUser.total_charge - selectedUser.paid_charge}</p>
+                <button className="edit-button" onClick={handleEditClick}>
+                  Edit
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

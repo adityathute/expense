@@ -36,13 +36,14 @@ class UserServiceSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 class UserSerializer(serializers.ModelSerializer):
-    services_used = serializers.PrimaryKeyRelatedField(many=True, queryset=UserService.objects.all())
-    remaining_charge = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    remaining_amount = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = "__all__"
-
+        fields = '__all__'  # Ensure required fields are correctly set
+        
+    def get_remaining_amount(self, obj):
+        return obj.total_charge - obj.paid_charge if obj.total_charge and obj.paid_charge else 0
 
     def update(self, instance, validated_data):
         services_data = validated_data.pop("services_used", [])

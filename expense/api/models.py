@@ -34,9 +34,9 @@ class Category(models.Model):
 
 class User(models.Model):
     name = models.CharField(max_length=255)
-    address = models.TextField()
+    address = models.TextField(blank=True, null=True)  # ✅ Make address optional
+    email = models.EmailField(blank=True, null=True)  # ✅ Make email optional    
     mobile_number = models.CharField(max_length=15)
-    email = models.EmailField(unique=True)
     total_charge = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     paid_charge = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     created_at = models.DateTimeField(auto_now_add=True)
