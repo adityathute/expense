@@ -63,5 +63,15 @@ class UserSerializer(serializers.ModelSerializer):
                 existing_services[service_id].save()
             else:
                 UserService.objects.create(user=instance, **service_data)
+                
+        def validate_mobile_number(self, value):
+            if len(value) != 10:
+                raise serializers.ValidationError("Mobile number must be exactly 10 digits.")
+            return value
 
+        def validate_user_id(self, value):
+            if value and len(value) != 12:
+                raise serializers.ValidationError("User ID must be exactly 12 digits if provided.")
+            return value
+    
         return instance

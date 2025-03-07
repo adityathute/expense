@@ -13,6 +13,7 @@ export default function Users() {
   const [newUser, setNewUser] = useState({
     name: "",
     mobile_number: "",
+    user_id: "",
   });
 
   useEffect(() => {
@@ -26,9 +27,14 @@ export default function Users() {
     setSearchQuery(e.target.value);
   };
 
-  const filteredUsers = users.filter((user) =>
-    user.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredUsers = users.filter((user) => {
+    const query = searchQuery.toLowerCase();
+    return (
+      user.name.toLowerCase().includes(query) ||
+      user.mobile_number.includes(query) ||
+      (user.user_id && user.user_id.includes(query))
+    );
+  });
 
   const handleShowUserDetails = (user) => {
     setSelectedUser(user);
@@ -43,18 +49,28 @@ export default function Users() {
   const capitalizeWords = (str) => {
     return str.replace(/\b\w/g, (char) => char.toUpperCase());
   };
-  
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    const capitalizedValue = capitalizeWords(value);
-  
+
+    // Capitalize names
+    const capitalizedValue = name === "name" ? capitalizeWords(value) : value;
+
+    // Ensure only numbers (10-digit mobile, 12-digit user ID)
+    if (name === "mobile_number" && value && !/^\d{0,10}$/.test(value)) {
+      return; // Restrict input beyond 10 digits
+    }
+    if (name === "user_id" && value && !/^\d{0,12}$/.test(value)) {
+      return; // Restrict input beyond 12 digits
+    }
+
     if (isEditing) {
       setSelectedUser({ ...selectedUser, [name]: capitalizedValue });
     } else {
       setNewUser({ ...newUser, [name]: capitalizedValue });
     }
   };
-  
+
 
   const handleEditClick = () => {
     setIsEditing(true);
@@ -83,41 +99,46 @@ export default function Users() {
   };
 
   const handleAddUser = async () => {
+    if (newUser.mobile_number.length !== 10) {
+      alert("Mobile number must be exactly 10 digits.");
+      return;
+    }
+
+    if (newUser.user_id && newUser.user_id.length !== 12) {
+      alert("User ID must be exactly 12 digits.");
+      return;
+    }
+
     const requestData = {
       name: newUser.name,
       mobile_number: newUser.mobile_number,
     };
-  
-    console.log("Sending request:", JSON.stringify(requestData, null, 2));
-  
+
+    // ✅ Only include `user_id` if it's provided
+    if (newUser.user_id) {
+      requestData.user_id = newUser.user_id;
+    }
+
     try {
       const response = await fetch("http://localhost:8001/api/users/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestData),
       });
-  
+
       const data = await response.json();
-  
       if (!response.ok) {
         console.error("Error Response:", response.status, data);
       } else {
-        console.log("User added successfully:", data);
-  
-        // ✅ Update user list immediately
-        setUsers([...users, data]);
-  
-        // ✅ Clear form fields
-        setNewUser({ name: "", mobile_number: "" });
-  
-        // ✅ Close the popup
-        setShowForm(false);
+        setUsers([...users, data]); // ✅ Update user list immediately
+        setNewUser({ name: "", mobile_number: "", user_id: "" }); // ✅ Clear form
+        setShowForm(false); // ✅ Close the form
       }
     } catch (error) {
       console.error("Error adding user:", error);
     }
   };
-  
+
 
   return (
     <div className="content">
@@ -165,7 +186,7 @@ export default function Users() {
                   type="text"
                   name="name"
                   placeholder="Enter Name"
-                  value={newUser.name}
+                  value={newUser.name || ""}
                   onChange={handleInputChange}
                   required
                 />
@@ -173,11 +194,19 @@ export default function Users() {
                   type="text"
                   name="mobile_number"
                   placeholder="Enter Mobile Number"
-                  value={newUser.mobile_number}
+                  value={newUser.mobile_number || ""}
                   onChange={handleInputChange}
-                  required
                 />
-                <button onClick={handleAddUser}>Save</button>
+                <input
+                  type="text"
+                  name="user_id"
+                  placeholder="Enter 12-digit User ID (optional)"
+                  value={newUser.user_id || ""}
+                  onChange={handleInputChange}
+                />
+
+
+                <button className="add-button mt-15" onClick={handleAddUser}>Save</button>
               </div>
             </div>
           )}
@@ -188,21 +217,22 @@ export default function Users() {
               <tr>
                 <th>Name</th>
                 <th>Mobile</th>
+                <th>User ID</th>
               </tr>
             </thead>
             <tbody>
               {filteredUsers.map((user) => (
                 <tr key={user.id}>
-                  <td>
-                    <span className="user-link" onClick={() => handleShowUserDetails(user)}>
-                      {user.name}
-                    </span>
-                  </td>
+                  <td><span className="user-link" onClick={() => handleShowUserDetails(user)}>{user.name}</span></td>
                   <td>{user.mobile_number}</td>
+                  <td>{user.user_id || "N/A"}</td>
                 </tr>
               ))}
             </tbody>
+
           </table>
+
+
         </div>
       </div>
 
@@ -235,12 +265,14 @@ export default function Users() {
             ) : (
               <>
                 <h2>{selectedUser.name}</h2>
+                <p><strong>User ID:</strong> {selectedUser.user_id || "N/A"}</p>
                 <p><strong>Address:</strong> {selectedUser.address || "N/A"}</p>
                 <p><strong>Mobile:</strong> {selectedUser.mobile_number}</p>
                 <p><strong>Email:</strong> {selectedUser.email || "N/A"}</p>
                 <p><strong>Total Charge:</strong> {selectedUser.total_charge}</p>
                 <p><strong>Paid:</strong> {selectedUser.paid_charge}</p>
                 <p><strong>Remaining:</strong> {selectedUser.total_charge - selectedUser.paid_charge}</p>
+
                 <button className="edit-button" onClick={handleEditClick}>
                   Edit
                 </button>

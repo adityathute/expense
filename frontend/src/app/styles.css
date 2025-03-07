@@ -241,13 +241,9 @@ input, textarea {
   padding: 5px;
 }
 
-button {
-  padding: 8px;
-  cursor: pointer;
-}
 
-button:hover {
-  background: lightgray;
+.mt-15{
+  margin-top: 15px;
 }
 
 /* Search Bar and Add Button */
@@ -305,7 +301,6 @@ th {
 .user-link {
   color: #007bff;
   cursor: pointer;
-  text-decoration: underline;
 }
 
 /* Modal Popup */
@@ -322,6 +317,10 @@ th {
 }
 
 .modal-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
   background: white;
   padding: 20px;
   border-radius: 8px;
@@ -356,6 +355,9 @@ th {
 
 /* Input Fields in Edit Mode */
 .modal-content input {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   width: 100%;
   padding: 8px;
   margin-top: 5px;

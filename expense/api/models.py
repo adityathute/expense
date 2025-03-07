@@ -1,4 +1,6 @@
 from django.db import models
+from django.core.validators import RegexValidator
+import random
 
 class Category(models.Model):
     CATEGORY_TYPES = [
@@ -32,11 +34,28 @@ class Category(models.Model):
     class Meta:
         ordering = ["core_category", "name"]
 
+import random
+from django.db import models
+from django.core.validators import RegexValidator
+
 class User(models.Model):
     name = models.CharField(max_length=255)
-    address = models.TextField(blank=True, null=True)  # ✅ Make address optional
-    email = models.EmailField(blank=True, null=True)  # ✅ Make email optional    
-    mobile_number = models.CharField(max_length=15)
+    address = models.TextField(blank=True, null=True)  
+    email = models.EmailField(blank=True, null=True)  
+    mobile_number = models.CharField(
+        max_length=10,
+        blank=True,  # ✅ Allow blank user_id
+        null=True,   # ✅ Allow NULL value in DB
+        unique=True,
+        validators=[RegexValidator(regex=r'^\d{10}$', message="Mobile number must be exactly 10 digits")]
+    )
+    user_id = models.CharField(
+        max_length=12,
+        blank=True,  # ✅ Allow blank user_id
+        null=True,   # ✅ Allow NULL value in DB
+        unique=True,
+        validators=[RegexValidator(regex=r'^\d{12}$', message="User ID must be exactly 12 digits if provided")]
+    )
     total_charge = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     paid_charge = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -45,9 +64,6 @@ class User(models.Model):
     def __str__(self):
         return self.name
 
-    @property
-    def remaining_charge(self):
-        return self.total_charge - self.paid_charge  # ✅ Remaining amount calculation
 
 class Service(models.Model):
     name = models.CharField(max_length=255, unique=True)
