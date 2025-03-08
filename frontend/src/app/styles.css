@@ -365,3 +365,18 @@ th {
   border-radius: 4px;
   display: block;
 }
+
+.error-text {
+  color: red;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+/* Disable Browser Autocomplete */
+input[type="text"]::-webkit-autofill,
+input[type="text"]::-webkit-autofill:hover,
+input[type="text"]::-webkit-autofill:focus {
+  background: white !important;
+  color: black !important;
+  transition: background 9999s ease-in-out 0s;
+}

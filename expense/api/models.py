@@ -34,26 +34,21 @@ class Category(models.Model):
     class Meta:
         ordering = ["core_category", "name"]
 
-import random
-from django.db import models
-from django.core.validators import RegexValidator
-
 class User(models.Model):
     name = models.CharField(max_length=255)
-    address = models.TextField(blank=True, null=True)  
-    email = models.EmailField(blank=True, null=True)  
+    address = models.TextField(blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
     mobile_number = models.CharField(
         max_length=10,
-        blank=True,  # ✅ Allow blank user_id
-        null=True,   # ✅ Allow NULL value in DB
-        unique=True,
+        blank=True,
+        null=True,
         validators=[RegexValidator(regex=r'^\d{10}$', message="Mobile number must be exactly 10 digits")]
-    )
+    )  # ✅ Allow same number for multiple users
     user_id = models.CharField(
         max_length=12,
-        blank=True,  # ✅ Allow blank user_id
-        null=True,   # ✅ Allow NULL value in DB
-        unique=True,
+        blank=True,
+        null=True,
+        unique=True,  # ✅ Ensure uniqueness only when provided
         validators=[RegexValidator(regex=r'^\d{12}$', message="User ID must be exactly 12 digits if provided")]
     )
     total_charge = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -63,7 +58,6 @@ class User(models.Model):
 
     def __str__(self):
         return self.name
-
 
 class Service(models.Model):
     name = models.CharField(max_length=255, unique=True)

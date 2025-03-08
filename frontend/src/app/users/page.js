@@ -15,6 +15,11 @@ export default function Users() {
     mobile_number: "",
     user_id: "",
   });
+  const [errorMessage, setErrorMessage] = useState({
+    user_id: "",
+    mobile_number: "",
+  });
+  
 
   useEffect(() => {
     fetch("http://127.0.0.1:8001/api/users/")
@@ -56,7 +61,7 @@ export default function Users() {
     // Capitalize names
     const capitalizedValue = name === "name" ? capitalizeWords(value) : value;
 
-    // Ensure only numbers (10-digit mobile, 12-digit user ID)
+    // Ensure only numbers (10-digit mobile, 12-digit ID)
     if (name === "mobile_number" && value && !/^\d{0,10}$/.test(value)) {
       return; // Restrict input beyond 10 digits
     }
@@ -99,45 +104,49 @@ export default function Users() {
   };
 
   const handleAddUser = async () => {
+    setErrorMessage({ user_id: "", mobile_number: "" });
+  
     if (newUser.mobile_number.length !== 10) {
-      alert("Mobile number must be exactly 10 digits.");
+      setErrorMessage((prev) => ({ ...prev, mobile_number: "Mobile number must be exactly 10 digits." }));
       return;
     }
-
+  
     if (newUser.user_id && newUser.user_id.length !== 12) {
-      alert("User ID must be exactly 12 digits.");
+      setErrorMessage((prev) => ({ ...prev, user_id: "ID must be exactly 12 digits." }));
       return;
     }
-
-    const requestData = {
-      name: newUser.name,
-      mobile_number: newUser.mobile_number,
-    };
-
-    // ✅ Only include `user_id` if it's provided
-    if (newUser.user_id) {
-      requestData.user_id = newUser.user_id;
+  
+    // 🔍 Check if user_id already exists in the list
+    const isDuplicateId = users.some((user) => user.user_id === newUser.user_id);
+    if (isDuplicateId) {
+      setErrorMessage((prev) => ({ ...prev, user_id: "User ID already exists." }));
+      return;
     }
-
+  
     try {
       const response = await fetch("http://localhost:8001/api/users/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestData),
+        body: JSON.stringify(newUser),
       });
-
+  
       const data = await response.json();
+  
       if (!response.ok) {
+        if (data.user_id) {
+          setErrorMessage((prev) => ({ ...prev, user_id: "User ID already exists in the database." }));
+        }
         console.error("Error Response:", response.status, data);
       } else {
-        setUsers([...users, data]); // ✅ Update user list immediately
+        setUsers([...users, data]); // ✅ Update user list
         setNewUser({ name: "", mobile_number: "", user_id: "" }); // ✅ Clear form
-        setShowForm(false); // ✅ Close the form
+        setShowForm(false); // ✅ Close form
       }
     } catch (error) {
       console.error("Error adding user:", error);
     }
   };
+  
 
 
   return (
@@ -197,15 +206,15 @@ export default function Users() {
                   value={newUser.mobile_number || ""}
                   onChange={handleInputChange}
                 />
+                {errorMessage.mobile_number && <p className="error-text">{errorMessage.mobile_number}</p>}
                 <input
                   type="text"
                   name="user_id"
-                  placeholder="Enter 12-digit User ID (optional)"
+                  placeholder="Enter 12-digit ID (optional)"
                   value={newUser.user_id || ""}
                   onChange={handleInputChange}
                 />
-
-
+                {errorMessage.user_id && <p className="error-text">{errorMessage.user_id}</p>}
                 <button className="add-button mt-15" onClick={handleAddUser}>Save</button>
               </div>
             </div>
@@ -217,7 +226,7 @@ export default function Users() {
               <tr>
                 <th>Name</th>
                 <th>Mobile</th>
-                <th>User ID</th>
+                <th>ID</th>
               </tr>
             </thead>
             <tbody>
@@ -265,7 +274,7 @@ export default function Users() {
             ) : (
               <>
                 <h2>{selectedUser.name}</h2>
-                <p><strong>User ID:</strong> {selectedUser.user_id || "N/A"}</p>
+                <p><strong>ID:</strong> {selectedUser.user_id || "N/A"}</p>
                 <p><strong>Address:</strong> {selectedUser.address || "N/A"}</p>
                 <p><strong>Mobile:</strong> {selectedUser.mobile_number}</p>
                 <p><strong>Email:</strong> {selectedUser.email || "N/A"}</p>
