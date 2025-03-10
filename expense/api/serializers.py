@@ -2,6 +2,8 @@ from rest_framework import serializers
 from .models import Category, Service, User, UserService, UserID
 from django.db.utils import IntegrityError
 
+# ---------------------- CATEGORY RELATED SERIALIZER ---------------------- #
+
 class CategorySerializer(serializers.ModelSerializer):
     subcategories = serializers.SerializerMethodField()
 
@@ -12,32 +14,7 @@ class CategorySerializer(serializers.ModelSerializer):
     def get_subcategories(self, obj):
         return CategorySerializer(obj.subcategories.all(), many=True).data
     
-
-class ServiceSerializer(serializers.ModelSerializer):
-    total_fees = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Service
-        fields = "__all__"
-
-    def get_total_fees(self, obj):
-        return obj.total_fees  # ✅ Get the computed total fees
-
-class UserServiceSerializer(serializers.ModelSerializer):
-    user_name = serializers.CharField(source="user.name", read_only=True)
-    user_mobile = serializers.CharField(source="user.mobile_number", read_only=True)
-    service_name = serializers.CharField(source="service.name", read_only=True)
-    user_id = serializers.CharField(source="user.user_id", read_only=True)  # ✅ Include user_id
-
-    class Meta:
-        model = UserService
-        fields = ['id', 'user', 'user_name', 'user_mobile', 'user_id', 'service', 'service_name', 'acknowledgment_number', 'tracking_number', 'amount']
-
-    def create(self, validated_data):
-        if 'user' not in validated_data:
-            raise serializers.ValidationError({"user": "This field is required."})
-        return super().create(validated_data)
-
+# ---------------------- USER RELATED SERIALIZERS ---------------------- #
 
 class UserIDSerializer(serializers.ModelSerializer):
     class Meta:
@@ -69,3 +46,32 @@ class UserSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({"mobile_number": "This number is already used by another user."})
 
         return super().update(instance, validated_data)
+
+# ---------------------- SERVICE RELATED SERIALIZER ---------------------- #
+
+class ServiceSerializer(serializers.ModelSerializer):
+    total_fees = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Service
+        fields = "__all__"
+
+    def get_total_fees(self, obj):
+        return obj.total_fees  # ✅ Get the computed total fees
+
+# ---------------------- USERS SERVICE RELATED SERIALIZER ---------------------- #
+
+class UserServiceSerializer(serializers.ModelSerializer):
+    user_name = serializers.CharField(source="user.name", read_only=True)
+    user_mobile = serializers.CharField(source="user.mobile_number", read_only=True)
+    service_name = serializers.CharField(source="service.name", read_only=True)
+    user_id = serializers.CharField(source="user.user_id", read_only=True)  # ✅ Include user_id
+
+    class Meta:
+        model = UserService
+        fields = ['id', 'user', 'user_name', 'user_mobile', 'user_id', 'service', 'service_name', 'acknowledgment_number', 'tracking_number', 'amount']
+
+    def create(self, validated_data):
+        if 'user' not in validated_data:
+            raise serializers.ValidationError({"user": "This field is required."})
+        return super().create(validated_data)

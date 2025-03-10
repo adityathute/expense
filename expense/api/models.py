@@ -2,6 +2,8 @@ from django.db import models
 from django.core.validators import RegexValidator
 import random
 
+# ---------------------- CATEGORY RELATED MODEL ---------------------- #
+
 class Category(models.Model):
     CATEGORY_TYPES = [
         ("Home", "Home"),
@@ -34,6 +36,8 @@ class Category(models.Model):
     class Meta:
         ordering = ["core_category", "name"]
 
+# ---------------------- USER RELATED MODELS ---------------------- #
+
 class User(models.Model):
     # Basic Details
     name = models.CharField(max_length=255)
@@ -64,7 +68,6 @@ class User(models.Model):
     def __str__(self):
         return self.name
 
-
 class UserID(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="identifications")
 
@@ -80,6 +83,8 @@ class UserID(models.Model):
 
     def __str__(self):
         return f"{self.user.name} - {self.id_type}: {self.id_number}" if self.id_number else f"{self.user.name} - No ID"
+
+# ---------------------- SERVICE RELATED MODELS ---------------------- #
 
 class Service(models.Model):
     # Basic Service Details
@@ -127,6 +132,8 @@ class ServiceRequirement(models.Model):
 
     def __str__(self):
         return f"{self.service.name} - {self.requirement_name}"
+
+# ---------------------- USER SERVICE RELATED MODELS ---------------------- #
 
 class UserService(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="services_used")

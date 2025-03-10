@@ -103,9 +103,6 @@ body {
   margin-top: var(--navbar-height2);
 }
 
-
-
-
 /* Buttons */
 .btn {
   padding: 12px 20px;
@@ -156,7 +153,6 @@ body {
   font-size: 18px;
   margin-left: 12px; /* Add space between switch and text */
 }
-
 
 .switch-container span{
   font-weight: 600;
@@ -241,27 +237,8 @@ input, textarea {
   padding: 5px;
 }
 
-
 .mt-15{
   margin-top: 15px;
-}
-
-/* Search Bar and Add Button */
-.search-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-input {
-  display: flex;
-  align-items: center;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  flex-grow: 1;
 }
 
 .add-button {
@@ -278,29 +255,6 @@ input {
 
 .add-button svg {
   margin-right: 5px;
-}
-
-/* User Table */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-
-th, td {
-  padding: 10px;
-  border: 1px solid #ddd;
-  text-align: left;
-}
-
-th {
-  background-color: #f4f4f4;
-}
-
-/* User Name Clickable */
-.user-link {
-  color: #007bff;
-  cursor: pointer;
 }
 
 /* Modal Overlay */

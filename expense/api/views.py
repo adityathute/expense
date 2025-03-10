@@ -1,10 +1,11 @@
 from django.http import JsonResponse
 from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
+from rest_framework import generics, status, viewsets
 from .models import Category, Service, User, UserService
 from .serializers import CategorySerializer, UserSerializer, ServiceSerializer, UserServiceSerializer
-from rest_framework import generics, status, viewsets
-from rest_framework.response import Response
+
+# ---------------------- CATEGORY RELATED VIEWS ---------------------- #
 
 @api_view(['GET', 'POST'])
 def category_list(request):
@@ -53,6 +54,7 @@ def category_detail(request, category_id):
 
     return Response(CategorySerializer(category).data)
 
+# ---------------------- USER RELATED VIEWS ---------------------- #
 
 class UserListCreateView(generics.ListCreateAPIView):
     queryset = User.objects.all()
@@ -62,6 +64,8 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     
+# ---------------------- SERVICE RELATED VIEWS ---------------------- #
+
 class ServiceListCreateView(generics.ListCreateAPIView):
     queryset = Service.objects.all()
     serializer_class = ServiceSerializer
@@ -71,13 +75,6 @@ class ServiceDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Service.objects.all()
     serializer_class = ServiceSerializer
 
-class UserServiceListCreateView(generics.ListCreateAPIView):
-    queryset = UserService.objects.all()
-    serializer_class = UserServiceSerializer
-
-class UserServiceDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = UserService.objects.all()
-    serializer_class = UserServiceSerializer
 
 class ServiceViewSet(viewsets.ModelViewSet):
     queryset = Service.objects.all()
@@ -95,7 +92,17 @@ class ServiceViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         self.perform_destroy(instance)
         return Response({"message": "Service deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
-    
+
+# ---------------------- USERS SERVICE RELATED VIEWS ---------------------- #
+
+class UserServiceListCreateView(generics.ListCreateAPIView):
+    queryset = UserService.objects.all()
+    serializer_class = UserServiceSerializer
+
+class UserServiceDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = UserService.objects.all()
+    serializer_class = UserServiceSerializer
+
 class UserServiceViewSet(viewsets.ModelViewSet):
     queryset = UserService.objects.all()
     serializer_class = UserServiceSerializer
