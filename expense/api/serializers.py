@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Category, Service, User, UserService
+from .models import Category, Service, User, UserService, UserID
+from django.db.utils import IntegrityError
 
 class CategorySerializer(serializers.ModelSerializer):
     subcategories = serializers.SerializerMethodField()
@@ -24,54 +25,47 @@ class ServiceSerializer(serializers.ModelSerializer):
 
 class UserServiceSerializer(serializers.ModelSerializer):
     user_name = serializers.CharField(source="user.name", read_only=True)
+    user_mobile = serializers.CharField(source="user.mobile_number", read_only=True)
     service_name = serializers.CharField(source="service.name", read_only=True)
+    user_id = serializers.CharField(source="user.user_id", read_only=True)  # ✅ Include user_id
 
     class Meta:
         model = UserService
-        fields = '__all__'
+        fields = ['id', 'user', 'user_name', 'user_mobile', 'user_id', 'service', 'service_name', 'acknowledgment_number', 'tracking_number', 'amount']
 
     def create(self, validated_data):
         if 'user' not in validated_data:
             raise serializers.ValidationError({"user": "This field is required."})
         return super().create(validated_data)
 
+
+class UserIDSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserID
+        fields = ["id_type", "id_number"]  # ✅ Keep it flexible
+
 class UserSerializer(serializers.ModelSerializer):
-    remaining_amount = serializers.SerializerMethodField()
+    identifications = UserIDSerializer(many=True, required=False)  # ✅ Make optional
 
     class Meta:
         model = User
-        fields = '__all__'  # Ensure required fields are correctly set
+        fields = ["id", "name", "mobile_number", "identifications"]
+
+    def create(self, validated_data):
+        identifications_data = validated_data.pop("identifications", [])
+        user = User.objects.create(**validated_data)
         
-    def get_remaining_amount(self, obj):
-        return obj.total_charge - obj.paid_charge if obj.total_charge and obj.paid_charge else 0
+        # ✅ Create IDs only if provided
+        for id_data in identifications_data:
+            if id_data.get("id_number"):  # ✅ Only create if ID number is given
+                UserID.objects.create(user=user, **id_data)
+        
+        return user
 
     def update(self, instance, validated_data):
-        services_data = validated_data.pop("services_used", [])
+        if "mobile_number" in validated_data:
+            existing_user = User.objects.filter(mobile_number=validated_data["mobile_number"]).exclude(id=instance.id).first()
+            if existing_user:
+                raise serializers.ValidationError({"mobile_number": "This number is already used by another user."})
 
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
-
-        # Update or create UserService records
-        existing_services = {us.service.id: us for us in instance.services_used.all()}
-        for service_data in services_data:
-            service_id = service_data["service"].id
-            if service_id in existing_services:
-                existing_services[service_id].acknowledgment_number = service_data["acknowledgment_number"]
-                existing_services[service_id].tracking_number = service_data["tracking_number"]
-                existing_services[service_id].amount = service_data["amount"]
-                existing_services[service_id].save()
-            else:
-                UserService.objects.create(user=instance, **service_data)
-                
-        def validate_mobile_number(self, value):
-            if len(value) != 10:
-                raise serializers.ValidationError("Mobile number must be exactly 10 digits.")
-            return value
-
-        def validate_user_id(self, value):
-            if value and len(value) != 12:
-                raise serializers.ValidationError("User ID must be exactly 12 digits if provided.")
-            return value
-    
-        return instance
+        return super().update(instance, validated_data)

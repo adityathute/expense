@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import TopBar from "../components/TopBar";
+import "../users/styles.css"; // Import the CSS
 
 export default function Users() {
   const [users, setUsers] = useState([]);
@@ -13,20 +14,49 @@ export default function Users() {
   const [newUser, setNewUser] = useState({
     name: "",
     mobile_number: "",
-    user_id: "",
+    identifications: [{ id_type: "Aadhaar", id_number: "" }], // ✅ Initial one ID field
   });
+
   const [errorMessage, setErrorMessage] = useState({
     user_id: "",
     mobile_number: "",
   });
-  
+  const userIDs = newUser.user_id ? [{ id_type: "Aadhaar", id_number: newUser.user_id }] : [];
+
+  const handleIDChange = (index, field, value) => {
+    const updatedIDs = [...newUser.identifications];
+    updatedIDs[index][field] = value;
+    setNewUser({ ...newUser, identifications: updatedIDs });
+  };
+
+  const handleAddID = () => {
+    setNewUser({
+      ...newUser,
+      identifications: [...newUser.identifications, { id_type: "", id_number: "" }],
+    });
+  };
+
+  const handleRemoveID = (index) => {
+    const updatedIDs = [...newUser.identifications];
+    updatedIDs.splice(index, 1); // Remove the selected ID
+    setNewUser({ ...newUser, identifications: updatedIDs });
+  };
+
 
   useEffect(() => {
     fetch("http://127.0.0.1:8001/api/users/")
       .then((res) => res.json())
-      .then((data) => setUsers(data))
+      .then((data) => {
+        // Ensure identifications are included in each user
+        const updatedUsers = data.map(user => ({
+          ...user,
+          identifications: user.identifications || [] // Ensure it's always an array
+        }));
+        setUsers(updatedUsers);
+      })
       .catch((err) => console.error(err));
   }, []);
+
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
@@ -42,9 +72,15 @@ export default function Users() {
   });
 
   const handleShowUserDetails = (user) => {
-    setSelectedUser(user);
-    setIsEditing(false); // Ensure it's in view mode initially
+    setSelectedUser({
+      ...user,
+      name: user.name || "", 
+      mobile_number: user.mobile_number || "", 
+      identifications: user.identifications?.length ? user.identifications : [{ id_type: "", id_number: "" }]
+    });
+    setIsEditing(false);
   };
+  
 
   const handleCloseDetails = () => {
     setSelectedUser(null);
@@ -104,50 +140,44 @@ export default function Users() {
   };
 
   const handleAddUser = async () => {
-    setErrorMessage({ user_id: "", mobile_number: "" });
-  
-    if (newUser.mobile_number.length !== 10) {
-      setErrorMessage((prev) => ({ ...prev, mobile_number: "Mobile number must be exactly 10 digits." }));
-      return;
-    }
-  
-    if (newUser.user_id && newUser.user_id.length !== 12) {
-      setErrorMessage((prev) => ({ ...prev, user_id: "ID must be exactly 12 digits." }));
-      return;
-    }
-  
-    // 🔍 Check if user_id already exists in the list
-    const isDuplicateId = users.some((user) => user.user_id === newUser.user_id);
-    if (isDuplicateId) {
-      setErrorMessage((prev) => ({ ...prev, user_id: "User ID already exists." }));
-      return;
-    }
-  
     try {
+      // Remove empty mobile numbers or empty IDs before sending the request
+      const cleanedUser = {
+        name: newUser.name.trim(),
+      };
+
+      if (newUser.mobile_number.trim() !== "") {
+        cleanedUser.mobile_number = newUser.mobile_number.trim();
+      }
+
+      const validIdentifications = newUser.identifications.filter(
+        (id) => id.id_type.trim() !== "" && id.id_number.trim() !== ""
+      );
+
+      if (validIdentifications.length > 0) {
+        cleanedUser.identifications = validIdentifications;
+      }
+
       const response = await fetch("http://localhost:8001/api/users/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newUser),
+        body: JSON.stringify(cleanedUser),
       });
-  
+
       const data = await response.json();
-  
       if (!response.ok) {
-        if (data.user_id) {
-          setErrorMessage((prev) => ({ ...prev, user_id: "User ID already exists in the database." }));
-        }
-        console.error("Error Response:", response.status, data);
-      } else {
-        setUsers([...users, data]); // ✅ Update user list
-        setNewUser({ name: "", mobile_number: "", user_id: "" }); // ✅ Clear form
-        setShowForm(false); // ✅ Close form
+        console.error("Error:", data);
+        alert("Error: " + JSON.stringify(data));
+        return;
       }
+
+      setUsers([...users, data]); // Update state
+      setNewUser({ name: "", mobile_number: "", identifications: [{ id_type: "Aadhaar", id_number: "" }] });
+      setShowForm(false);
     } catch (error) {
       console.error("Error adding user:", error);
     }
   };
-  
-
 
   return (
     <div className="content">
@@ -206,14 +236,46 @@ export default function Users() {
                   value={newUser.mobile_number || ""}
                   onChange={handleInputChange}
                 />
+
                 {errorMessage.mobile_number && <p className="error-text">{errorMessage.mobile_number}</p>}
-                <input
-                  type="text"
-                  name="user_id"
-                  placeholder="Enter 12-digit ID (optional)"
-                  value={newUser.user_id || ""}
-                  onChange={handleInputChange}
-                />
+                {newUser.identifications.map((id, index) => (
+                  <div key={index} className="id-input-group">
+                    <select
+                      value={id.id_type}
+                      onChange={(e) => handleIDChange(index, "id_type", e.target.value)}
+                    >
+                      <option value="">Select ID Type</option>
+                      <option value="Aadhaar">Aadhaar</option>
+                      <option value="PAN">PAN Card</option>
+                      <option value="Voter ID">Voter ID</option>
+                      <option value="Driving License">Driving License</option>
+                      <option value="Passport">Passport</option>
+                    </select>
+
+                    <input
+                      type="text"
+                      placeholder="Enter ID Number"
+                      value={id.id_number || ""}
+                      onChange={(e) => handleIDChange(index, "id_number", e.target.value)}
+                    />
+
+
+                    {/* Show Remove Button only if more than 1 ID exists */}
+                    {newUser.identifications.length > 1 && (
+                      <button type="button" className="remove-button" onClick={() => handleRemoveID(index)}>
+                        ❌
+                      </button>
+                    )}
+                  </div>
+                ))}
+
+                {/* Show "Add More ID" Button always after at least one ID is added */}
+                <button type="button" onClick={handleAddID} disabled={!newUser.identifications[0].id_type || !newUser.identifications[0].id_number}>
+                  + Add More ID
+                </button>
+
+
+
                 {errorMessage.user_id && <p className="error-text">{errorMessage.user_id}</p>}
                 <button className="add-button mt-15" onClick={handleAddUser}>Save</button>
               </div>
@@ -232,12 +294,23 @@ export default function Users() {
             <tbody>
               {filteredUsers.map((user) => (
                 <tr key={user.id}>
-                  <td><span className="user-link" onClick={() => handleShowUserDetails(user)}>{user.name}</span></td>
+                  <td>
+                    <span className="user-link" onClick={() => handleShowUserDetails(user)}>
+                      {user.name}
+                    </span>
+                  </td>
                   <td>{user.mobile_number}</td>
-                  <td>{user.user_id || "N/A"}</td>
+                  <td>
+                    {user.identifications.length > 0
+                      ? user.identifications.map(id => `${id.id_type}: ${id.id_number}`).join(", ")
+                      : "N/A"}
+                  </td>
+
+
                 </tr>
               ))}
             </tbody>
+
 
           </table>
 
@@ -249,9 +322,7 @@ export default function Users() {
       {selectedUser && (
         <div className="modal">
           <div className="modal-content">
-            <span className="close-button" onClick={handleCloseDetails}>
-              &times;
-            </span>
+            <span className="close-button" onClick={handleCloseDetails}>&times;</span>
             {isEditing ? (
               <>
                 <h2>Edit User</h2>
@@ -267,6 +338,22 @@ export default function Users() {
                   value={selectedUser.mobile_number}
                   onChange={handleInputChange}
                 />
+                <h3>Identifications</h3>
+                {selectedUser.identifications.map((id, index) => (
+  <div key={index}>
+    <label>{id.id_type}</label>
+    <input
+      type="text"
+      value={id.id_number || ""}
+      onChange={(e) => {
+        const newIdentifications = [...selectedUser.identifications];
+        newIdentifications[index].id_number = e.target.value || "";
+        setSelectedUser({ ...selectedUser, identifications: newIdentifications });
+      }}
+    />
+  </div>
+))}
+
                 <button className="save-button" onClick={handleSaveEdit}>
                   Save
                 </button>
@@ -274,19 +361,16 @@ export default function Users() {
             ) : (
               <>
                 <h2>{selectedUser.name}</h2>
-                <p><strong>ID:</strong> {selectedUser.user_id || "N/A"}</p>
-                <p><strong>Address:</strong> {selectedUser.address || "N/A"}</p>
-                <p><strong>Mobile:</strong> {selectedUser.mobile_number}</p>
-                <p><strong>Email:</strong> {selectedUser.email || "N/A"}</p>
-                <p><strong>Total Charge:</strong> {selectedUser.total_charge}</p>
-                <p><strong>Paid:</strong> {selectedUser.paid_charge}</p>
-                <p><strong>Remaining:</strong> {selectedUser.total_charge - selectedUser.paid_charge}</p>
-
+                <p><strong>ID:</strong> {selectedUser.identifications.length > 0
+                  ? selectedUser.identifications.map(id => `${id.id_type}: ${id.id_number}`).join(", ")
+                  : "N/A"}
+                </p>
                 <button className="edit-button" onClick={handleEditClick}>
                   Edit
                 </button>
               </>
             )}
+
           </div>
         </div>
       )}

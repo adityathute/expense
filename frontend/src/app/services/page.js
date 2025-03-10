@@ -304,22 +304,20 @@ export default function ServicesPage() {
             <div className="transactions-table">
               <h2>Transactions</h2>
               <table>
-                <thead>
-                  <tr>
-                    <th>User</th>
-                    <th>Service</th>
-                    <th>Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {transactions.map((transaction) => (
-                    <tr key={transaction.id}>
-                      <td>{transaction.user_name}</td>
-                      <td>{transaction.service_name}</td>
-                      <td>₹{transaction.amount}</td>
-                    </tr>
-                  ))}
-                </tbody>
+              <thead>
+  <tr>
+    <th>User</th><th>User ID</th><th>Service</th><th>Amount</th>
+  </tr>
+</thead>
+<tbody>
+  {transactions.map((transaction) => (
+    <tr key={transaction.id}>
+      <td>{transaction.user_name}</td><td>{transaction.user_id || "N/A"}</td>
+      <td>{transaction.service_name}</td><td>₹{transaction.amount}</td>
+    </tr>
+  ))}
+</tbody>
+
               </table>
             </div>
           </div>

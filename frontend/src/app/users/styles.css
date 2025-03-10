@@ -1,0 +1,73 @@
+/* Styling for dropdown and input group */
+.id-input-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  
+  /* Dropdown select styling */
+  .id-input-group select {
+    flex: 1;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    transition: border-color 0.3s ease-in-out;
+  }
+  
+  .id-input-group select:focus {
+    border-color: #007bff;
+    outline: none;
+  }
+  
+  /* Input field styling */
+  .id-input-group input {
+    flex: 1;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    transition: border-color 0.3s ease-in-out;
+  }
+  
+  .id-input-group input:focus {
+    border-color: #007bff;
+    outline: none;
+  }
+  
+  /* Add ID Type button */
+  .add-id-button {
+    padding: 8px 12px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.3s ease-in-out;
+  }
+  
+  .add-id-button:hover {
+    background-color: #0056b3;
+  }
+  
+  /* Disabled button */
+  button[disabled] {
+    background: #ddd;
+    cursor: not-allowed;
+  }
+  
+  .remove-button {
+    background: none;
+    border: none;
+    color: red;
+    font-size: 18px;
+    cursor: pointer;
+  }
+  .remove-button:hover {
+    color: darkred;
+  }
+  
