@@ -5,7 +5,9 @@
   "scripts": {
   "dev": "concurrently \"npm run next\" \"npm run django\"",
   "next": "next dev",
-  "django": "cd .. && call venv\\Scripts\\activate && cd expense && python manage.py runserver 127.0.0.1:8001"
+  "django": "cd .. && call venv\\Scripts\\activate && cd expense && python manage.py runserver 127.0.0.1:8001",
+  "build": "next build",
+  "start": "next start"
 },
   "dependencies": {
     "next": "^15.1.7",
