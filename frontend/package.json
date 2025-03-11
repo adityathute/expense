@@ -2,14 +2,11 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
-  "scripts": {
-  "dev": "concurrently \"npm run next\" \"npm run django\"",
-  "next": "next dev",
-  "django": "cd .. && call venv\\Scripts\\activate && cd expense && python manage.py runserver 127.0.0.1:8001",
+"scripts": {
+  "dev": "cd ../expense && python manage.py runserver 0.0.0.0:8001 & cd frontend && next dev",
   "build": "next build",
   "start": "next start"
-},
-  "dependencies": {
+},  "dependencies": {
     "next": "^15.1.7",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
