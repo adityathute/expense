@@ -70,7 +70,7 @@ export default function Users() {
 
   const handleAddUser = async (userData) => {
     try {
-      const response = await fetch("http://localhost:8001/api/users/", {
+      const response = await fetch("http://127.0.0.1:8001/api/users/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(userData),

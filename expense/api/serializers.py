@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from .models import Category, Service, User, UserService, UserID
-from django.db.utils import IntegrityError
 
 # ---------------------- CATEGORY RELATED SERIALIZER ---------------------- #
 

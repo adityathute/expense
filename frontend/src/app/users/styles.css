@@ -39,12 +39,28 @@ th {
   cursor: pointer;
 }
 
-/* Styling for dropdown and input group */
+/* ID group stays in a row */
 .id-input-group {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 15px;
+  margin-bottom: 10px;
+  flex-wrap: wrap; /* Allows wrapping when needed */
+}
+
+/* Keep ID Type and ID Number in a row */
+.id-main-group {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+/* Custom document name appears in a new row */
+.other-document-container {
+  width: 100%;
+}
+
+.other-document-container input {
+  margin-left: 0;
 }
 
 /* Dropdown select styling */
@@ -57,25 +73,10 @@ th {
   font-size: 14px;
   cursor: pointer;
   transition: border-color 0.3s ease-in-out;
+  margin-bottom: 10px;
 }
 
 .id-input-group select:focus {
-  border-color: #007bff;
-  outline: none;
-}
-
-/* Input field styling */
-.id-input-group input {
-  flex: 1;
-  padding: 11px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
-  font-size: 14px;
-  transition: border-color 0.3s ease-in-out;
-  margin: 0;
-}
-
-.id-input-group input:focus {
   border-color: #007bff;
   outline: none;
 }
@@ -124,13 +125,105 @@ button[disabled] {
 }
 
 .remove-button {
-  background: none;
-  border: none;
-  color: red;
-  font-size: 18px;
+  font-size: 24px;
   cursor: pointer;
+  transition: color 0.2s ease-in-out;
+  font-weight: 600;
+  font-size: 28px;
+  border: none;
+  outline: none;
+  background: none;
+  margin-bottom: 10px;
+}
+
+.remove-button svg:hover{
+  fill: #ff3b30;
+}
+
+.trash-icon {
+  width: 20px;
+  height: 20px;
 }
 
 .remove-button:hover {
-  color: darkred;
+  color: #ff3b30;
+}
+
+.other-document name {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.id-number-container input {
+  width: 100%;
+}
+
+/* Dropdown container */
+.dropdown-container {
+  position: relative;
+  display: flex;
+  float: right;
+  width: 45%;
+}
+
+/* Custom select dropdown */
+.custom-dropdown {
+  appearance: none; /* Hide default arrow */
+  width: 100%;
+  padding: 12px 40px 12px 12px; /* Adjust padding */
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: white;
+  cursor: pointer;
+}
+
+/* Custom dropdown arrow */
+.dropdown-icon {
+  position: absolute;
+  right: 5px;
+  top: 20px;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  pointer-events: none; /* Prevent click interference */
+  transition: transform 0.2s ease-in-out;
+}
+
+/* Rotate arrow when select is focused (for "up" effect) */
+.custom-dropdown:focus + .dropdown-icon {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+.id-number-input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  font-size: 15px;
+  transition: border-color 0.3s ease-in-out;
+  margin-left: 10px;
+}
+
+.id-number-input:focus {
+  border-color: #007bff;
+  outline: none;
+}
+
+.error-text {
+  display: flex;
+  color: red;
+  font-size: 14px;
+  margin: 0;
+  margin-left: 7px;
+  margin-bottom: 15px;
+  font-size: 13px;
+  font-weight: bold;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.error-input {
+  border: 1px solid red !important;
+  transition: border-color 0.3s ease-in-out, background-color 0.3s ease-in-out;
 }

@@ -18,6 +18,7 @@ body {
   margin: 0;
 }
 
+
 /* Top Bar */
 .topbarOuter {
   position: fixed;
@@ -303,7 +304,7 @@ input, textarea {
 .modal-content input {
   width: 100%; /* Ensures input fits within the modal */
   max-width: 100%; /* Prevents overflow */
-  padding: 12px;
+  padding: 10px;
   border-radius: 8px;
   border: 1px solid #ccc;
   margin-bottom: 10px;

@@ -1,6 +1,4 @@
 from django.db import models
-from django.core.validators import RegexValidator
-import random
 
 # ---------------------- CATEGORY RELATED MODEL ---------------------- #
 
@@ -49,8 +47,7 @@ class User(models.Model):
     mobile_number = models.CharField(
         max_length=10,
         blank=True,
-        null=True,
-        validators=[RegexValidator(regex=r'^\d{10}$', message="Mobile number must be exactly 10 digits")]
+        null=True
     )
 
     # Additional Fields
@@ -80,6 +77,7 @@ class UserID(models.Model):
     ]
     id_type = models.CharField(max_length=20, choices=ID_TYPES, blank=True, null=True)  # ✅ Make optional
     id_number = models.CharField(max_length=20, unique=True, blank=True, null=True)  # ✅ Make optional
+    custom_name = models.CharField(max_length=255, blank=True, null=True)  # New Field for Other Document
 
     def __str__(self):
         return f"{self.user.name} - {self.id_type}: {self.id_number}" if self.id_number else f"{self.user.name} - No ID"
