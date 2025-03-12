@@ -44,7 +44,7 @@ th {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
 }
 
 /* Dropdown select styling */
@@ -67,11 +67,12 @@ th {
 /* Input field styling */
 .id-input-group input {
   flex: 1;
-  padding: 10px;
+  padding: 11px;
   border-radius: 5px;
   border: 1px solid #ccc;
   font-size: 14px;
   transition: border-color 0.3s ease-in-out;
+  margin: 0;
 }
 
 .id-input-group input:focus {
@@ -81,24 +82,45 @@ th {
 
 /* Add ID Type button */
 .add-id-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 8px 12px;
-  background-color: #007bff;
+  background-color: #4caf50;
   color: white;
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 15px;
   transition: background 0.3s ease-in-out;
+  font-weight: 400;
+}
+
+.add-id-button:focus {
+  outline: 1px solid #3c8a3f;
 }
 
 .add-id-button:hover {
-  background-color: #0056b3;
+  background-color: #4caf50;
 }
 
 /* Disabled button */
+.add-more-id-button{
+  background: #ddd;
+  padding: 5px;
+  border-radius: 5px;
+  outline: none;
+  border: 1px solid gray;
+  cursor: pointer;
+  color: #007bff;
+  font-weight: 600;
+}
+
 button[disabled] {
   background: #ddd;
+  color: gray;
   cursor: not-allowed;
+  padding: 5px;
 }
 
 .remove-button {

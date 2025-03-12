@@ -15,7 +15,7 @@ export default function AddUserForm({ onClose, onAddUser }) {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    
+
     // Ensure only numbers (10-digit mobile, 12-digit ID)
     if (name === "mobile_number" && value && !/^\d{0,10}$/.test(value)) {
       return;
@@ -74,62 +74,64 @@ export default function AddUserForm({ onClose, onAddUser }) {
   return (
     <div className="modal">
       <div className="modal-content">
-        <span className="close-button" onClick={onClose}>
-          &times;
-        </span>
-        <h2>Add User</h2>
-        <input
-          type="text"
-          name="name"
-          placeholder="Enter Name"
-          value={newUser.name || ""}
-          onChange={handleInputChange}
-          required
-        />
-        <input
-          type="text"
-          name="mobile_number"
-          placeholder="Enter Mobile Number"
-          value={newUser.mobile_number || ""}
-          onChange={handleInputChange}
-        />
+        <div className="modal-content-inner">
+          <span className="close-button" onClick={onClose}>
+            &times;
+          </span>
+          <h2>Add User</h2>
+          <input
+            type="text"
+            name="name"
+            placeholder="Enter Full Name"
+            value={newUser.name || ""}
+            onChange={handleInputChange}
+            required
+          />
+          <input
+            type="text"
+            name="mobile_number"
+            placeholder="Enter Mobile Number"
+            value={newUser.mobile_number || ""}
+            onChange={handleInputChange}
+          />
 
-        {errorMessage.mobile_number && <p className="error-text">{errorMessage.mobile_number}</p>}
+          {errorMessage.mobile_number && <p className="error-text">{errorMessage.mobile_number}</p>}
 
-        {newUser.identifications.map((id, index) => (
-          <div key={index} className="id-input-group">
-            <select value={id.id_type} onChange={(e) => handleIDChange(index, "id_type", e.target.value)}>
-              <option value="">Select ID Type</option>
-              <option value="Aadhaar">Aadhaar</option>
-              <option value="PAN">PAN Card</option>
-              <option value="Voter ID">Voter ID</option>
-              <option value="Driving License">Driving License</option>
-              <option value="Passport">Passport</option>
-            </select>
+          {newUser.identifications.map((id, index) => (
+            <div key={index} className="id-input-group">
+              <select value={id.id_type} onChange={(e) => handleIDChange(index, "id_type", e.target.value)}>
+                <option value="">Select ID Type</option>
+                <option value="Aadhaar">Aadhaar</option>
+                <option value="PAN">PAN Card</option>
+                <option value="Voter ID">Voter ID</option>
+                <option value="Driving License">Driving License</option>
+                <option value="Passport">Passport</option>
+              </select>
 
-            <input
-              type="text"
-              placeholder="Enter ID Number"
-              value={id.id_number || ""}
-              onChange={(e) => handleIDChange(index, "id_number", e.target.value)}
-            />
+              <input
+                type="text"
+                placeholder="Enter ID Number"
+                value={id.id_number || ""}
+                onChange={(e) => handleIDChange(index, "id_number", e.target.value)}
+              />
 
-            {newUser.identifications.length > 1 && (
-              <button type="button" className="remove-button" onClick={() => handleRemoveID(index)}>
-                ❌
-              </button>
-            )}
-          </div>
-        ))}
+              {newUser.identifications.length > 1 && (
+                <button type="button" className="remove-button" onClick={() => handleRemoveID(index)}>
+                  ❌
+                </button>
+              )}
+            </div>
+          ))}
 
-        <button type="button" onClick={handleAddID} disabled={!newUser.identifications[0].id_type || !newUser.identifications[0].id_number}>
-          + Add More ID
-        </button>
-        {errorMessage.user_id && <p className="error-text">{errorMessage.user_id}</p>}
+          <button className="add-more-id-button" type="button" onClick={handleAddID} disabled={!newUser.identifications[0].id_type || !newUser.identifications[0].id_number}>
+            + Add More ID
+          </button>
+          {errorMessage.user_id && <p className="error-text">{errorMessage.user_id}</p>}
 
-        <button className="add-button mt-15" onClick={handleSubmit}>
-          Save
-        </button>
+          <button className="add-id-button mt-15" onClick={handleSubmit}>
+            Save
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -273,50 +273,46 @@ input, textarea {
 }
 
 /* Modal Content */
+/* Modal Content */
 .modal-content {
+  display: flex;
+  flex-direction: column;
   background: rgba(255, 255, 255, 0.8); /* Glassmorphism */
   backdrop-filter: blur(20px);
   border-radius: 20px;
-  padding: 20px 30px;
   width: 400px;
   max-width: 90%;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
   text-align: center;
   animation: slideUp 0.3s ease-in-out;
+  box-sizing: border-box; /* Prevents content from overflowing */
+  overflow: hidden; /* Hides any accidental overflow */
 }
 
-/* Close Button */
-.close-button {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  font-size: 24px;
-  color: #333;
-  cursor: pointer;
-  transition: color 0.2s ease-in-out;
-}
-.close-button:hover {
-  color: #ff3b30;
-}
-
-/* Heading */
-.modal-content h2 {
-  font-size: 22px;
-  font-weight: 600;
-  color: #1d1d1f;
-  margin-bottom: 15px;
+/* Modal Inner Content */
+.modal-content-inner {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  overflow: hidden;
+  width: 100%;
+  box-sizing: border-box; /* Ensures padding doesn't cause overflow */
 }
 
 /* Input Fields */
 .modal-content input {
-  width: 100%;
+  width: 100%; /* Ensures input fits within the modal */
+  max-width: 100%; /* Prevents overflow */
   padding: 12px;
   border-radius: 8px;
   border: 1px solid #ccc;
   margin-bottom: 10px;
   font-size: 16px;
   transition: border-color 0.2s ease-in-out;
+  box-sizing: border-box; /* Includes padding in width calculation */
 }
+
+/* Ensure Inputs Don’t Overflow */
 .modal-content input:focus {
   border-color: #007aff;
   outline: none;
@@ -334,10 +330,30 @@ input, textarea {
   border-radius: 8px;
   cursor: pointer;
   transition: background 0.3s ease-in-out;
+  box-sizing: border-box;
 }
+
 .use-client-btn:hover {
   background: #005ecb;
 }
+
+/* Ensure Close Button Stays Inside */
+.close-button {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  font-size: 24px;
+  color: #333;
+  cursor: pointer;
+  transition: color 0.2s ease-in-out;
+  font-weight: 600;
+  font-size: 28px;
+}
+
+.close-button:hover {
+  color: #ff3b30;
+}
+
 
 /* Animations */
 @keyframes fadeIn {

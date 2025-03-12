@@ -3,13 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-  "dev": "concurrently \"npm run next\" \"npm run django\"",
-  "next": "next dev",
-  "django": "cd .. && call venv\\Scripts\\activate && cd expense && python manage.py runserver 127.0.0.1:8001",
-  "build": "next build",
-  "start": "next start"
-},
+    "dev": "concurrently \"npm run next\" \"npm run django\"",
+    "next": "next dev",
+    "django": "cd .. && call venv\\Scripts\\activate && cd expense && python manage.py runserver 127.0.0.1:8001",
+    "build": "next build",
+    "start": "next start"
+  },
   "dependencies": {
+    "concurrently": "^9.1.2",
     "next": "^15.1.7",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
