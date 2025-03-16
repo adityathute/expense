@@ -301,7 +301,7 @@ input, textarea {
 }
 
 /* Input Fields */
-.modal-content input {
+.modal-content-input {
   width: 100%; /* Ensures input fits within the modal */
   max-width: 100%; /* Prevents overflow */
   padding: 10px;

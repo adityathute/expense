@@ -7,14 +7,14 @@
   margin-bottom: 20px;
 }
 
-input {
+/* input {
   display: flex;
   align-items: center;
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 4px;
   flex-grow: 1;
-}
+} */
 
 /* User Table */
 table {
@@ -226,4 +226,16 @@ button[disabled] {
 .error-input {
   border: 1px solid red !important;
   transition: border-color 0.3s ease-in-out, background-color 0.3s ease-in-out;
+}
+
+.model-content-input-number {
+  width: 45%; /* Ensures input fits within the modal */
+  max-width: 100%; /* Prevents overflow */
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  margin-bottom: 10px;
+  font-size: 16px;
+  transition: border-color 0.2s ease-in-out;
+  box-sizing: border-box; /* Includes padding in width calculation */
 }

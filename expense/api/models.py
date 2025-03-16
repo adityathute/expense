@@ -37,30 +37,42 @@ class Category(models.Model):
 # ---------------------- USER RELATED MODELS ---------------------- #
 
 class User(models.Model):
+    USER_TYPES = [
+        ("Customer", "Customer"),
+        ("Staff", "Staff"),
+        ("Family", "Family"),
+        ("Friend", "Friend"),
+        ("Agent", "Agent"),
+        ("Client", "Client"),
+    ]
+
+    GENDER_CHOICES = [
+        ("Male", "Male"),
+        ("Female", "Female"),
+        ("Other", "Other"),
+    ]
+
     # Basic Details
     name = models.CharField(max_length=255)
     address = models.TextField(blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
-    date_of_birth = models.DateField(blank=True, null=True)  # ✅ Added DOB
+    date_of_birth = models.DateField(blank=True, null=True)
+    mobile_number = models.CharField(max_length=10, blank=True, null=True)
 
-    # Mobile Number (Allow same number for multiple users)
-    mobile_number = models.CharField(
-        max_length=10,
-        blank=True,
-        null=True
-    )
+    # Multi-select User Type (Stored as JSON for MySQL/SQLite)
+    user_type = models.JSONField(default=list)  # Example: ["Customer", "Agent"]
 
-    # Additional Fields
-    gender = models.CharField(
-        max_length=10,
-        choices=[("Male", "Male"), ("Female", "Female"), ("Other", "Other")],
-        blank=True,
-        null=True
-    )  # ✅ Optional Gender field
+    # Gender Field
+    gender = models.CharField(max_length=10, choices=GENDER_CHOICES, blank=True, null=True)
 
     # Tracking Fields
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if not self.user_type:
+            self.user_type = ["Customer"]  # Default if not selected
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
@@ -74,10 +86,12 @@ class UserID(models.Model):
         ("Voter ID", "Voter ID"),
         ("Driving License", "Driving License"),
         ("Passport", "Passport"),
+        ("Ration Card", "Ration Card"),  # ✅ Added Ration Card
+        ("Other", "Other"),  # ✅ Added Other
     ]
-    id_type = models.CharField(max_length=20, choices=ID_TYPES, blank=True, null=True)  # ✅ Make optional
-    id_number = models.CharField(max_length=20, unique=True, blank=True, null=True)  # ✅ Make optional
-    custom_name = models.CharField(max_length=255, blank=True, null=True)  # New Field for Other Document
+    id_type = models.CharField(max_length=20, choices=ID_TYPES, blank=True, null=True)  # ✅ Updated choices
+    id_number = models.CharField(max_length=20, unique=True, blank=True, null=True)  # ✅ Optional ID Number
+    other_doc_name = models.CharField(max_length=255, blank=True, null=True)  # ✅ Added for "Other"
 
     def __str__(self):
         return f"{self.user.name} - {self.id_type}: {self.id_number}" if self.id_number else f"{self.user.name} - No ID"

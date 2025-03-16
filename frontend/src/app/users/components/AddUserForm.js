@@ -5,25 +5,26 @@ export default function AddUserForm({ onClose, onAddUser }) {
   const [newUser, setNewUser] = useState({
     name: "",
     mobile_number: "",
-    gender: "", // Add gender field
+    gender: "",
+    user_type: ["Customer"], // Default user type set to "Customer"
     identifications: [{ id_type: "Aadhaar", id_number: "" }], // Default field
   });
 
   const [errorMessage, setErrorMessage] = useState({
     user_id: "",
     mobile_number: "",
-    
+
   });
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-  
+
     if (name === "mobile_number" && value && !/^\d{0,10}$/.test(value)) {
       return;
     }
-  
+
     let updatedValue = value;
-  
+
     if (name === "name") {
       updatedValue = value
         .toLowerCase()
@@ -31,15 +32,19 @@ export default function AddUserForm({ onClose, onAddUser }) {
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(" ");
     }
-  
+
     setNewUser({ ...newUser, [name]: updatedValue });
-  
+
     // Clear the error message when the user starts typing again
     if (errorMessage[name]) {
       setErrorMessage({ ...errorMessage, [name]: "" });
     }
   };
-  
+
+  const handleUserTypeChange = (e) => {
+    const value = Array.from(e.target.selectedOptions, option => option.value);
+    setNewUser({ ...newUser, user_type: value });
+  };
 
   // Aadhaar Formatting (12 digits, no dashes)
   const formatAadhaar = (value) => {
@@ -60,31 +65,26 @@ export default function AddUserForm({ onClose, onAddUser }) {
     const updatedIDs = [...newUser.identifications];
 
     if (field === "id_type") {
-      if (value === "Other" && !updatedIDs.some((id) => id.id_type === "Other" && id !== updatedIDs[index])) {
-        updatedIDs.push({ id_type: "", id_number: "" }); // Add new row when 'Other' is selected
+      updatedIDs[index][field] = value;
+      if (value !== "Other") {
+        updatedIDs[index]["other_doc_name"] = ""; // Reset custom name if not "Other"
       }
-    }
-
-    if (field === "id_number") {
+    } else if (field === "id_number") {
       const idType = updatedIDs[index].id_type;
       if (idType === "Aadhaar") {
         value = formatAadhaar(value);
-      } else if (idType === "Pancard") {
+      } else if (idType === "PAN") {
         value = formatPAN(value);
       } else if (idType === "Ration Card") {
         value = formatRC(value);
       }
+    } else if (field === "other_doc_name") {
+      updatedIDs[index][field] = value; // Ensure custom document name is set
     }
 
     updatedIDs[index][field] = value;
     setNewUser({ ...newUser, identifications: updatedIDs });
-
-    setTimeout(() => {
-      document.getElementsByName("id_number")[index]?.focus();
-    }, 0);
   };
-
-
 
   const handleAddID = () => {
     setNewUser({
@@ -92,7 +92,7 @@ export default function AddUserForm({ onClose, onAddUser }) {
       identifications: [...newUser.identifications, { id_type: "", id_number: "" }],
     });
   };
-  
+
 
   const handleRemoveID = (index) => {
     const updatedIDs = [...newUser.identifications];
@@ -102,8 +102,8 @@ export default function AddUserForm({ onClose, onAddUser }) {
 
   const handleSubmit = async () => {
     try {
-      // Validate Mobile Number (Ensure it is exactly 10 digits)
-      if (!/^\d{10}$/.test(newUser.mobile_number)) {
+      // Validate Mobile Number (Allow blank but enforce exactly 10 digits when entered)
+      if (newUser.mobile_number && !/^\d{10}$/.test(newUser.mobile_number)) {
         setErrorMessage({ ...errorMessage, mobile_number: "Oops! 10 digits only!" });
         return; // Prevent submission
       }
@@ -111,13 +111,17 @@ export default function AddUserForm({ onClose, onAddUser }) {
       const cleanedUser = {
         name: newUser.name.trim(),
         mobile_number: newUser.mobile_number.trim(),
+        gender: newUser.gender.trim(),
+        user_type: newUser.user_type,
         identifications: newUser.identifications
           .map((id) => ({
             id_type: id.id_type.trim(),
             id_number: id.id_number.trim(),
+            ...(id.id_type === "Other" && id.other_doc_name ? { other_doc_name: id.other_doc_name.trim() } : {}),
           }))
           .filter((id) => id.id_number !== ""),
       };
+
 
       // Reset previous errors
       setErrorMessage({ user_id: "", mobile_number: "" });
@@ -130,7 +134,7 @@ export default function AddUserForm({ onClose, onAddUser }) {
       }
 
       // Reset form after success
-      setNewUser({ name: "", mobile_number: "", identifications: [{ id_type: "Aadhaar", id_number: "" }] });
+      setNewUser({ name: "", mobile_number: "", gender: "", user_type: [], identifications: [{ id_type: "Aadhaar", id_number: "" }] });
       onClose();
     } catch (error) {
       if (error.response && error.response.data) {
@@ -154,20 +158,36 @@ export default function AddUserForm({ onClose, onAddUser }) {
           <input
             type="text"
             name="name"
+            className="modal-content-input"
             placeholder="Full Name"
             value={newUser.name || ""}
             onChange={handleInputChange}
             required
           />
-          <input
-            type="text"
-            name="mobile_number"
-            placeholder="Mobile Number"
-            value={newUser.mobile_number || ""}
-            onChange={handleInputChange}
-            className={errorMessage.mobile_number ? "error-input" : ""}
-          />
-          {errorMessage.mobile_number && <p className="error-text">{errorMessage.mobile_number}</p>}
+          {/* Mobile Number */}
+          <div className="id-input-group">
+            <div className="id-main-group">
+              <input
+                type="text"
+                name="mobile_number"
+                placeholder="Mobile Number"
+                value={newUser.mobile_number || ""}
+                onChange={handleInputChange}
+                className="model-content-input-number"
+              // className={errorMessage.mobile_number ? "error-input" : ""}
+              />
+              {errorMessage.mobile_number && <p className="error-text">{errorMessage.mobile_number}</p>}
+
+              <div className="">
+                <select className="id-number-input" name="gender" value={newUser.gender} onChange={handleInputChange}>
+                  <option value="">Select Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
+          </div>
 
           {newUser.identifications.map((id, index) => (
             <div key={index} className="id-input-group">
@@ -196,7 +216,6 @@ export default function AddUserForm({ onClose, onAddUser }) {
                     <path d="M7 10l5 5 5-5H7z" fill="currentColor" />
                   </svg>
                 </div>
-
                 <input
                   type="text"
                   className="id-number-input"
@@ -225,8 +244,8 @@ export default function AddUserForm({ onClose, onAddUser }) {
                   <input
                     type="text"
                     placeholder="Document Name"
-                    value={id.custom_name || ""}
-                    onChange={(e) => handleIDChange(index, "custom_name", e.target.value)}
+                    value={id.other_doc_name || ""}
+                    onChange={(e) => handleIDChange(index, "other_doc_name", e.target.value)}
                   />
                 </div>
               )}

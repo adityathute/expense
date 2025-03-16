@@ -18,14 +18,14 @@ class CategorySerializer(serializers.ModelSerializer):
 class UserIDSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserID
-        fields = ["id_type", "id_number"]  # ✅ Keep it flexible
+        fields = ["id_type", "id_number", "other_doc_name"]  # ✅ Added other_doc_name field
 
 class UserSerializer(serializers.ModelSerializer):
     identifications = UserIDSerializer(many=True, required=False)  # ✅ Make optional
 
     class Meta:
         model = User
-        fields = ["id", "name", "mobile_number", "identifications"]
+        fields = ["id", "name", "mobile_number", "gender", "user_type", "identifications"]
 
     def create(self, validated_data):
         identifications_data = validated_data.pop("identifications", [])
