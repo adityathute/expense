@@ -49,14 +49,9 @@ class UserSerializer(serializers.ModelSerializer):
 # ---------------------- SERVICE RELATED SERIALIZER ---------------------- #
 
 class ServiceSerializer(serializers.ModelSerializer):
-    total_fees = serializers.SerializerMethodField()
-
     class Meta:
         model = Service
         fields = "__all__"
-
-    def get_total_fees(self, obj):
-        return obj.total_fees  # ✅ Get the computed total fees
 
 # ---------------------- USERS SERVICE RELATED SERIALIZER ---------------------- #
 
