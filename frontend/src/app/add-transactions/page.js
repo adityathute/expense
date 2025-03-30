@@ -1,16 +1,17 @@
 "use client";
 import Sidebar from "../components/Sidebar";
 import TopBar from "../components/TopBar";
+import Link from "next/link";
 
-export default function Dashboard() {
+export default function AddTransactions() {
+
   return (
     <div className="content">
       <TopBar />
       <div className="container">
         <Sidebar />
         <div className="main-content">
-          <h1>Welcome to the Add Transactions</h1>
-          <p>Manage your transactions, categories, and more. </p>
+          <Link href="/uid-service"><button className="btn btn-primary">Aadhaar</button></Link>
         </div>
       </div>
     </div>

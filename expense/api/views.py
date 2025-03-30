@@ -2,8 +2,9 @@ from django.http import JsonResponse
 from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 from rest_framework import generics, status, viewsets
-from .models import Category, Service, User, UserService
-from .serializers import CategorySerializer, UserSerializer, ServiceSerializer, UserServiceSerializer
+from .models import Category, Service, User, UserService, UIDTempEntry, UIDEntry
+from .serializers import CategorySerializer, UserSerializer, ServiceSerializer, UserServiceSerializer, UIDTempEntrySerializer, UIDEntrySerializer
+from rest_framework.generics import DestroyAPIView
 
 # ---------------------- CATEGORY RELATED VIEWS ---------------------- #
 
@@ -127,3 +128,23 @@ class UserServiceViewSet(viewsets.ModelViewSet):
 
         serializer.save(user=user)  # Assign user properly
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+# ---------------------- UID SERVICE RELATED VIEWS ---------------------- #
+
+# Create a new UIDTempEntry
+class UIDTempEntryCreateView(generics.CreateAPIView):
+    queryset = UIDTempEntry.objects.all()
+    serializer_class = UIDTempEntrySerializer
+
+# Get all UIDTempEntry records
+class UIDTempEntryListView(generics.ListAPIView):
+    queryset = UIDTempEntry.objects.all()
+    serializer_class = UIDTempEntrySerializer
+
+class UIDEntryCreateView(generics.CreateAPIView):
+    queryset = UIDEntry.objects.all()
+    serializer_class = UIDEntrySerializer
+
+class TempEntryDeleteView(DestroyAPIView):
+    queryset = UIDTempEntry.objects.all()
+    serializer_class = UIDTempEntrySerializer

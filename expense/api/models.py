@@ -1,5 +1,6 @@
 from django.db import models
-
+from django.conf import settings
+from decouple import config
 # ---------------------- CATEGORY RELATED MODEL ---------------------- #
 
 class Category(models.Model):
@@ -161,3 +162,86 @@ class UserService(models.Model):
 
     def __str__(self):
         return f"{self.user.name} - {self.service.name}"
+    
+# ---------------------- UID SERVICE RELATED MODELS ---------------------- #
+
+# Fetch the enrollment prefix from the environment
+ENROLLMENT_PREFIX = config("ENROLLMENT_PREFIX", default="085528018")  # 9-digit prefix
+
+class UIDTempEntry(models.Model):
+    ENTRY_TYPE_CHOICES = [
+        ("new", "New"),
+        ("update", "Update"),
+    ]
+
+    UID_TYPE_CHOICES = [
+        ("offline", "Offline"),
+        ("online", "Online"),
+        ("ucl", "UCL"),
+    ]
+
+    full_name = models.CharField(max_length=255)
+    mobile_number = models.CharField(max_length=10)
+    aadhaar_number = models.CharField(
+        max_length=12, unique=True, blank=True, null=True
+    )  # Aadhaar number (optional)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    entry_type = models.CharField(
+        max_length=10, choices=ENTRY_TYPE_CHOICES, default="new"
+    )  # Indicates whether it's a new or updated entry
+    uid_type = models.CharField(
+        max_length=15, choices=UID_TYPE_CHOICES, default="offline"
+    )  # UID Type (Offline UCL, Online, Offline [Default])
+
+    def __str__(self):
+        return f"{self.full_name} - {self.aadhaar_number or 'No Aadhaar'} - Type: {self.entry_type} - UID Type: {self.uid_type} - Enroll: {self.full_enrollment_number or 'N/A'}"
+
+class UIDEntry(models.Model):
+    ENTRY_TYPE_CHOICES = [
+        ("new", "New"),
+        ("update", "Update"),
+    ]
+
+    STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("completed", "Completed"),
+        ("rejected", "Rejected"),
+    ]
+
+    UID_TYPE_CHOICES = [
+        ("offline", "Offline"),
+        ("online", "Online"),
+        ("ucl", "UCL"),
+    ]
+
+    full_name = models.CharField(max_length=255)
+    mobile_number = models.CharField(max_length=10)
+    aadhaar_number = models.CharField(
+        max_length=12, unique=True, blank=True, null=True
+    )  # Aadhaar number (optional)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    entry_type = models.CharField(
+        max_length=10, choices=ENTRY_TYPE_CHOICES, default="new"
+    )  # Indicates whether it's a new or updated entry
+    status = models.CharField(
+        max_length=10, choices=STATUS_CHOICES, default="pending"
+    )  # Pending, Completed, or Rejected
+    uid_type = models.CharField(
+        max_length=15, choices=UID_TYPE_CHOICES, default="offline"
+    )  # UID Type (Offline UCL, Online, Offline [Default])
+    entry_time = models.CharField(max_length=6, blank=True, null=True)  # 6-digit format HHMMSS (Manual entry)
+    enrollment_suffix = models.CharField(
+        max_length=5, blank=True, null=True
+    )  # Only last 5 digits change
+
+    @property
+    def full_enrollment_number(self):
+        """Generate full 14-digit enrollment number using ENV prefix"""
+        if self.enrollment_suffix:
+            return f"{ENROLLMENT_PREFIX}{self.enrollment_suffix}"
+        return None  # No enrollment number assigned yet
+
+    def __str__(self):
+        return f"{self.full_name} - {self.aadhaar_number or 'No Aadhaar'} - Type: {self.entry_type} - Status: {self.status} - UID Type: {self.uid_type} - Enroll: {self.full_enrollment_number or 'N/A'}"

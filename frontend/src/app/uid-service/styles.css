@@ -1,0 +1,39 @@
+.uid-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+  
+  .uid-table th, .uid-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+  }
+  
+  .uid-table th {
+    background-color: #4CAF50;
+    color: white;
+  }
+  
+  .uid-table tr:hover {
+    background-color: #f2f2f2;
+    cursor: pointer;
+  }
+  
+  .new-entry-btn, .use-entry-btn, .enrollment-form button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+  
+  .enrollment-form {
+    margin-top: 20px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    background-color: #f9f9f9;
+    width: 300px;
+  }
+  

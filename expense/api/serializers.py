@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Category, Service, User, UserService, UserID
+from .models import Category, Service, User, UserService, UserID, UIDTempEntry, UIDEntry
+from rest_framework.generics import DestroyAPIView
 
 # ---------------------- CATEGORY RELATED SERIALIZER ---------------------- #
 
@@ -69,3 +70,41 @@ class UserServiceSerializer(serializers.ModelSerializer):
         if 'user' not in validated_data:
             raise serializers.ValidationError({"user": "This field is required."})
         return super().create(validated_data)
+
+# ---------------------- UID SERVICE RELATED SERIALIZER ---------------------- #
+
+class UIDTempEntrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UIDTempEntry
+        fields = "__all__"  # Include all fields
+
+class UIDEntrySerializer(serializers.ModelSerializer):
+    full_enrollment_number = serializers.SerializerMethodField()
+
+    class Meta:
+        model = UIDEntry
+        fields = [
+            "id",
+            "full_name",
+            "mobile_number",
+            "aadhaar_number",
+            "created_at",
+            "updated_at",
+            "entry_type",
+            "status",
+            "uid_type",
+            "entry_time",
+            "enrollment_suffix",
+            "full_enrollment_number",
+        ]
+
+    def get_full_enrollment_number(self, obj):
+        """Generate full 14-digit enrollment number using ENV prefix"""
+        return obj.full_enrollment_number or ""
+
+    def validate(self, data):
+        if not data.get("enrollment_suffix") or len(data["enrollment_suffix"]) != 5:
+            raise serializers.ValidationError(
+                {"enrollment_suffix": "Enrollment suffix must be exactly 5 digits!"}
+            )
+        return data

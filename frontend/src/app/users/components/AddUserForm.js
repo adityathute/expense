@@ -52,129 +52,123 @@ export default function AddUserForm({ onClose, onAddUser }) {
     const updatedIDs = [...newUser.identifications];
 
     if (field === "id_type") {
-        updatedIDs[index][field] = value;
-        if (value !== "Other") {
-            updatedIDs[index]["other_doc_name"] = ""; // Reset custom name if not "Other"
-        }
+      updatedIDs[index][field] = value;
+      if (value !== "Other") {
+        updatedIDs[index]["other_doc_name"] = ""; // Reset custom name if not "Other"
+      }
     } else if (field === "id_number") {
-        const idType = updatedIDs[index].id_type;
-        let formattedValue = value.toUpperCase().replace(/[^A-Z0-9]/g, ""); // Remove non-alphanumeric characters
+      const idType = updatedIDs[index].id_type;
+      let formattedValue = value.toUpperCase().replace(/[^A-Z0-9]/g, ""); // Remove non-alphanumeric characters
 
-        if (idType === "Aadhaar" || idType === "Ration Card" || idType === "Aapaar ID") {
-            formattedValue = formattedValue.replace(/\D/g, "").slice(0, 12);
-            if (!/^\d{12}$/.test(formattedValue)) {
-                setErrorMessage((prevErrors) => ({
-                    ...prevErrors,
-                    [`id_${index}`]: `${idType} must be exactly 12 digits!`,
-                }));
-            } else {
-                setErrorMessage((prevErrors) => {
-                    const newErrors = { ...prevErrors };
-                    delete newErrors[`id_${index}`];
-                    return newErrors;
-                });
-            }
-        } else if (idType === "ABHA ID") {
-            formattedValue = formattedValue.replace(/\D/g, "").slice(0, 14);
-            if (!/^\d{14}$/.test(formattedValue)) {
-                setErrorMessage((prevErrors) => ({
-                    ...prevErrors,
-                    [`id_${index}`]: "ABHA ID must be exactly 14 digits!",
-                }));
-            } else {
-                setErrorMessage((prevErrors) => {
-                    const newErrors = { ...prevErrors };
-                    delete newErrors[`id_${index}`];
-                    return newErrors;
-                });
-            }
-        } else if (idType === "Pancard") {
-            formattedValue = formattedValue.slice(0, 10);
-            if (!/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(formattedValue)) {
-                setErrorMessage((prevErrors) => ({
-                    ...prevErrors,
-                    [`id_${index}`]: "Invalid PAN format! (ABCDE1234F)",
-                }));
-            } else {
-                setErrorMessage((prevErrors) => {
-                    const newErrors = { ...prevErrors };
-                    delete newErrors[`id_${index}`];
-                    return newErrors;
-                });
-            }
-        } else if (idType === "Voter ID") {
-            formattedValue = formattedValue.slice(0, 10);
-            if (!/^[A-Z]{3}[0-9]{7}$/.test(formattedValue)) {
-                setErrorMessage((prevErrors) => ({
-                    ...prevErrors,
-                    [`id_${index}`]: "Invalid Voter ID format! (ABC1234567)",
-                }));
-            } else {
-                setErrorMessage((prevErrors) => {
-                    const newErrors = { ...prevErrors };
-                    delete newErrors[`id_${index}`];
-                    return newErrors;
-                });
-            }
-        } else if (idType === "Passport") {
-            formattedValue = formattedValue.slice(0, 8);
-            if (!/^[A-Z][0-9]{7}$/.test(formattedValue)) {
-                setErrorMessage((prevErrors) => ({
-                    ...prevErrors,
-                    [`id_${index}`]: "Invalid Passport format! (S1234567)",
-                }));
-            } else {
-                setErrorMessage((prevErrors) => {
-                    const newErrors = { ...prevErrors };
-                    delete newErrors[`id_${index}`];
-                    return newErrors;
-                });
-            }
-        } else if (idType === "Driving License") {
-            formattedValue = formattedValue.slice(0, 15);
-            const dlRegex = /^[A-Z]{2}[0-9]{2}[0-9]{4}[0-9]{6,7}$/;
-            if (!dlRegex.test(formattedValue)) {
-                setErrorMessage((prevErrors) => ({
-                    ...prevErrors,
-                    [`id_${index}`]: "Invalid DL format! (e.g., MH2820251234567)",
-                }));
-            } else {
-                setErrorMessage((prevErrors) => {
-                    const newErrors = { ...prevErrors };
-                    delete newErrors[`id_${index}`];
-                    return newErrors;
-                });
-            }
-        } else if (idType === "BOCW") {
-            formattedValue = formattedValue.slice(0, 14);
-            const bocwRegex = /^[A-Z]{2}[0-9]{12}$/; // Starts with state code, followed by 12 digits
-            if (!bocwRegex.test(formattedValue)) {
-                setErrorMessage((prevErrors) => ({
-                    ...prevErrors,
-                    [`id_${index}`]: "Invalid BOCW format! (e.g., MH123456789012)",
-                }));
-            } else {
-                setErrorMessage((prevErrors) => {
-                    const newErrors = { ...prevErrors };
-                    delete newErrors[`id_${index}`];
-                    return newErrors;
-                });
-            }
+      if (idType === "Aadhaar" || idType === "Ration Card" || idType === "Aapaar ID") {
+        formattedValue = formattedValue.replace(/\D/g, "").slice(0, 12);
+        if (!/^\d{12}$/.test(formattedValue)) {
+          setErrorMessage((prevErrors) => ({
+            ...prevErrors,
+            [`id_${index}`]: `${idType} must be exactly 12 digits!`,
+          }));
+        } else {
+          setErrorMessage((prevErrors) => {
+            const newErrors = { ...prevErrors };
+            delete newErrors[`id_${index}`];
+            return newErrors;
+          });
         }
+      } else if (idType === "ABHA ID") {
+        formattedValue = formattedValue.replace(/\D/g, "").slice(0, 14);
+        if (!/^\d{14}$/.test(formattedValue)) {
+          setErrorMessage((prevErrors) => ({
+            ...prevErrors,
+            [`id_${index}`]: "ABHA ID must be exactly 14 digits!",
+          }));
+        } else {
+          setErrorMessage((prevErrors) => {
+            const newErrors = { ...prevErrors };
+            delete newErrors[`id_${index}`];
+            return newErrors;
+          });
+        }
+      } else if (idType === "Pancard") {
+        formattedValue = formattedValue.slice(0, 10);
+        if (!/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(formattedValue)) {
+          setErrorMessage((prevErrors) => ({
+            ...prevErrors,
+            [`id_${index}`]: "Invalid PAN format! (ABCDE1234F)",
+          }));
+        } else {
+          setErrorMessage((prevErrors) => {
+            const newErrors = { ...prevErrors };
+            delete newErrors[`id_${index}`];
+            return newErrors;
+          });
+        }
+      } else if (idType === "Voter ID") {
+        formattedValue = formattedValue.slice(0, 10);
+        if (!/^[A-Z]{3}[0-9]{7}$/.test(formattedValue)) {
+          setErrorMessage((prevErrors) => ({
+            ...prevErrors,
+            [`id_${index}`]: "Invalid Voter ID format! (ABC1234567)",
+          }));
+        } else {
+          setErrorMessage((prevErrors) => {
+            const newErrors = { ...prevErrors };
+            delete newErrors[`id_${index}`];
+            return newErrors;
+          });
+        }
+      } else if (idType === "Passport") {
+        formattedValue = formattedValue.slice(0, 8);
+        if (!/^[A-Z][0-9]{7}$/.test(formattedValue)) {
+          setErrorMessage((prevErrors) => ({
+            ...prevErrors,
+            [`id_${index}`]: "Invalid Passport format! (S1234567)",
+          }));
+        } else {
+          setErrorMessage((prevErrors) => {
+            const newErrors = { ...prevErrors };
+            delete newErrors[`id_${index}`];
+            return newErrors;
+          });
+        }
+      } else if (idType === "Driving License") {
+        formattedValue = formattedValue.slice(0, 15);
+        const dlRegex = /^[A-Z]{2}[0-9]{2}[0-9]{4}[0-9]{6,7}$/;
+        if (!dlRegex.test(formattedValue)) {
+          setErrorMessage((prevErrors) => ({
+            ...prevErrors,
+            [`id_${index}`]: "Invalid DL format! (e.g., MH2820251234567)",
+          }));
+        } else {
+          setErrorMessage((prevErrors) => {
+            const newErrors = { ...prevErrors };
+            delete newErrors[`id_${index}`];
+            return newErrors;
+          });
+        }
+      } else if (idType === "BOCW") {
+        formattedValue = formattedValue.slice(0, 14);
+        const bocwRegex = /^[A-Z]{2}[0-9]{12}$/; // Starts with state code, followed by 12 digits
+        if (!bocwRegex.test(formattedValue)) {
+          setErrorMessage((prevErrors) => ({
+            ...prevErrors,
+            [`id_${index}`]: "Invalid BOCW format! (e.g., MH123456789012)",
+          }));
+        } else {
+          setErrorMessage((prevErrors) => {
+            const newErrors = { ...prevErrors };
+            delete newErrors[`id_${index}`];
+            return newErrors;
+          });
+        }
+      }
 
-        updatedIDs[index][field] = formattedValue;
+      updatedIDs[index][field] = formattedValue;
     } else if (field === "other_doc_name") {
-        updatedIDs[index][field] = value; // Ensure custom document name is set
+      updatedIDs[index][field] = value; // Ensure custom document name is set
     }
 
     setNewUser({ ...newUser, identifications: updatedIDs });
-};
-
-
-
-
-
-
+  };
 
   const handleAddID = () => {
     setNewUser({
@@ -182,7 +176,6 @@ export default function AddUserForm({ onClose, onAddUser }) {
       identifications: [...newUser.identifications, { id_type: "", id_number: "" }],
     });
   };
-
 
   const handleRemoveID = (index) => {
     const updatedIDs = [...newUser.identifications];
