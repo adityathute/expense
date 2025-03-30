@@ -82,11 +82,14 @@ class UserID(models.Model):
 
     ID_TYPES = [
         ("Aadhaar", "Aadhaar"),
-        ("PAN", "PAN Card"),
+        ("Pancard", "Pancard"),
         ("Voter ID", "Voter ID"),
         ("Driving License", "Driving License"),
         ("Passport", "Passport"),
-        ("Ration Card", "Ration Card"),  # ✅ Added Ration Card
+        ("Ration Card", "Ration Card"),
+        ("BOCW", "BOCW"),
+        ("Aapaar ID", "Aapaar ID"),
+        ("ABHA ID", "ABHA ID"),
         ("Other", "Other"),  # ✅ Added Other
     ]
     id_type = models.CharField(max_length=20, choices=ID_TYPES, blank=True, null=True)  # ✅ Updated choices
