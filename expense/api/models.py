@@ -180,10 +180,19 @@ class UIDTempEntry(models.Model):
         ("ucl", "UCL"),
     ]
 
+    UPDATE_TYPE_CHOICES = [
+        ("new_adhar", "New Adhar"),
+        ("mobile_change", "Mobile Number Change"),
+        ("biometric_change", "Biometric Change"),
+        ("name_change", "Name Change"),
+        ("address_change", "Address Change"),
+        ("dob_change", "Date of Birth Change"),
+    ]
+
     full_name = models.CharField(max_length=255)
     mobile_number = models.CharField(max_length=10)
     aadhaar_number = models.CharField(
-        max_length=12, unique=True, blank=True, null=True
+        max_length=12, blank=True, null=True
     )  # Aadhaar number (optional)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -193,9 +202,13 @@ class UIDTempEntry(models.Model):
     uid_type = models.CharField(
         max_length=15, choices=UID_TYPE_CHOICES, default="offline"
     )  # UID Type (Offline UCL, Online, Offline [Default])
+    update_type = models.CharField(
+        max_length=20, choices=UPDATE_TYPE_CHOICES, blank=True, null=True
+    )  # Dropdown menu for selecting update type
 
     def __str__(self):
-        return f"{self.full_name} - {self.aadhaar_number or 'No Aadhaar'} - Type: {self.entry_type} - UID Type: {self.uid_type} - Enroll: {self.full_enrollment_number or 'N/A'}"
+        return f"{self.full_name} - {self.aadhaar_number or 'No Aadhaar'} - Type: {self.entry_type} - Update: {self.get_update_type_display() or 'N/A'}"
+
 
 class UIDEntry(models.Model):
     ENTRY_TYPE_CHOICES = [
@@ -215,15 +228,24 @@ class UIDEntry(models.Model):
         ("ucl", "UCL"),
     ]
 
+    UPDATE_TYPE_CHOICES = [
+        ("new_adhar", "New Adhar"),
+        ("mobile_change", "Mobile Number"),
+        ("biometric_change", "Biometric Change"),
+        ("name_change", "Name"),
+        ("address_change", "Address Change"),
+        ("dob_change", "Date of Birth Change"),
+    ]
+
     full_name = models.CharField(max_length=255)
     mobile_number = models.CharField(max_length=10)
     aadhaar_number = models.CharField(
-        max_length=12, unique=True, blank=True, null=True
+        max_length=12, blank=True, null=True
     )  # Aadhaar number (optional)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     entry_type = models.CharField(
-        max_length=10, choices=ENTRY_TYPE_CHOICES, default="new"
+        max_length=10, choices=ENTRY_TYPE_CHOICES, default="update"
     )  # Indicates whether it's a new or updated entry
     status = models.CharField(
         max_length=10, choices=STATUS_CHOICES, default="pending"
@@ -232,9 +254,10 @@ class UIDEntry(models.Model):
         max_length=15, choices=UID_TYPE_CHOICES, default="offline"
     )  # UID Type (Offline UCL, Online, Offline [Default])
     entry_time = models.CharField(max_length=6, blank=True, null=True)  # 6-digit format HHMMSS (Manual entry)
-    enrollment_suffix = models.CharField(
-        max_length=5, blank=True, null=True
-    )  # Only last 5 digits change
+    enrollment_suffix = models.CharField(max_length=5, blank=True, null=True)  # Only last 5 digits change
+    update_type = models.CharField(max_length=20, choices=UPDATE_TYPE_CHOICES, blank=True, null=True)  # Dropdown menu for selecting update type
+    # Pricing & Charges
+    service_charge = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)  # Customer pays
 
     @property
     def full_enrollment_number(self):
@@ -244,4 +267,4 @@ class UIDEntry(models.Model):
         return None  # No enrollment number assigned yet
 
     def __str__(self):
-        return f"{self.full_name} - {self.aadhaar_number or 'No Aadhaar'} - Type: {self.entry_type} - Status: {self.status} - UID Type: {self.uid_type} - Enroll: {self.full_enrollment_number or 'N/A'}"
+        return f"{self.full_name} - {self.aadhaar_number or 'No Aadhaar'} - Type: {self.entry_type} - Update: {self.get_update_type_display() or 'N/A'}"

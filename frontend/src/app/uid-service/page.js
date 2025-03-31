@@ -5,17 +5,20 @@ import TopBar from "../components/TopBar";
 import "../uid-service/styles.css"; // Import the CSS
 
 export default function UidTransactions() {
+  const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [entries, setEntries] = useState([]);
   const [enrollmentSuffix, setEnrollmentSuffix] = useState("");
-  const [timeSuffix, setTimeSuffix] = useState(""); // ✅ New state for time entry
+  const [timeSuffix, setTimeSuffix] = useState(""); // New state for time entry
   const [selectedEntry, setSelectedEntry] = useState(null);
   const [formData, setFormData] = useState({
     full_name: "",
     mobile_number: "",
     aadhaar_number: "",
-    entry_type: "new",
+    entry_type: "update",
     uid_type: "offline",
+    update_type: "new_adhar",
+    service_charge: 100, // Default service charge
   });
 
   useEffect(() => {
@@ -24,6 +27,7 @@ export default function UidTransactions() {
 
   // Fetch Temp Entries
   const fetchEntries = async () => {
+    setLoading(true);
     try {
       const response = await fetch("http://127.0.0.1:8001/api/uid-temp-entries/");
       if (response.ok) {
@@ -32,6 +36,8 @@ export default function UidTransactions() {
       }
     } catch (error) {
       console.error("Error fetching entries:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -51,9 +57,19 @@ export default function UidTransactions() {
       });
 
       if (response.ok) {
-        alert("Temp Entry Added Successfully!");
         setShowForm(false);
-        fetchEntries();
+        fetchEntries(); // Fetch entries again after successful submission
+
+        // Reset the form data after submission
+        setFormData({
+          full_name: "",
+          mobile_number: "",
+          aadhaar_number: "",
+          entry_type: "update",
+          uid_type: "offline",
+          update_type: "new_adhar",
+          service_charge: 100, // Reset service charge to default
+        });
       } else {
         alert("Error Adding Entry");
       }
@@ -70,29 +86,39 @@ export default function UidTransactions() {
     setTimeSuffix(""); // Reset Time Field
   };
 
-  // Submit Entry to UID System with Enrollment Suffix & Time (for new entries)
-  const handleSubmitToUID = async () => {
-    if (!enrollmentSuffix.match(/^\d{5}$/)) {
-      alert("Enrollment suffix must be exactly 5 digits!");
-      return;
-    }
+  // Function to delete the entry after it is moved
+  const deleteEntry = async (id) => {
+    try {
+      const response = await fetch(`http://127.0.0.1:8001/api/uid-temp-entries/${id}/delete/`, {
+        method: "DELETE",
+      });
 
-    if (selectedEntry.entry_type === "new") {
-      if (!timeSuffix.match(/^\d{6}$/)) {
-        alert("For new entries, Entry Time must be exactly 6 digits (HHMMSS)!");
-        return;
+      if (response.ok) {
+        fetchEntries(); // Fetch updated list of entries
+      } else {
+        alert("Error deleting entry");
       }
+    } catch (error) {
+      console.error("Error deleting entry:", error);
+      alert("An error occurred while deleting the entry.");
     }
+  };
 
+  // Submit Entry to UID System with Enrollment Suffix & Time
+  const handleSubmitToUID = async () => {
     const payload = {
       full_name: selectedEntry.full_name,
       mobile_number: selectedEntry.mobile_number,
       aadhaar_number: selectedEntry.aadhaar_number || null,
       entry_type: selectedEntry.entry_type,
       uid_type: selectedEntry.uid_type,
-      enrollment_suffix: enrollmentSuffix, // ✅ 5-digit suffix
-      entry_time: selectedEntry.entry_type === "new" ? timeSuffix : null, // ✅ Manual Entry Time
+      enrollment_suffix: enrollmentSuffix,
+      entry_time: selectedEntry.entry_type === "new" ? timeSuffix : null,
+      service_charge: formData.service_charge, // Use the service charge from the form
+      update_type: selectedEntry.entry_type === "update" ? selectedEntry.update_type : "new_adhar",
     };
+
+    console.log("Submitting Payload:", payload);
 
     try {
       const response = await fetch("http://127.0.0.1:8001/api/uid-entries/create/", {
@@ -101,23 +127,36 @@ export default function UidTransactions() {
         body: JSON.stringify(payload),
       });
 
+      const result = await response.json();  // Capture the response
+
       if (response.ok) {
-        await fetch(`http://127.0.0.1:8001/api/uid-temp-entries/${selectedEntry.id}/delete/`, {
-          method: "DELETE",
+        console.log("Success:", result);
+
+        // Now delete the temp entry after successful submission
+        deleteEntry(selectedEntry.id);
+
+        // Reset the form data and refresh the page after success
+        setFormData({
+          full_name: "",
+          mobile_number: "",
+          aadhaar_number: "",
+          entry_type: "update",
+          uid_type: "offline",
+          update_type: "new_adhar",
+          service_charge: 100, // Reset service charge to default
         });
 
-        alert("Entry Moved Successfully and Temp Entry Deleted!");
-        setSelectedEntry(null);
-        fetchEntries();
+        // Refresh the page to fetch updated data
+        window.location.reload();
       } else {
-        alert("Error Moving Entry to UID System");
+        console.error("Error:", result);
+        alert("Error Moving Entry: " + (result.detail || JSON.stringify(result)));
       }
     } catch (error) {
       console.error("Error moving entry:", error);
       alert("An error occurred while moving the entry.");
     }
   };
-
 
   return (
     <div className="content">
@@ -147,6 +186,21 @@ export default function UidTransactions() {
                 <option value="update">Update</option>
               </select>
 
+              {/* Show Update Type dropdown only if entry_type is "update" */}
+              {formData.entry_type === "update" && (
+                <>
+                  <label>Update Type:</label>
+                  <select name="update_type" value={formData.update_type} onChange={handleChange}>
+                    <option value="">Select Update Type</option>
+                    <option value="mobile_change">Mobile Number Change</option>
+                    <option value="biometric_change">Biometric Change</option>
+                    <option value="name_change">Name Change</option>
+                    <option value="address_change">Address Change</option>
+                    <option value="dob_change">Date of Birth Change</option>
+                  </select>
+                </>
+              )}
+
               <label>UID Type:</label>
               <select name="uid_type" value={formData.uid_type} onChange={handleChange}>
                 <option value="offline">Offline</option>
@@ -168,6 +222,7 @@ export default function UidTransactions() {
                 <th>Mobile Number</th>
                 <th>Entry Type</th>
                 <th>UID Type</th>
+                <th>Update Type</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -180,6 +235,7 @@ export default function UidTransactions() {
                     <td>{entry.mobile_number}</td>
                     <td>{entry.entry_type}</td>
                     <td>{entry.uid_type}</td>
+                    <td>{entry.update_type}</td>
                     <td>
                       <button className="use-entry-btn">Use Entry</button>
                     </td>
@@ -187,7 +243,7 @@ export default function UidTransactions() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="6">No entries found</td>
+                  <td colSpan="7">No entries found</td>
                 </tr>
               )}
             </tbody>
@@ -219,11 +275,17 @@ export default function UidTransactions() {
                   />
                 </>
               )}
+              <label>Service Charge (Default: 100 Rs):</label>
+              <input
+                type="number"
+                name="service_charge"
+                value={formData.service_charge}
+                onChange={handleChange}
+              />
 
               <button onClick={handleSubmitToUID}>Submit to UID System</button>
             </div>
           )}
-
         </div>
       </div>
     </div>

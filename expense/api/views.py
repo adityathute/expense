@@ -136,6 +136,10 @@ class UIDTempEntryCreateView(generics.CreateAPIView):
     queryset = UIDTempEntry.objects.all()
     serializer_class = UIDTempEntrySerializer
 
+    def perform_create(self, serializer):
+        print("Creating Temp Entry:", serializer.validated_data)
+        super().perform_create(serializer)
+
 # Get all UIDTempEntry records
 class UIDTempEntryListView(generics.ListAPIView):
     queryset = UIDTempEntry.objects.all()
@@ -148,3 +152,8 @@ class UIDEntryCreateView(generics.CreateAPIView):
 class TempEntryDeleteView(DestroyAPIView):
     queryset = UIDTempEntry.objects.all()
     serializer_class = UIDTempEntrySerializer
+    
+# List all UID Entries
+class UIDEntryListView(generics.ListAPIView):
+    queryset = UIDEntry.objects.all()
+    serializer_class = UIDEntrySerializer

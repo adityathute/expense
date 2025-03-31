@@ -96,6 +96,8 @@ class UIDEntrySerializer(serializers.ModelSerializer):
             "entry_time",
             "enrollment_suffix",
             "full_enrollment_number",
+            "service_charge",
+            "update_type",
         ]
 
     def get_full_enrollment_number(self, obj):
@@ -108,3 +110,8 @@ class UIDEntrySerializer(serializers.ModelSerializer):
                 {"enrollment_suffix": "Enrollment suffix must be exactly 5 digits!"}
             )
         return data
+
+class UIDEntrySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UIDEntry
+        fields = '__all__'
