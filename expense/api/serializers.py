@@ -98,6 +98,7 @@ class UIDEntrySerializer(serializers.ModelSerializer):
             "full_enrollment_number",
             "service_charge",
             "update_type",
+            "payment_type",
         ]
 
     def get_full_enrollment_number(self, obj):

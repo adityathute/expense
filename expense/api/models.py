@@ -237,6 +237,11 @@ class UIDEntry(models.Model):
         ("dob_change", "Date of Birth Change"),
     ]
 
+    PAYMENT_TYPE_CHOICES = [
+        ("cash", "Cash"),
+        ("online", "Online"),
+    ]
+
     full_name = models.CharField(max_length=255)
     mobile_number = models.CharField(max_length=10)
     aadhaar_number = models.CharField(
@@ -258,6 +263,7 @@ class UIDEntry(models.Model):
     update_type = models.CharField(max_length=20, choices=UPDATE_TYPE_CHOICES, blank=True, null=True)  # Dropdown menu for selecting update type
     # Pricing & Charges
     service_charge = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)  # Customer pays
+    payment_type = models.CharField(max_length=20, choices=PAYMENT_TYPE_CHOICES, blank=True, null=True)  # Dropdown menu for selecting update type
 
     @property
     def full_enrollment_number(self):

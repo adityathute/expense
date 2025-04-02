@@ -19,7 +19,10 @@ export default function UidTransactions() {
       const response = await fetch("http://127.0.0.1:8001/api/uid-entries/");
       if (response.ok) {
         const data = await response.json();
-        setEntries(data);
+        
+        // Sort entries by created_at in descending order (most recent first)
+        const sortedEntries = data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        setEntries(sortedEntries);
       }
     } catch (error) {
       console.error("Error fetching entries:", error);

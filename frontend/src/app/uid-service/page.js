@@ -18,8 +18,10 @@ export default function UidTransactions() {
     entry_type: "update",
     uid_type: "offline",
     update_type: "new_adhar",
-    service_charge: 100, // Default service charge
+    service_charge: 100,
+    payment_type: "cash", // Default payment type
   });
+
 
   useEffect(() => {
     fetchEntries();
@@ -113,9 +115,10 @@ export default function UidTransactions() {
       entry_type: selectedEntry.entry_type,
       uid_type: selectedEntry.uid_type,
       enrollment_suffix: enrollmentSuffix,
-      entry_time: selectedEntry.entry_type === "new" ? timeSuffix : null,
-      service_charge: formData.service_charge, // Use the service charge from the form
+      entry_time: timeSuffix,  // Always include entry time
+      service_charge: formData.service_charge,
       update_type: selectedEntry.entry_type === "update" ? selectedEntry.update_type : "new_adhar",
+      payment_type: formData.payment_type,  // Add payment type
     };
 
     console.log("Submitting Payload:", payload);
@@ -127,15 +130,12 @@ export default function UidTransactions() {
         body: JSON.stringify(payload),
       });
 
-      const result = await response.json();  // Capture the response
+      const result = await response.json();
 
       if (response.ok) {
         console.log("Success:", result);
+        deleteEntry(selectedEntry.id);  // Remove temp entry after submission
 
-        // Now delete the temp entry after successful submission
-        deleteEntry(selectedEntry.id);
-
-        // Reset the form data and refresh the page after success
         setFormData({
           full_name: "",
           mobile_number: "",
@@ -143,13 +143,12 @@ export default function UidTransactions() {
           entry_type: "update",
           uid_type: "offline",
           update_type: "new_adhar",
-          service_charge: 100, // Reset service charge to default
+          service_charge: 100,
+          payment_type: "cash",
         });
 
-        // Refresh the page to fetch updated data
-        window.location.reload();
+        window.location.reload();  // Refresh after successful submission
       } else {
-        console.error("Error:", result);
         alert("Error Moving Entry: " + (result.detail || JSON.stringify(result)));
       }
     } catch (error) {
@@ -157,6 +156,7 @@ export default function UidTransactions() {
       alert("An error occurred while moving the entry.");
     }
   };
+
 
   return (
     <div className="content">
@@ -237,8 +237,14 @@ export default function UidTransactions() {
                     <td>{entry.uid_type}</td>
                     <td>{entry.update_type}</td>
                     <td>
-                      <button className="use-entry-btn">Use Entry</button>
+                      <button className="use-entry-btn" onClick={() => handleSelectEntry(entry)}>
+                        Use Entry
+                      </button>
+                      <button className="delete-entry-btn" onClick={() => deleteEntry(entry.id)}>
+                        Delete
+                      </button>
                     </td>
+
                   </tr>
                 ))
               ) : (
@@ -249,10 +255,14 @@ export default function UidTransactions() {
             </tbody>
           </table>
 
-          {/* Enrollment Suffix Form */}
+          {/* Enrollment Suffix Form - Show only when an entry is selected */}
           {selectedEntry && (
             <div className="enrollment-form">
-              <h3>Add Enrollment Suffix & Entry Time</h3>
+              <h3>Move to UID System</h3>
+
+              {/* Display Entry ID and Name */}
+              <p><strong>Entry ID:</strong> {selectedEntry.id}</p>
+              <p><strong>Name:</strong> {selectedEntry.full_name}</p>
 
               <label>Enrollment Suffix (5 digits):</label>
               <input
@@ -275,6 +285,19 @@ export default function UidTransactions() {
                   />
                 </>
               )}
+
+              <label>Payment Type:</label>
+              <select
+                name="payment_type"
+                value={formData.payment_type}
+                onChange={handleChange}
+              >
+                <option value="cash">Cash</option>
+                <option value="online">Online</option>
+                <option value="upi">UPI</option>
+                <option value="card">Card</option>
+              </select>
+
               <label>Service Charge (Default: 100 Rs):</label>
               <input
                 type="number"
@@ -284,8 +307,10 @@ export default function UidTransactions() {
               />
 
               <button onClick={handleSubmitToUID}>Submit to UID System</button>
+              <button onClick={() => setSelectedEntry(null)}>Close</button> {/* Close button */}
             </div>
           )}
+
         </div>
       </div>
     </div>

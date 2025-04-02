@@ -37,3 +37,17 @@
     width: 300px;
   }
   
+  .delete-entry-btn {
+    background-color: red;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    margin-left: 5px;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  
+  .delete-entry-btn:hover {
+    background-color: darkred;
+  }
+  
