@@ -274,3 +274,4 @@ class UIDEntry(models.Model):
 
     def __str__(self):
         return f"{self.full_name} - {self.aadhaar_number or 'No Aadhaar'} - Type: {self.entry_type} - Update: {self.get_update_type_display() or 'N/A'}"
+
