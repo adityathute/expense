@@ -1,6 +1,5 @@
 .bank-account-section {
   margin-top: 20px;
-  padding: 20px;
   background-color: #f8fafc;
   border-radius: 10px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
@@ -19,6 +18,25 @@
 
 .bank-account-section > button:hover {
   background-color: #0056b3;
+}
+
+.balance-negative,
+.balance-positive,
+.balance-zero {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.balance-negative {
+  color: #e53935;
+}
+
+.balance-positive {
+  color: #43a047;
+}
+
+.balance-zero {
+  color: #fb8c00;
 }
 
 .form {
@@ -104,6 +122,25 @@ table tbody tr td button:hover {
   color: #333;
   font-weight: 600;
 }
+
+/* Center-align all table cells by default */
+.account-table th,
+.account-table td {
+  text-align: center;
+}
+
+/* Left-align "Holder Name" (2nd column) */
+.account-table th:nth-child(2),
+.account-table td:nth-child(2) {
+  text-align: left;
+}
+
+/* Right-align "Balance" (6th column) */
+.account-table th:nth-child(6),
+.account-table td:nth-child(6) {
+  text-align: right;
+}
+
 
 .account-table tbody tr:hover {
   background-color: #f9fcff;

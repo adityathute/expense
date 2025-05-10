@@ -303,7 +303,9 @@ class Account(models.Model):
         ('Current', 'Current'),
         ('Saving', 'Saving'),
         ('Pigme', 'Pigme'),
-        ('Fixed Deposit', 'Fixed Deposit'),
+        ('Mutual Fund', 'Mutual Fund'),
+        ('Digital Gold', 'Digital Gold'),
+        ('Trading', 'Trading'),
     ]
     account_type = models.CharField(
         max_length=25, blank=True, null=True, choices=ACCOUNT_TYPE_CHOICES)
@@ -353,7 +355,7 @@ class Account(models.Model):
     def save(self, *args, **kwargs):
         self.full_clean()  # Runs clean() before saving
         super().save(*args, **kwargs)
-        
+
     def __str__(self):
         # String representation of the account for admin or logs
         return f"{self.account_holder_name} ({self.bank_service_name}) - {self.account_number}"

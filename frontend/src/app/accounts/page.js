@@ -35,6 +35,17 @@ export default function Account() {
     }));
   };
 
+  function formatBalance(amount) {
+    const parsed = parseFloat(amount);
+    return parsed % 1 === 0 ? parsed.toFixed(0) : parsed.toFixed(2);
+  }
+
+  function getBalanceClass(amount) {
+    if (amount < 0) return "balance-negative";
+    if (amount > 0) return "balance-positive";
+    return "balance-zero";
+  }
+
   const handleAddAccount = () => setShowForm(true);
   const handleCloseForm = () => {
     setShowForm(false);
@@ -177,6 +188,9 @@ export default function Account() {
                         <option value="Saving">Saving</option>
                         <option value="Pigme">Pigme</option>
                         <option value="Fixed Deposit">Fixed Deposit</option>
+                        <option value="Mutual Fund">Mutual Fund</option>
+                        <option value="Digital Gold">Digital Gold</option>
+                        <option value="Trading">Trading</option>
                       </select>
                     </>
                   )}
@@ -234,7 +248,7 @@ export default function Account() {
                       <td>{account.account_number || "-"}</td>
                       <td>{account.bank_service_name || "-"}</td>
                       <td>{account.ifsc_code || "-"}</td>
-                      <td>₹{account.balance}</td>
+                      <td className={getBalanceClass(account.balance)}>₹&nbsp;{formatBalance(account.balance)}</td>
                       <td>{account.account_mode}</td>
                       <td>{account.account_type || "-"}</td>
                       <td>{account.category}</td>
