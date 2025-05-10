@@ -2,9 +2,11 @@ from django.http import JsonResponse
 from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 from rest_framework import generics, status, viewsets
-from .models import Category, Service, User, UserService, UIDTempEntry, UIDEntry
-from .serializers import CategorySerializer, UserSerializer, ServiceSerializer, UserServiceSerializer, UIDTempEntrySerializer, UIDEntrySerializer
+from .models import Category, Service, User, UserService, UIDTempEntry, UIDEntry, Account
+from .serializers import CategorySerializer, UserSerializer, ServiceSerializer, UserServiceSerializer, UIDTempEntrySerializer, UIDEntrySerializer, AccountSerializer
 from rest_framework.generics import DestroyAPIView
+from rest_framework.permissions import AllowAny
+from rest_framework.views import APIView
 
 # ---------------------- CATEGORY RELATED VIEWS ---------------------- #
 
@@ -157,3 +159,19 @@ class TempEntryDeleteView(DestroyAPIView):
 class UIDEntryListView(generics.ListAPIView):
     queryset = UIDEntry.objects.all()
     serializer_class = UIDEntrySerializer
+
+# ---------------------- ACCOUNTS RELATED VIEWS ---------------------- #
+
+class AccountListView(APIView):
+    permission_classes = [AllowAny]  # You can replace this with specific permissions later
+
+    def get(self, request, *args, **kwargs):
+        # Fetch all active accounts
+        accounts = Account.active_objects.all()
+        serializer = AccountSerializer(accounts, many=True)
+        return Response(serializer.data)
+    
+class AccountViewSet(viewsets.ModelViewSet):
+    queryset = Account.active_objects.all()
+    serializer_class = AccountSerializer
+    permission_classes = [AllowAny]  # You can change this later for authentication

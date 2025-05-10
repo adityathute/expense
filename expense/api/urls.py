@@ -1,7 +1,14 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 from . import views
 
+router = DefaultRouter()
+router.register(r'accounts', views.AccountViewSet, basename='account')
+
 urlpatterns = [
+    path('api/', include(router.urls)),
+    
+    # Keep your existing paths:
     path('api/categories/', views.category_list, name='category_list'),
     path("api/categories/<int:category_id>/", views.category_detail, name="category_detail"),
     path('api/services/', views.ServiceListCreateView.as_view(), name='service-list-create'),
@@ -15,4 +22,5 @@ urlpatterns = [
     path("api/uid-entries/", views.UIDEntryListView.as_view(), name="uid-entry-list"),
     path("api/uid-entries/create/", views.UIDEntryCreateView.as_view(), name="uid-entry-create"),
     path("api/uid-temp-entries/<int:pk>/delete/", views.TempEntryDeleteView.as_view(), name="uid-temp-delete"),
+    path('api/accounts/', views.AccountListView.as_view(), name='account-list'),
 ]

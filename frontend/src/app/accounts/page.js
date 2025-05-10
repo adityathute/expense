@@ -2,40 +2,103 @@
 
 import Sidebar from "../components/Sidebar";
 import TopBar from "../components/TopBar";
-import { useState } from "react";
-import "../styles.css";
+import { useState, useEffect } from "react";
+import "./style.css";
 
-export default function Dashboard() {
+export default function Account() {
   const [bankAccounts, setBankAccounts] = useState([]);
+  const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
-    accountHolder: "",
-    accountNumber: "",
-    bankName: "",
-    ifscCode: ""
+    account_holder_name: "",
+    account_number: "",
+    bank_service_name: "",
+    ifsc_code: "",
+    balance: 0,
+    account_mode: "Cash",
+    account_type: "",
+    category: "Business",
   });
+  const [editingId, setEditingId] = useState(null); // State for edit mode
+
+  useEffect(() => {
+    fetch("http://127.0.0.1:8001/api/accounts/")
+      .then((res) => res.json())
+      .then((data) => setBankAccounts(data))
+      .catch((err) => console.error("Error fetching accounts:", err));
+  }, []);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
-  const addBankAccount = () => {
-    if (
-      formData.accountHolder &&
-      formData.accountNumber &&
-      formData.bankName &&
-      formData.ifscCode
-    ) {
-      setBankAccounts([...bankAccounts, formData]);
-      setFormData({
-        accountHolder: "",
-        accountNumber: "",
-        bankName: "",
-        ifscCode: ""
-      });
-    } else {
-      alert("Please fill in all fields before creating an account.");
-    }
+  const handleAddAccount = () => setShowForm(true);
+  const handleCloseForm = () => {
+    setShowForm(false);
+    setEditingId(null); // Reset editing state when closing form
   };
+
+  const handleFormSubmit = () => {
+    const method = editingId ? "PUT" : "POST";
+    const url = editingId
+      ? `http://127.0.0.1:8001/api/accounts/${editingId}/`
+      : "http://127.0.0.1:8001/api/accounts/";
+
+    fetch(url, {
+      method: method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formData),
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Error saving account");
+        return res.json();
+      })
+      .then((savedAccount) => {
+        if (editingId) {
+          // Replace edited item
+          setBankAccounts((prev) =>
+            prev.map((acc) => (acc.id === editingId ? savedAccount : acc))
+          );
+        } else {
+          setBankAccounts((prev) => [...prev, savedAccount]);
+        }
+
+        setFormData({
+          account_holder_name: "",
+          account_number: "",
+          bank_service_name: "",
+          ifsc_code: "",
+          balance: 0,
+          account_mode: "Cash",
+          account_type: "",
+          category: "Business",
+        });
+
+        setShowForm(false);
+        setEditingId(null);
+      })
+      .catch((err) => alert(err.message));
+  };
+
+  const handleEdit = (account) => {
+    setFormData({
+      account_holder_name: account.account_holder_name || "",
+      account_number: account.account_number || "",
+      bank_service_name: account.bank_service_name || "",
+      ifsc_code: account.ifsc_code || "",
+      balance: account.balance || 0,
+      account_mode: account.account_mode || "Cash",
+      account_type: account.account_type || "",
+      category: account.category || "Business",
+    });
+    setEditingId(account.id);
+    setShowForm(true);
+  };
+
+  const isCash = formData.account_mode === "Cash";
 
   return (
     <div className="content">
@@ -44,58 +107,144 @@ export default function Dashboard() {
         <Sidebar />
         <div className="main-content">
           <h1>Welcome to the Accounts</h1>
-          <p>Manage your accounts</p>
 
           <div className="bank-account-section">
-            <h2>Bank Accounts</h2>
+            <button onClick={handleAddAccount}>Add Account</button>
 
-            {/* Create Account Button */}
-            <button onClick={addBankAccount} className="create-account-btn">
-              Create Account
-            </button>
+            {showForm && (
+              <>
+                <h3>{editingId ? "Edit Account" : "Add New Account"}</h3>
+                <div className="form">
+                  {/* Account Mode on Top */}
+                  <select
+                    name="account_mode"
+                    value={formData.account_mode}
+                    onChange={handleChange}
+                  >
+                    <option value="Cash">Cash</option>
+                    <option value="Online">Online</option>
+                  </select>
 
-            <h3>Add Bank Account</h3>
-            <div className="form">
-              <input
-                type="text"
-                name="accountHolder"
-                placeholder="Account Holder Name"
-                value={formData.accountHolder}
-                onChange={handleChange}
-              />
-              <input
-                type="text"
-                name="accountNumber"
-                placeholder="Account Number"
-                value={formData.accountNumber}
-                onChange={handleChange}
-              />
-              <input
-                type="text"
-                name="bankName"
-                placeholder="Bank Name"
-                value={formData.bankName}
-                onChange={handleChange}
-              />
-              <input
-                type="text"
-                name="ifscCode"
-                placeholder="IFSC Code"
-                value={formData.ifscCode}
-                onChange={handleChange}
-              />
-              <button onClick={addBankAccount}>Add Bank Account</button>
-            </div>
+                  {isCash ? (
+                    <input
+                      type="text"
+                      name="bank_service_name"
+                      placeholder="Service Name"
+                      value={formData.bank_service_name}
+                      onChange={handleChange}
+                    />
+                  ) : (
+                    <>
+                      <input
+                        type="text"
+                        name="bank_service_name"
+                        placeholder="Bank Name"
+                        value={formData.bank_service_name}
+                        onChange={handleChange}
+                      />
+                      <input
+                        type="text"
+                        name="account_holder_name"
+                        placeholder="Account Holder Name"
+                        value={formData.account_holder_name}
+                        onChange={handleChange}
+                      />
+                    </>
+                  )}
+
+                  {!isCash && (
+                    <>
+                      <input
+                        type="text"
+                        name="account_number"
+                        placeholder="Account Number"
+                        value={formData.account_number}
+                        onChange={handleChange}
+                      />
+                      <input
+                        type="text"
+                        name="ifsc_code"
+                        placeholder="IFSC Code"
+                        value={formData.ifsc_code}
+                        onChange={handleChange}
+                      />
+                      <select
+                        name="account_type"
+                        value={formData.account_type}
+                        onChange={handleChange}
+                      >
+                        <option value="Current">Current</option>
+                        <option value="Saving">Saving</option>
+                        <option value="Pigme">Pigme</option>
+                        <option value="Fixed Deposit">Fixed Deposit</option>
+                      </select>
+                    </>
+                  )}
+
+                  <input
+                    type="number"
+                    name="balance"
+                    placeholder="Initial Balance"
+                    value={formData.balance}
+                    onChange={handleChange}
+                  />
+
+                  <select
+                    name="category"
+                    value={formData.category}
+                    onChange={handleChange}
+                  >
+                    <option value="Business">Business</option>
+                    <option value="Personal">Personal</option>
+                    <option value="Home">Home</option>
+                  </select>
+
+                  <div style={{ display: "flex", gap: "10px" }}>
+                    <button onClick={handleFormSubmit}>
+                      {editingId ? "Update" : "Submit"}
+                    </button>
+                    <button onClick={handleCloseForm}>Close</button>
+                  </div>
+                </div>
+              </>
+            )}
 
             <div className="bank-account-list">
-              <h3>Saved Bank Accounts</h3>
-              <ul>
-                {bankAccounts.map((account, index) => (
-                  <li key={index}>
-                    <strong>{account.accountHolder}</strong> - {account.bankName} ({account.accountNumber}) - IFSC: {account.ifscCode}
-                  </li>
-                ))}
-              </ul>
+              <h3>Accounts</h3>
+              <table className="account-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Holder Name</th>
+                    <th>Account Number</th>
+                    <th>Service/Bank</th>
+                    <th>IFSC</th>
+                    <th>Balance</th>
+                    <th>Mode</th>
+                    <th>Type</th>
+                    <th>Category</th>
+                    <th>Edit</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {bankAccounts.map((account, index) => (
+                    <tr key={index}>
+                      <td>{index + 1}</td>
+                      <td>{account.account_holder_name || "-"}</td>
+                      <td>{account.account_number || "-"}</td>
+                      <td>{account.bank_service_name || "-"}</td>
+                      <td>{account.ifsc_code || "-"}</td>
+                      <td>₹{account.balance}</td>
+                      <td>{account.account_mode}</td>
+                      <td>{account.account_type || "-"}</td>
+                      <td>{account.category}</td>
+                      <td>
+                        <button onClick={() => handleEdit(account)}>Edit</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>

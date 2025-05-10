@@ -1,6 +1,8 @@
 from django.db import models
 from django.conf import settings
 from decouple import config
+from django.core.exceptions import ValidationError
+
 # ---------------------- CATEGORY RELATED MODEL ---------------------- #
 
 class Category(models.Model):
@@ -277,51 +279,91 @@ class UIDEntry(models.Model):
 
 # ---------------------- ACCOUNTS RELATED MODELS ---------------------- #
 
+# Custom manager to return only non-deleted accounts
+class ActiveAccountManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(is_deleted=False)
+
 class Account(models.Model):
-    account_holder_name = models.CharField(max_length=255, verbose_name="Account Holder's Name")
-    account_number = models.CharField(max_length=50, unique=True, verbose_name="Account Number")
-    # Payment method (Cash or Online)
-    PAYMENT_METHOD_CHOICES = [
-        ('Cash', 'Cash'),
-        ('Online', 'Online'),
-    ]
-    payment_method = models.CharField(
-        max_length=10, choices=PAYMENT_METHOD_CHOICES, default='Cash')
-    # Bank or service provider's name
-    bank_service_name = models.CharField(max_length=255)
-    # Account type (Current, Saving, Pigme, etc.)
+    # Name of the person or entity holding the account
+    account_holder_name = models.CharField(max_length=255, blank=True, null=True, verbose_name="Account Holder's Name")
+
+    account_number = models.CharField(
+        max_length=50, blank=True, null=True, verbose_name="Account Number"
+    )
+
+    # Mode of account: Cash or Online (bank/digital wallet)
+    account_mode = models.CharField(choices=[('Cash', 'Cash'), ('Online', 'Online')],  max_length=25)
+
+    # Name of bank or service provider (optional for Cash accounts)
+    bank_service_name = models.CharField(max_length=255, blank=True, null=True)
+
+    # Type of account (used mainly for Online accounts)
     ACCOUNT_TYPE_CHOICES = [
-    ('Current', 'Current'),
-    ('Saving', 'Saving'),
-    ('Pigme', 'Pigme'),
-    ('Fixed Deposit', 'Fixed Deposit'),
+        ('Current', 'Current'),
+        ('Saving', 'Saving'),
+        ('Pigme', 'Pigme'),
+        ('Fixed Deposit', 'Fixed Deposit'),
     ]
     account_type = models.CharField(
-        max_length=25, choices=ACCOUNT_TYPE_CHOICES, default='Current')
-    # IFSC code for the account (used for bank identification)
-    ifsc_code = models.CharField(max_length=20)
-    # Balance available in the account
+        max_length=25, blank=True, null=True, choices=ACCOUNT_TYPE_CHOICES)
+
+    # IFSC code for Online bank accounts (optional for Cash accounts)
+    ifsc_code = models.CharField(max_length=20, blank=True, null=True)
+
+    # Current available balance in the account
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    # Date when the account was created
+
+    # Auto-recorded timestamp when account is created
     date_created = models.DateTimeField(auto_now_add=True)
-    # Date when the account was last modified
+
+    # Auto-updated timestamp when account is modified
     date_modified = models.DateTimeField(auto_now=True)
-    # Category - Personal, Home, Shop, etc.
+
+    # Used to categorize accounts based on purpose
     CATEGORY_CHOICES = [
         ('Personal', 'Personal'),
         ('Home', 'Home'),
         ('Business', 'Business'),
     ]
     category = models.CharField(
-        max_length=10, choices=CATEGORY_CHOICES, default='Business', verbose_name="Category")
+        max_length=10, choices=CATEGORY_CHOICES, verbose_name="Category")
+
+    # Soft delete flag; used by ActiveAccountManager to filter inactive data
     is_deleted = models.BooleanField(default=False, verbose_name="Is Deleted")
-    # Indicates whether the account is active
+
+    # Default manager for querying all accounts (including deleted ones)
+    objects = models.Manager()
+
+    # Custom manager to return only active (non-deleted) accounts
+    active_objects = ActiveAccountManager()
+
+    # Marks whether the account is currently in use
     is_active = models.BooleanField(default=True)
+
+    def clean(self):
+        if self.account_mode != "Cash":
+            if not self.account_number:
+                raise ValidationError("Account number is required for non-cash accounts.")
+            if Account.objects.exclude(pk=self.pk).filter(account_number=self.account_number).exists():
+                raise ValidationError("Account number must be unique.")
+        else:
+            self.account_number = None  # Clear account_number if mode is Cash
+
+    def save(self, *args, **kwargs):
+        self.full_clean()  # Runs clean() before saving
+        super().save(*args, **kwargs)
+        
     def __str__(self):
-        return f"{self.account_holder_name} - {self.account_number}"
+        # String representation of the account for admin or logs
+        return f"{self.account_holder_name} ({self.bank_service_name}) - {self.account_number}"
 
     class Meta:
         verbose_name = 'Account'
         verbose_name_plural = 'Accounts'
-        unique_together = ('account_holder_name', 'bank_service_name')
 
+        # Indexes for faster lookup and search
+        indexes = [
+            models.Index(fields=['account_number']),
+            models.Index(fields=['account_holder_name']),
+        ]

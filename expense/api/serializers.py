@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Category, Service, User, UserService, UserID, UIDTempEntry, UIDEntry
+from .models import Category, Service, User, UserService, UserID, UIDTempEntry, UIDEntry, Account
 from rest_framework.generics import DestroyAPIView
 
 # ---------------------- CATEGORY RELATED SERIALIZER ---------------------- #
@@ -116,3 +116,17 @@ class UIDEntrySerializer(serializers.ModelSerializer):
     class Meta:
         model = UIDEntry
         fields = '__all__'
+
+# ---------------------- ACCOUNTS RELATED SERIALIZER ---------------------- #
+
+class AccountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Account
+        fields = '__all__'
+        extra_kwargs = {
+            'account_holder_name': {'required': False, 'allow_null': True},
+            'account_number': {'required': False, 'allow_null': True},
+            'bank_service_name': {'required': False, 'allow_null': True},
+            'ifsc_code': {'required': False, 'allow_null': True},
+            'account_type': {'required': False, 'allow_null': True},
+        }

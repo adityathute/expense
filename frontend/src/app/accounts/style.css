@@ -1,50 +1,110 @@
-.content {
-  font-family: Arial, sans-serif;
-}
-
-.container {
-  display: flex;
-}
-
-.main-content {
-  flex: 1;
-  padding: 20px;
-}
-
 .bank-account-section {
-  margin-top: 30px;
-  background: #f9f9f9;
-  border: 1px solid #ddd;
+  margin-top: 20px;
   padding: 20px;
-  border-radius: 8px;
+  background-color: #f8fafc;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.bank-account-section > button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-size: 14px;
+}
+
+.bank-account-section > button:hover {
+  background-color: #0056b3;
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 12px;
+  margin-top: 20px;
+  background-color: #eef3f9;
+  padding: 20px;
+  border-radius: 10px;
+  max-width: 500px;
+  border: 1px solid #d3d3d3;
 }
 
-.form input {
+.form input,
+.form select {
   padding: 10px;
+  border-radius: 6px;
   border: 1px solid #ccc;
-  border-radius: 4px;
+  font-size: 14px;
 }
 
-.form button {
-  padding: 10px;
-  background-color: #0070f3;
+.form input:focus,
+.form select:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.form div button {
+  background-color: #28a745;
   color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
   border: none;
   cursor: pointer;
-  border-radius: 4px;
 }
 
-.form button:hover {
-  background-color: #005bb5;
+table tbody tr td button {
+  background-color: white;
+  color: #007bff;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid #007bff;
+  cursor: pointer;
 }
 
-.bank-account-list ul {
-  list-style-type: none;
+table tbody tr td button:hover {
+  background-color: #f1f3f5;
+  border: 1px solid #0056b3;
+}
+
+.form div button:last-child {
+  background-color: #dc3545;
+}
+
+.form div button:hover {
+  opacity: 0.9;
+}
+
+.bank-account-list {
+  margin-top: 30px;
+}
+
+.account-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #ffffff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.account-table th,
+.account-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+  font-size: 14px;
+}
+
+.account-table th {
+  background-color: #f1f3f5;
+  color: #333;
+  font-weight: 600;
+}
+
+.account-table tbody tr:hover {
+  background-color: #f9fcff;
 }
