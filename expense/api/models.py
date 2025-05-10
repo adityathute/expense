@@ -275,3 +275,53 @@ class UIDEntry(models.Model):
     def __str__(self):
         return f"{self.full_name} - {self.aadhaar_number or 'No Aadhaar'} - Type: {self.entry_type} - Update: {self.get_update_type_display() or 'N/A'}"
 
+# ---------------------- ACCOUNTS RELATED MODELS ---------------------- #
+
+class Account(models.Model):
+    account_holder_name = models.CharField(max_length=255, verbose_name="Account Holder's Name")
+    account_number = models.CharField(max_length=50, unique=True, verbose_name="Account Number")
+    # Payment method (Cash or Online)
+    PAYMENT_METHOD_CHOICES = [
+        ('Cash', 'Cash'),
+        ('Online', 'Online'),
+    ]
+    payment_method = models.CharField(
+        max_length=10, choices=PAYMENT_METHOD_CHOICES, default='Cash')
+    # Bank or service provider's name
+    bank_service_name = models.CharField(max_length=255)
+    # Account type (Current, Saving, Pigme, etc.)
+    ACCOUNT_TYPE_CHOICES = [
+    ('Current', 'Current'),
+    ('Saving', 'Saving'),
+    ('Pigme', 'Pigme'),
+    ('Fixed Deposit', 'Fixed Deposit'),
+    ]
+    account_type = models.CharField(
+        max_length=25, choices=ACCOUNT_TYPE_CHOICES, default='Current')
+    # IFSC code for the account (used for bank identification)
+    ifsc_code = models.CharField(max_length=20)
+    # Balance available in the account
+    balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    # Date when the account was created
+    date_created = models.DateTimeField(auto_now_add=True)
+    # Date when the account was last modified
+    date_modified = models.DateTimeField(auto_now=True)
+    # Category - Personal, Home, Shop, etc.
+    CATEGORY_CHOICES = [
+        ('Personal', 'Personal'),
+        ('Home', 'Home'),
+        ('Business', 'Business'),
+    ]
+    category = models.CharField(
+        max_length=10, choices=CATEGORY_CHOICES, default='Business', verbose_name="Category")
+    is_deleted = models.BooleanField(default=False, verbose_name="Is Deleted")
+    # Indicates whether the account is active
+    is_active = models.BooleanField(default=True)
+    def __str__(self):
+        return f"{self.account_holder_name} - {self.account_number}"
+
+    class Meta:
+        verbose_name = 'Account'
+        verbose_name_plural = 'Accounts'
+        unique_together = ('account_holder_name', 'bank_service_name')
+

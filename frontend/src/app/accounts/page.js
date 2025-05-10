@@ -32,6 +32,8 @@ export default function Dashboard() {
         bankName: "",
         ifscCode: ""
       });
+    } else {
+      alert("Please fill in all fields before creating an account.");
     }
   };
 
@@ -42,10 +44,17 @@ export default function Dashboard() {
         <Sidebar />
         <div className="main-content">
           <h1>Welcome to the Accounts</h1>
-          <p>Manage your transactions, categories, and more.</p>
+          <p>Manage your accounts</p>
 
           <div className="bank-account-section">
-            <h2>Add Bank Account (Use Client)</h2>
+            <h2>Bank Accounts</h2>
+
+            {/* Create Account Button */}
+            <button onClick={addBankAccount} className="create-account-btn">
+              Create Account
+            </button>
+
+            <h3>Add Bank Account</h3>
             <div className="form">
               <input
                 type="text"
