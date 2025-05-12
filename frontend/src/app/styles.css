@@ -99,6 +99,7 @@ body {
 
 /* Main Content */
 .main-content {
+  width: 100%;
   padding: 20px;
   margin-left: var(--sidebar-width);
   margin-top: var(--navbar-height2);

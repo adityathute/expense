@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import "./style.css";
 
 export default function Account() {
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [bankAccounts, setBankAccounts] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -110,6 +111,12 @@ export default function Account() {
   };
 
   const isCash = formData.account_mode === "Cash";
+  const categoryTotals = bankAccounts.reduce((acc, account) => {
+    const category = account.category || "Uncategorized";
+    acc[category] = (acc[category] || 0) + parseFloat(account.balance || 0);
+    return acc;
+  }, {});
+  const totalBalance = Object.values(categoryTotals).reduce((sum, val) => sum + val, 0);
 
   return (
     <div className="content">
@@ -118,9 +125,28 @@ export default function Account() {
         <Sidebar />
         <div className="main-content">
           <h1>Welcome to the Accounts</h1>
+          <div className="category-grid">
+            {Object.entries(categoryTotals).map(([category, total]) => (
+              <div
+                key={category}
+                className={`category-card ${selectedCategory === category ? "selected" : ""}`}
+                onClick={() => setSelectedCategory(category === selectedCategory ? null : category)}
+              >
+                <h3>{category}</h3>
+                <p className="cat-card-special-block">₹ {formatBalance(total)}</p>
+              </div>
+            ))}
+            {/* Total Balance Block */}
+            <div className="category-card total-balance-block">
+              <h3>Total Balance</h3>
+              <div className="cat-card-special-block">
+                <p>₹ {formatBalance(totalBalance)}</p>
+              </div>
+            </div>
+          </div>
+
 
           <div className="bank-account-section">
-            <button onClick={handleAddAccount}>Add Account</button>
 
             {showForm && (
               <>
@@ -224,15 +250,19 @@ export default function Account() {
             )}
 
             <div className="bank-account-list">
-              <h3>Accounts</h3>
+              <div className="create-new-account">
+                <h3 className="create-new-account-h-block">Accounts</h3>
+                {/* Add Account Button Block */}
+                <div className="create-new-account-btn-block" onClick={handleAddAccount}>
+                  <button className="cat-card-special-btn">+&nbsp;&nbsp;Create account</button>
+                </div>
+              </div>
               <table className="account-table">
                 <thead>
                   <tr>
                     <th>#</th>
                     <th>Holder Name</th>
-                    <th>Account Number</th>
                     <th>Service/Bank</th>
-                    <th>IFSC</th>
                     <th>Balance</th>
                     <th>Mode</th>
                     <th>Type</th>
@@ -241,22 +271,23 @@ export default function Account() {
                   </tr>
                 </thead>
                 <tbody>
-                  {bankAccounts.map((account, index) => (
-                    <tr key={index}>
-                      <td>{index + 1}</td>
-                      <td>{account.account_holder_name || "-"}</td>
-                      <td>{account.account_number || "-"}</td>
-                      <td>{account.bank_service_name || "-"}</td>
-                      <td>{account.ifsc_code || "-"}</td>
-                      <td className={getBalanceClass(account.balance)}>₹&nbsp;{formatBalance(account.balance)}</td>
-                      <td>{account.account_mode}</td>
-                      <td>{account.account_type || "-"}</td>
-                      <td>{account.category}</td>
-                      <td>
-                        <button onClick={() => handleEdit(account)}>Edit</button>
-                      </td>
-                    </tr>
-                  ))}
+                  {bankAccounts
+                    .filter((acc) => !selectedCategory || acc.category === selectedCategory)
+                    .map((account, index) => (
+                      <tr key={index}>
+                        <td>{index + 1}</td>
+                        <td>{account.account_holder_name || "-"}</td>
+                        <td>{account.bank_service_name || "-"}</td>
+                        <td className={getBalanceClass(account.balance)}>₹&nbsp;{formatBalance(account.balance)}</td>
+                        <td>{account.account_mode}</td>
+                        <td>{account.account_type || "-"}</td>
+                        <td>{account.category}</td>
+                        <td>
+                          <button onClick={() => handleEdit(account)}>Edit</button>
+                        </td>
+                      </tr>
+                    ))}
+
                 </tbody>
               </table>
             </div>
