@@ -47,11 +47,22 @@ export default function Account() {
     return "balance-zero";
   }
 
-  const handleAddAccount = () => setShowForm(true);
-  const handleCloseForm = () => {
-    setShowForm(false);
-    setEditingId(null); // Reset editing state when closing form
+  const handleAddAccount = () => {
+    // Reset form
+    setFormData({
+      account_holder_name: "",
+      account_number: "",
+      bank_service_name: "",
+      ifsc_code: "",
+      balance: 0,
+      account_mode: "Cash",
+      account_type: "",
+      category: "Business",
+    });
+    setEditingId(null);
+    setShowForm(true);
   };
+
 
   const handleFormSubmit = () => {
     const method = editingId ? "PUT" : "POST";
@@ -109,6 +120,10 @@ export default function Account() {
     setEditingId(account.id);
     setShowForm(true);
   };
+  const handleCloseForm = () => {
+    setShowForm(false);
+    setEditingId(null);
+  };
 
   const isCash = formData.account_mode === "Cash";
   const categoryTotals = bankAccounts.reduce((acc, account) => {
@@ -149,104 +164,106 @@ export default function Account() {
           <div className="bank-account-section">
 
             {showForm && (
-              <>
-                <h3>{editingId ? "Edit Account" : "Add New Account"}</h3>
-                <div className="form">
-                  {/* Account Mode on Top */}
-                  <select
-                    name="account_mode"
-                    value={formData.account_mode}
-                    onChange={handleChange}
-                  >
-                    <option value="Cash">Cash</option>
-                    <option value="Online">Online</option>
-                  </select>
-
-                  {isCash ? (
-                    <input
-                      type="text"
-                      name="bank_service_name"
-                      placeholder="Service Name"
-                      value={formData.bank_service_name}
+              <div className="modal-overlay">
+                <div className="modal-content">
+                  <h3>{editingId ? "Edit Account" : "Add New Account"}</h3>
+                  <div className="form">
+                    {/* Account Mode on Top */}
+                    <select
+                      name="account_mode"
+                      value={formData.account_mode}
                       onChange={handleChange}
-                    />
-                  ) : (
-                    <>
+                    >
+                      <option value="Cash">Cash</option>
+                      <option value="Online">Online</option>
+                    </select>
+
+                    {isCash ? (
                       <input
                         type="text"
                         name="bank_service_name"
-                        placeholder="Bank Name"
+                        placeholder="Service Name"
                         value={formData.bank_service_name}
                         onChange={handleChange}
                       />
-                      <input
-                        type="text"
-                        name="account_holder_name"
-                        placeholder="Account Holder Name"
-                        value={formData.account_holder_name}
-                        onChange={handleChange}
-                      />
-                    </>
-                  )}
+                    ) : (
+                      <>
+                        <input
+                          type="text"
+                          name="bank_service_name"
+                          placeholder="Bank Name"
+                          value={formData.bank_service_name}
+                          onChange={handleChange}
+                        />
+                        <input
+                          type="text"
+                          name="account_holder_name"
+                          placeholder="Account Holder Name"
+                          value={formData.account_holder_name}
+                          onChange={handleChange}
+                        />
+                      </>
+                    )}
 
-                  {!isCash && (
-                    <>
-                      <input
-                        type="text"
-                        name="account_number"
-                        placeholder="Account Number"
-                        value={formData.account_number}
-                        onChange={handleChange}
-                      />
-                      <input
-                        type="text"
-                        name="ifsc_code"
-                        placeholder="IFSC Code"
-                        value={formData.ifsc_code}
-                        onChange={handleChange}
-                      />
-                      <select
-                        name="account_type"
-                        value={formData.account_type}
-                        onChange={handleChange}
-                      >
-                        <option value="Current">Current</option>
-                        <option value="Saving">Saving</option>
-                        <option value="Pigme">Pigme</option>
-                        <option value="Fixed Deposit">Fixed Deposit</option>
-                        <option value="Mutual Fund">Mutual Fund</option>
-                        <option value="Digital Gold">Digital Gold</option>
-                        <option value="Trading">Trading</option>
-                      </select>
-                    </>
-                  )}
+                    {!isCash && (
+                      <>
+                        <input
+                          type="text"
+                          name="account_number"
+                          placeholder="Account Number"
+                          value={formData.account_number}
+                          onChange={handleChange}
+                        />
+                        <input
+                          type="text"
+                          name="ifsc_code"
+                          placeholder="IFSC Code"
+                          value={formData.ifsc_code}
+                          onChange={handleChange}
+                        />
+                        <select
+                          name="account_type"
+                          value={formData.account_type}
+                          onChange={handleChange}
+                        >
+                          <option value="Current">Current</option>
+                          <option value="Saving">Saving</option>
+                          <option value="Pigme">Pigme</option>
+                          <option value="Fixed Deposit">Fixed Deposit</option>
+                          <option value="Mutual Fund">Mutual Fund</option>
+                          <option value="Digital Gold">Digital Gold</option>
+                          <option value="Trading">Trading</option>
+                        </select>
+                      </>
+                    )}
 
-                  <input
-                    type="number"
-                    name="balance"
-                    placeholder="Initial Balance"
-                    value={formData.balance}
-                    onChange={handleChange}
-                  />
+                    <input
+                      type="number"
+                      name="balance"
+                      placeholder="Initial Balance"
+                      value={formData.balance}
+                      onChange={handleChange}
+                    />
 
-                  <select
-                    name="category"
-                    value={formData.category}
-                    onChange={handleChange}
-                  >
-                    <option value="Business">Business</option>
-                    <option value="Personal">Personal</option>
-                    <option value="Home">Home</option>
-                  </select>
+                    <select
+                      name="category"
+                      value={formData.category}
+                      onChange={handleChange}
+                    >
+                      <option value="Business">Business</option>
+                      <option value="Personal">Personal</option>
+                      <option value="Home">Home</option>
+                    </select>
 
-                  <div style={{ display: "flex", gap: "10px" }}>
-                    <button onClick={handleFormSubmit}>
-                      {editingId ? "Update" : "Submit"}
-                    </button>
-                    <button onClick={handleCloseForm}>Close</button>
+                    <div style={{ display: "flex", gap: "10px" }}>
+                      <button onClick={handleFormSubmit}>
+                        {editingId ? "Update" : "Submit"}
+                      </button>
+                      <button onClick={handleCloseForm}>Close</button>
+                    </div>
                   </div>
                 </div>
-              </>
+              </div>
             )}
 
             <div className="bank-account-list">
