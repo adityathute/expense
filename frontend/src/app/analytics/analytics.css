@@ -1,0 +1,87 @@
+.analytics {
+  padding: 2rem;
+  background: #f5f8fa;
+  font-family: "Segoe UI", sans-serif;
+}
+
+.analytics h1 {
+  font-size: 2rem;
+  margin-bottom: 0.2rem;
+}
+
+.sub-text {
+  font-size: 1rem;
+  color: #555;
+  margin-bottom: 2rem;
+}
+
+.stats-cards {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stats-cards .card {
+  background: white;
+  padding: 1rem 1.5rem;
+  border-radius: 14px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  flex: 1;
+}
+
+.income {
+  border-left: 6px solid #28a745;
+}
+
+.expense {
+  border-left: 6px solid #dc3545;
+}
+
+.balance {
+  border-left: 6px solid #ffc107;
+}
+
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.chart-box {
+  background: white;
+  padding: 1rem 1.5rem;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.chart-box h3 {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+}
+
+.chart-placeholder {
+  background: #eaeaea;
+  height: 200px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #777;
+  font-style: italic;
+}
+
+.full-width {
+  grid-column: span 2;
+}
+
+@media (max-width: 768px) {
+  .stats-cards {
+    flex-direction: column;
+  }
+
+  .full-width {
+    grid-column: span 1;
+  }
+}

@@ -64,7 +64,7 @@
 
 /* Action Buttons */
 .edit-btn, .delete-btn {
-  border: none;
+  border: 1px solid transparent;
   background: none;
   cursor: pointer;
   font-size: 16px;

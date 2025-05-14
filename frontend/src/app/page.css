@@ -1,0 +1,76 @@
+/* Dashboard */
+
+.content {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.container {
+  display: flex;
+  flex: 1;
+  background: #f4f6f8;
+}
+
+.main-content {
+  flex: 1;
+  padding: 2rem;
+}
+
+.balance-cards {
+  display: flex;
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+.card {
+  flex: 1;
+  padding: 1.5rem;
+  border-radius: 12px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+}
+
+.card.income {
+  background-color: #e0f7e9;
+  color: #2e7d32;
+}
+
+.card.expense {
+  background-color: #ffe9e9;
+  color: #c62828;
+}
+
+.card.balance {
+  background-color: #e3f2fd;
+  color: #1565c0;
+}
+
+.transactions {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+}
+
+.transactions table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.transactions th, .transactions td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.positive {
+  color: green;
+}
+
+.negative {
+  color: red;
+}
