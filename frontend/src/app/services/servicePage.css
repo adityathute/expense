@@ -77,3 +77,65 @@
     cursor: pointer;
   }
   
+  /* Category Table */
+.service-table-container {
+  margin-top: 30px;
+  width: 100%;
+  overflow-x: auto;
+  background: white;
+  border-radius: 10px;
+  }
+
+.service-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  background-color: #ffffff;
+  border: 3px solid black;
+  outline: none;
+}
+
+.service-table th,
+.service-table td {
+  padding: 16px;
+  border-bottom: 1px solid #eaeaea;
+  text-align: left;
+  font-size: 14px;
+}
+
+.service-table th:nth-child(2),
+.service-table td:nth-child(2) {
+  text-align: left;
+}
+
+.service-table th:nth-child(2),
+.service-table td:nth-child(2) {
+  text-align: left;
+}
+
+.service-table th:nth-child(6),
+.service-table td:nth-child(6) {
+  text-align: right;
+}
+
+.service-table tbody tr:hover {
+  background-color: #f9fcff;
+}
+
+.service-table th {
+  background-color: #f1f3f5;
+  color: #222;
+  font-weight: 600;
+}
+
+.service-table tr:hover {
+  background-color: #f9fafb;
+}
+
+.service-table td {
+  padding: 16px;
+  border-bottom: 1px solid #eaeaea;
+  vertical-align: middle; /* ✅ Vertically center cell contents */
+}

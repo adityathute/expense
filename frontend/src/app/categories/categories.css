@@ -3,21 +3,47 @@
   margin-top: 30px;
   width: 100%;
   overflow-x: auto;
-}
+  background: white;
+  border-radius: 10px;
+  }
 
 .category-table {
   width: 100%;
   border-collapse: collapse;
   border-radius: 10px;
   overflow: hidden;
-  background: #fff;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  background-color: #ffffff;
+  border: 3px solid black;
+  outline: none;
 }
 
 .category-table th,
 .category-table td {
   padding: 16px;
   border-bottom: 1px solid #eaeaea;
+  text-align: left;
+  font-size: 14px;
+}
+
+.category-table th:nth-child(2),
+.category-table td:nth-child(2) {
+  text-align: left;
+}
+
+.category-table th:nth-child(2),
+.category-table td:nth-child(2) {
+  text-align: left;
+}
+
+.category-table th:nth-child(6),
+.category-table td:nth-child(6) {
+  text-align: right;
+}
+
+
+.category-table tbody tr:hover {
+  background-color: #f9fcff;
 }
 
 .category-table th {
@@ -28,6 +54,12 @@
 
 .category-table tr:hover {
   background-color: #f9fafb;
+}
+
+.category-table td {
+  padding: 16px;
+  border-bottom: 1px solid #eaeaea;
+  vertical-align: middle; /* ✅ Vertically center cell contents */
 }
 
 /* Action Buttons */
@@ -54,6 +86,7 @@
   border-radius: 10px;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.05);
   transition: transform 0.2s ease;
+  border: 1px solid black;
 }
 
 .category-item:hover {
@@ -238,26 +271,75 @@
   animation: fadeIn 0.4s ease;
 }
 
-.delete-btn {
-  font-size: 24px;
-  cursor: pointer;
-  transition: color 0.2s ease-in-out;
-  font-weight: 600;
-  font-size: 28px;
+.edit-btn, .delete-btn {
   border: none;
-  outline: none;
   background: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.delete-btn svg:hover{
-  fill: #ff3b30;
+/* Edit Button Styles */
+.edit-btn {
+  color: gray;
+  transition: color 0.2s ease-in-out;
+}
+
+.edit-btn:hover {
+  color: #28a745;
+}
+
+.edit-icon {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+  transition: fill 0.2s ease-in-out;
+}
+
+/* Delete Button Styles */
+.delete-btn {
+  color: gray;
+  transition: color 0.2s ease-in-out;
+}
+
+.delete-btn:hover {
+  color: #dc3545;
 }
 
 .trash-icon {
   width: 20px;
   height: 20px;
+  fill: currentColor;
+  transition: fill 0.2s ease-in-out;
+}
+/* 
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
 }
 
-.delete-btn:hover {
-  color: #ff3b30;
+.modal-content {
+  background: white;
+  padding: 2rem;
+  border-radius: 10px;
+  width: 400px;
+  max-width: 90%;
+  text-align: center;
 }
+
+.modal-actions {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}  */

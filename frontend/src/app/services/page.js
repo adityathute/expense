@@ -121,8 +121,8 @@ export default function ServicesPage() {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
           />
-
-          <table>
+      
+          <table className="table">
             <thead>
               <tr>
                 <th>Service Name</th>

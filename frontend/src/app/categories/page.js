@@ -1,7 +1,5 @@
 "use client";
 
-"use client";
-
 import { useEffect, useState, useRef } from "react";
 import Sidebar from "../components/Sidebar";
 import TopBar from "../components/TopBar";
@@ -22,6 +20,10 @@ export default function Categories() {
   });
 
   const [editingCategory, setEditingCategory] = useState(null);
+
+  // For Delete Confirmation Modal
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState(null);
 
   useEffect(() => {
     fetchCategories();
@@ -110,10 +112,12 @@ export default function Categories() {
     }
   }
 
-  async function handleDeleteCategory(id) {
+  async function handleDeleteCategory() {
     try {
-      await fetch(`http://127.0.0.1:8001/api/categories/${id}/`, { method: "DELETE" });
+      await fetch(`http://127.0.0.1:8001/api/categories/${categoryToDelete}/`, { method: "DELETE" });
       fetchCategories();
+      setShowDeleteModal(false);
+      setCategoryToDelete(null); // Reset category to delete after action
     } catch (error) {
       console.error("Error deleting category:", error);
     }
@@ -137,43 +141,6 @@ export default function Categories() {
     return path.length > 0
       ? `Category: ${coreCategory} > ${path.join(" > ")}`
       : `Category: ${coreCategory}`;
-  }
-
-  function renderCategories(categories, parentId = null) {
-    return (
-      <ul className="category-list">
-        {categories.filter((cat) => cat.parent === parentId).map((category) => {
-          const parentPath = getParentPath(categories, category);
-
-          return (
-            <li key={category.id} className="category-item">
-              <div className="category-details">
-                <div className="main-cat-details">
-                  <div className="cat-name-details">{category.name}&nbsp;</div>
-                  <div className="cat-desp-details">{category.description && ` - ${category.description}`}</div>
-                  <em>{parentPath}</em>
-                  <div className="category-actions">
-                    <button className="edit-btn" onClick={() => handleEditCategory(category)}>✏️</button>
-                    <button type="button" className="delete-btn" onClick={() => handleDeleteCategory(category.id)}>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="black"
-                      >
-                        <path d="M3 6h18v2H3V6zm2 3h14v13H5V9zm2 2v9h10v-9H7zm4-6h2v2h-2V5zm-1 2h4v2h-4V7z" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
-              {renderCategories(categories, category.id)}
-            </li>
-          );
-        })}
-      </ul>
-    );
   }
 
   return (
@@ -307,7 +274,94 @@ export default function Categories() {
             </div>
           )}
 
-          {renderCategories(categories)}
+          <div className="category-table-container">
+            <table className="category-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Description</th>
+                  <th>Core Category</th>
+                  <th>Hierarchy Path</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {categories.map((category) => {
+                  const parentPath = getParentPath(categories, category);
+                  return (
+                    <tr key={category.id}>
+                      <td className="">{category.name}</td>
+                      <td>{category.description || "-"}</td>
+                      <td>{category.core_category}</td>
+                      <td>{parentPath.replace("Category: ", "")}</td>
+                      <td>
+                        <div className="category-actions">
+                          <button
+                            type="button"
+                            className="edit-btn"
+                            onClick={() => handleEditCategory(category)}
+                          >
+                            <svg
+                              className="edit-icon"
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="20"
+                              height="20"
+                              viewBox="0 0 24 24"
+                              fill="currentColor"
+                            >
+                              <path d="M3 17.25V21h3.75l11.06-11.06-3.75-3.75L3 17.25zM21.41 6.34a1.25 1.25 0 000-1.77l-2.34-2.34a1.25 1.25 0 00-1.77 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+                            </svg>
+                          </button>
+
+                          <button
+                            type="button"
+                            className="delete-btn"
+                            onClick={() => {
+                              setCategoryToDelete(category.id);
+                              setShowDeleteModal(true);
+                            }}
+                          >
+                            <svg
+                              className="trash-icon"
+                              xmlns="http://www.w3.org/2000/svg"
+                              width="20"
+                              height="20"
+                              viewBox="0 0 24 24"
+                              fill="currentColor"
+                            >
+                              <path d="M3 6h18v2H3V6zm2 3h14v13H5V9zm2 2v9h10v-9H7zm4-6h2v2h-2V5zm-1 2h4v2h-4V7z" />
+                            </svg>
+                          </button>
+                          {showDeleteModal && (
+                            <div className="modal-overlay">
+                              <div className="modal-content">
+                                <h2>Confirm Deletion</h2>
+                                <p>Are you sure you want to delete this category? This action cannot be undone.</p>
+                                <div className="modal-actions">
+                                  <button className="add-btn" onClick={handleDeleteCategory}>Yes, Delete</button>
+                                  <button
+                                    className="cancel-btn"
+                                    onClick={() => {
+                                      setShowDeleteModal(false);
+                                      setCategoryToDelete(null);
+                                    }}
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                        </div>
+                      </td>
+
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
