@@ -1,6 +1,5 @@
 /* Category Table */
 .category-table-container {
-  margin-top: 30px;
   width: 100%;
   overflow-x: auto;
   background: white;
@@ -234,6 +233,7 @@
 .main-switch-header{
   display: flex;
   flex-direction: row;
+  margin-top: 18px;
 }
 .switch-container {
   margin-bottom: 18px;

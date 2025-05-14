@@ -4,12 +4,15 @@ import { useEffect, useState, useRef } from "react";
 import Sidebar from "../components/Sidebar";
 import TopBar from "../components/TopBar";
 import "./categories.css";
+import SearchBar from "../components/SearchBar"; // ✅ Add this line
 
 export default function Categories() {
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [categories, setCategories] = useState([]);
   const [categoryType, setCategoryType] = useState("Shop");
   const [coreCategories, setCoreCategories] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const [newCategory, setNewCategory] = useState({
     name: "",
@@ -24,12 +27,17 @@ export default function Categories() {
   // For Delete Confirmation Modal
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState(null);
+  const [message, setMessage] = useState(null);
+  const filteredCategories = categories.filter((cat) =>
+    cat.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   useEffect(() => {
     fetchCategories();
   }, [categoryType]);
 
   async function fetchCategories() {
+    setLoading(true);
     try {
       const response = await fetch(`http://127.0.0.1:8001/api/categories/?type=${categoryType}`);
       if (!response.ok) throw new Error("Failed to fetch categories");
@@ -38,6 +46,8 @@ export default function Categories() {
       setCoreCategories(data.core_categories);
     } catch (error) {
       console.error("Error fetching categories:", error);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -117,9 +127,11 @@ export default function Categories() {
       await fetch(`http://127.0.0.1:8001/api/categories/${categoryToDelete}/`, { method: "DELETE" });
       fetchCategories();
       setShowDeleteModal(false);
-      setCategoryToDelete(null); // Reset category to delete after action
+      setCategoryToDelete(null);
+      setMessage("Category deleted successfully!");
     } catch (error) {
       console.error("Error deleting category:", error);
+      setMessage("Failed to delete category.");
     }
   }
 
@@ -128,6 +140,7 @@ export default function Categories() {
     setShowCategoryModal(false);
     setNewCategory({ name: "", description: "", core_category: "", parent: null, hierarchy: [] });
   }
+
 
   function getParentPath(categories, category) {
     let path = [];
@@ -158,10 +171,13 @@ export default function Categories() {
                 <input
                   type="checkbox"
                   checked={categoryType === "Shop"}
-                  onChange={() => setCategoryType(categoryType === "Home" ? "Shop" : "Home")}
+                  onChange={() => {
+                    if (!loading) setCategoryType(categoryType === "Home" ? "Shop" : "Home");
+                  }}
                 />
                 <span className="slider"></span>
               </label>
+
               <span className="switch-text">{categoryType}</span>
             </div>
 
@@ -170,6 +186,11 @@ export default function Categories() {
               + Create Category
             </button>
           </div>
+          <SearchBar
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search categories..."
+          />
 
           {/* Modal for Category Form */}
           {showCategoryModal && (
@@ -273,95 +294,99 @@ export default function Categories() {
               </div>
             </div>
           )}
+          {message && <div className="message">{message}</div>}
 
-          <div className="category-table-container">
-            <table className="category-table">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Description</th>
-                  <th>Core Category</th>
-                  <th>Hierarchy Path</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {categories.map((category) => {
-                  const parentPath = getParentPath(categories, category);
-                  return (
-                    <tr key={category.id}>
-                      <td className="">{category.name}</td>
-                      <td>{category.description || "-"}</td>
-                      <td>{category.core_category}</td>
-                      <td>{parentPath.replace("Category: ", "")}</td>
-                      <td>
-                        <div className="category-actions">
-                          <button
-                            type="button"
-                            className="edit-btn"
-                            onClick={() => handleEditCategory(category)}
-                          >
-                            <svg
-                              className="edit-icon"
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="20"
-                              height="20"
-                              viewBox="0 0 24 24"
-                              fill="currentColor"
-                            >
-                              <path d="M3 17.25V21h3.75l11.06-11.06-3.75-3.75L3 17.25zM21.41 6.34a1.25 1.25 0 000-1.77l-2.34-2.34a1.25 1.25 0 00-1.77 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
-                            </svg>
-                          </button>
+          {loading ? <p>Loading categories...</p> : (
 
-                          <button
-                            type="button"
-                            className="delete-btn"
-                            onClick={() => {
-                              setCategoryToDelete(category.id);
-                              setShowDeleteModal(true);
-                            }}
-                          >
-                            <svg
-                              className="trash-icon"
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="20"
-                              height="20"
-                              viewBox="0 0 24 24"
-                              fill="currentColor"
+            <div className="category-table-container">
+              <table className="category-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Core Category</th>
+                    <th>Hierarchy Path</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredCategories.map((category) => {
+                    const parentPath = getParentPath(categories, category);
+                    return (
+                      <tr key={category.id}>
+                        <td className="">{category.name}</td>
+                        <td>{category.description || "-"}</td>
+                        <td>{category.core_category}</td>
+                        <td>{parentPath.replace("Category: ", "")}</td>
+                        <td>
+                          <div className="category-actions">
+                            <button
+                              type="button"
+                              className="edit-btn"
+                              onClick={() => handleEditCategory(category)}
                             >
-                              <path d="M3 6h18v2H3V6zm2 3h14v13H5V9zm2 2v9h10v-9H7zm4-6h2v2h-2V5zm-1 2h4v2h-4V7z" />
-                            </svg>
-                          </button>
-                          {showDeleteModal && (
-                            <div className="modal-overlay">
-                              <div className="modal-content">
-                                <h2>Confirm Deletion</h2>
-                                <p>Are you sure you want to delete this category? This action cannot be undone.</p>
-                                <div className="modal-actions">
-                                  <button className="add-btn" onClick={handleDeleteCategory}>Yes, Delete</button>
-                                  <button
-                                    className="cancel-btn"
-                                    onClick={() => {
-                                      setShowDeleteModal(false);
-                                      setCategoryToDelete(null);
-                                    }}
-                                  >
-                                    Cancel
-                                  </button>
+                              <svg
+                                className="edit-icon"
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="20"
+                                height="20"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                              >
+                                <path d="M3 17.25V21h3.75l11.06-11.06-3.75-3.75L3 17.25zM21.41 6.34a1.25 1.25 0 000-1.77l-2.34-2.34a1.25 1.25 0 00-1.77 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+                              </svg>
+                            </button>
+
+                            <button
+                              type="button"
+                              className="delete-btn"
+                              onClick={() => {
+                                setCategoryToDelete(category.id);
+                                setShowDeleteModal(true);
+                              }}
+                            >
+                              <svg
+                                className="trash-icon"
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="20"
+                                height="20"
+                                viewBox="0 0 24 24"
+                                fill="currentColor"
+                              >
+                                <path d="M3 6h18v2H3V6zm2 3h14v13H5V9zm2 2v9h10v-9H7zm4-6h2v2h-2V5zm-1 2h4v2h-4V7z" />
+                              </svg>
+                            </button>
+                            {showDeleteModal && (
+                              <div className="modal-overlay">
+                                <div className="modal-content">
+                                  <h2>Confirm Deletion</h2>
+                                  <p>Are you sure you want to delete this category? This action cannot be undone.</p>
+                                  <div className="modal-actions">
+                                    <button className="add-btn" onClick={handleDeleteCategory}>Yes, Delete</button>
+                                    <button
+                                      className="cancel-btn"
+                                      onClick={() => {
+                                        setShowDeleteModal(false);
+                                        setCategoryToDelete(null);
+                                      }}
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          )}
+                            )}
 
-                        </div>
-                      </td>
+                          </div>
+                        </td>
 
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </div>

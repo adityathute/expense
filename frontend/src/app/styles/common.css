@@ -1,0 +1,18 @@
+.balance-negative,
+.balance-positive,
+.balance-zero {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.balance-negative {
+  color: #e53935;
+}
+
+.balance-positive {
+  color: #43a047;
+}
+
+.balance-zero {
+  color: #fb8c00;
+}

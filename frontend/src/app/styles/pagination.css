@@ -1,0 +1,91 @@
+/* Pagination Container */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 2rem;
+    gap: 1rem;
+}
+
+/* Pagination Button */
+.page-btn {
+    padding: 8px 16px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 50px;
+    background-color: #f3f4f6;
+    color: #374151;
+    border: 1px solid #e5e7eb;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.page-btn:hover {
+    background-color: #e5e7eb;
+    color: #1f2937;
+    transform: translateY(-2px);
+}
+
+.page-btn.active {
+    background-color: #007bff;
+    color: #ffffff;
+    border-color: #007bff;
+    box-shadow: 0 8px 18px rgba(79, 70, 229, 0.3);
+}
+
+.page-btn:disabled {
+    background-color: #f9fafb;
+    color: #9ca3af;
+    border-color: #e5e7eb;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Arrow Buttons for Pagination */
+.pagination .arrow-btn {
+    padding: 0.75rem;
+    font-size: 1.25rem;
+    background-color: #e5e7eb;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+
+.pagination .arrow-btn:hover {
+    background-color: #d1d5db;
+    transform: scale(1.1);
+}
+
+.pagination .arrow-btn:disabled {
+    background-color: #f9fafb;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Pagination Button Active State on Hover */
+.page-btn.active:hover {
+    background-color: #007bff;
+    color: #fff;
+}
+
+/* Mobile Responsiveness for Search and Pagination */
+@media (max-width: 768px) {
+    .pagination {
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .page-btn {
+        font-size: 1rem;
+        padding: 0.75rem 1.2rem;
+    }
+
+    .pagination .arrow-btn {
+        font-size: 1rem;
+        padding: 0.5rem;
+    }
+}

@@ -55,22 +55,3 @@
   box-shadow: 0 4px 8px rgba(0,0,0,0.05);
 }
 
-.transactions table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 1rem;
-}
-
-.transactions th, .transactions td {
-  padding: 0.75rem;
-  text-align: left;
-  border-bottom: 1px solid #ddd;
-}
-
-.positive {
-  color: green;
-}
-
-.negative {
-  color: red;
-}

@@ -1,0 +1,109 @@
+/* Table Container */
+.table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 0.4rem;
+    font-size: 0.95rem;
+    background-color: transparent;
+}
+
+/* Table Header */
+.table thead th {
+    padding: 0.75rem 1rem;
+    background-color: #e5e7eb;
+    /* color: #374151; */
+    text-align: left;
+    font-weight: 600;
+    border-radius: 0;
+    /* remove default rounding */
+}
+
+/* Only round the first and last header cells */
+.table thead th:first-child {
+    border-top-left-radius: 0.5rem;
+}
+
+.table thead th:last-child {
+    border-top-right-radius: 0.5rem;
+}
+
+/* Table Body Rows */
+.table tbody tr {
+    background-color: #ffffff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.table tbody tr:hover {
+    cursor: context-menu;
+    transform: scale(1.005);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Table Cells */
+.table td {
+    padding: 0.75rem 1rem;
+    /* color: #1f2937; */
+    border-bottom: 1px solid #f3f4f6;
+}
+
+/* Rounded corners for first and last cells */
+.table tbody tr td:first-child {
+    border-top-left-radius: 0.5rem;
+    border-bottom-left-radius: 0.5rem;
+}
+
+.table tbody tr td:last-child {
+    border-top-right-radius: 0.5rem;
+    border-bottom-right-radius: 0.5rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .table thead {
+        display: none;
+    }
+
+    .table,
+    .table tbody,
+    .table tr,
+    .table td {
+        display: block;
+        width: 100%;
+    }
+
+    .table tr {
+        margin-bottom: 1rem;
+    }
+
+    .table td {
+        padding: 0.75rem 1rem;
+        text-align: right;
+        position: relative;
+    }
+
+    .table td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 1rem;
+        top: 0.75rem;
+        font-weight: 600;
+        color: #6b7280;
+        text-align: left;
+    }
+}
+
+table tbody tr td button {
+    margin-right: 5px;
+    background-color: white;
+    color: #007bff;
+    padding: 7px 14px;
+    border-radius: 6px;
+    border: 1px solid #007bff;
+    cursor: pointer;
+}
+
+table tbody tr td button:hover {
+    background-color: #f1f3f5;
+    border: 1px solid #0056b3;
+}

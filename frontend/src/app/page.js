@@ -2,10 +2,12 @@
 
 import Sidebar from "./components/Sidebar";
 import TopBar from "./components/TopBar";
+import StyledTable from "./components/StyledTable";
+import BalanceCell from "./components/BalanceCell"; // Import here
 import "./page.css";
+import "./styles/common.css";
 
 export default function Dashboard() {
-  // Mock data – replace with real API calls later
   const income = 25000;
   const expense = 12000;
   const balance = income - expense;
@@ -15,6 +17,16 @@ export default function Dashboard() {
     { id: 2, name: "Salary", amount: 20000, date: "2025-05-10" },
     { id: 3, name: "Electricity Bill", amount: -2200, date: "2025-05-08" },
   ];
+
+  const headers = ["Date", "Name", "Amount"];
+
+  const rows = recentTransactions.map((txn) => (
+    <tr key={txn.id}>
+      <td>{txn.date}</td>
+      <td>{txn.name}</td>
+      <BalanceCell value={txn.amount} />
+    </tr>
+  ));
 
   return (
     <div className="content">
@@ -33,29 +45,11 @@ export default function Dashboard() {
 
           <div className="transactions">
             <h2>Recent Transactions</h2>
-            <table>
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Name</th>
-                  <th>Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentTransactions.map(txn => (
-                  <tr key={txn.id}>
-                    <td>{txn.date}</td>
-                    <td>{txn.name}</td>
-                    <td className={txn.amount < 0 ? "negative" : "positive"}>
-                      ₹{txn.amount}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <StyledTable headers={headers} rows={rows} />
           </div>
         </div>
       </div>
     </div>
   );
 }
+

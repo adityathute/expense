@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import TopBar from "../components/TopBar";
 import "../services/ServicePage.css";
+import StyledTable from "../components/StyledTable";  // relative path
+import SearchBar from "../components/SearchBar";  // Import the SearchBar component
 
 export default function ServicesPage() {
   const [services, setServices] = useState([]);
@@ -102,6 +104,10 @@ export default function ServicesPage() {
     setShowForm(false);
   };
 
+  const filteredServices = services.filter((service) =>
+    service.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   if (loading) return <p>Loading services...</p>;
   if (error) return <p style={{ color: "red" }}>{error}</p>;
 
@@ -114,45 +120,40 @@ export default function ServicesPage() {
           {successMessage && <div className="success-message">{successMessage}</div>}
 
           <h1>Available Services</h1>
-          <input
-            type="text"
+
+          {/* Add the SearchBar component here */}
+          <SearchBar 
+            value={searchTerm} 
+            onChange={(e) => setSearchTerm(e.target.value)} 
             placeholder="Search service..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
           />
-      
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Service Name</th>
-                <th>Category</th>
-                <th>Service Charge</th>
-                <th>Pages Required</th>
-                <th>Estimated Time (s)</th>
-                <th>Priority</th>
-                <th>Actions</th>
+
+          <StyledTable
+            headers={[
+              "Service Name",
+              "Category",
+              "Service Charge",
+              "Pages Required",
+              "Estimated Time (s)",
+              "Priority",
+              "Actions",
+            ]}
+            rows={filteredServices.map((service) => (
+              <tr key={service.id}>
+                <td>{service.name}</td>
+                <td>{service.category}</td>
+                <td>₹{service.service_charge}</td>
+                <td>{service.pages_required}</td>
+                <td>{service.estimated_time_seconds}</td>
+                <td>{service.priority_level}</td>
+                <td>
+                  <button onClick={() => handleEdit(service)}>Edit</button>
+                  <button onClick={() => handleDelete(service.id)}>Delete</button>
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {services
-                .filter((service) => service.name.toLowerCase().includes(searchTerm.toLowerCase()))
-                .map((service) => (
-                  <tr key={service.id}>
-                    <td>{service.name}</td>
-                    <td>{service.category}</td>
-                    <td>₹{service.service_charge}</td>
-                    <td>{service.pages_required}</td>
-                    <td>{service.estimated_time_seconds}</td>
-                    <td>{service.priority_level}</td>
-                    <td>
-                      <button onClick={() => handleEdit(service)}>Edit</button>
-                      <button onClick={() => handleDelete(service.id)}>Delete</button>
-                    </td>
-                  </tr>
-                ))}
-            </tbody>
-          </table>
+            ))}
+            emptyText="No services found."
+          />
 
           <button onClick={() => setShowForm(true)}>Add Service</button>
 

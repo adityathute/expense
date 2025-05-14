@@ -4,6 +4,8 @@ import Sidebar from "../components/Sidebar";
 import TopBar from "../components/TopBar";
 import { useState, useEffect } from "react";
 import "./style.css";
+import StyledTable from "../components/StyledTable";  // relative path
+import "../styles/common.css";
 
 export default function Account() {
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -148,16 +150,20 @@ export default function Account() {
                 onClick={() => setSelectedCategory(category === selectedCategory ? null : category)}
               >
                 <h3>{category}</h3>
-                <p className="cat-card-special-block">₹ {formatBalance(total)}</p>
+                <p className={`cat-card-special-block ${getBalanceClass(total)}`}>
+                  ₹&nbsp;{formatBalance(total)}
+                </p>
               </div>
+
             ))}
             {/* Total Balance Block */}
             <div className="category-card total-balance-block">
               <h3>Total Balance</h3>
-              <div className="cat-card-special-block">
-                <p>₹ {formatBalance(totalBalance)}</p>
+              <div className={`cat-card-special-block ${getBalanceClass(totalBalance)}`}>
+                <p>₹&nbsp;{formatBalance(totalBalance)}</p>
               </div>
             </div>
+
           </div>
 
 
@@ -274,39 +280,25 @@ export default function Account() {
                   <button className="cat-card-special-btn">+&nbsp;&nbsp;Create account</button>
                 </div>
               </div>
-              <table className="account-table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Holder Name</th>
-                    <th>Service/Bank</th>
-                    <th>Balance</th>
-                    <th>Mode</th>
-                    <th>Type</th>
-                    <th>Category</th>
-                    <th>Edit</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {bankAccounts
-                    .filter((acc) => !selectedCategory || acc.category === selectedCategory)
-                    .map((account, index) => (
-                      <tr key={index}>
-                        <td>{index + 1}</td>
-                        <td>{account.account_holder_name || "-"}</td>
-                        <td>{account.bank_service_name || "-"}</td>
-                        <td className={getBalanceClass(account.balance)}>₹&nbsp;{formatBalance(account.balance)}</td>
-                        <td>{account.account_mode}</td>
-                        <td>{account.account_type || "-"}</td>
-                        <td>{account.category}</td>
-                        <td>
-                          <button onClick={() => handleEdit(account)}>Edit</button>
-                        </td>
-                      </tr>
-                    ))}
-
-                </tbody>
-              </table>
+              <StyledTable
+                headers={["#", "Holder Name", "Service/Bank", "Balance", "Mode", "Type", "Category", "Edit"]}
+                rows={bankAccounts
+                  .filter(acc => !selectedCategory || acc.category === selectedCategory)
+                  .map((account, index) => (
+                    <tr key={index}>
+                      <td>{index + 1}</td>
+                      <td>{account.account_holder_name || "-"}</td>
+                      <td>{account.bank_service_name || "-"}</td>
+                      <td className={getBalanceClass(account.balance)}>₹&nbsp;{formatBalance(account.balance)}</td>
+                      <td>{account.account_mode}</td>
+                      <td>{account.account_type || "-"}</td>
+                      <td>{account.category}</td>
+                      <td>
+                        <button onClick={() => handleEdit(account)}>Edit</button>
+                      </td>
+                    </tr>
+                  ))}
+              />
             </div>
           </div>
         </div>
