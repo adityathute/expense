@@ -142,7 +142,6 @@ export default function Categories() {
     setNewCategory({ name: "", description: "", core_category: "", parent: null, hierarchy: [] });
   }
 
-
   function getParentPath(categories, category) {
     let path = [];
     let coreCategory = category.core_category || "N/A";
@@ -156,7 +155,6 @@ export default function Categories() {
       ? `Category: ${coreCategory} > ${path.join(" > ")}`
       : `Category: ${coreCategory}`;
   }
-  const headers = ["Name", "Description", "Core Category", "Hierarchy Path", "Actions"];
 
   return (
     <div className="content">

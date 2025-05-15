@@ -157,49 +157,6 @@ export default function UidTransactions() {
     }
   };
 
-  const headers = [
-    "ID",
-    "Full Name",
-    "Mobile Number",
-    "Entry Type",
-    "UID Type",
-    "Update Type",
-    "Action",
-  ];
-
-  const rows = entries.length > 0
-    ? entries.map((entry) => (
-      <tr key={entry.id} onClick={() => handleSelectEntry(entry)} style={{ cursor: "pointer" }}>
-        <td>{entry.id}</td>
-        <td>{entry.full_name}</td>
-        <td>{entry.mobile_number}</td>
-        <td>{entry.entry_type}</td>
-        <td>{entry.uid_type}</td>
-        <td>{entry.update_type}</td>
-        <td>
-          <button
-            className="use-entry-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleSelectEntry(entry);
-            }}
-          >
-            Use Entry
-          </button>
-          <button
-            className="delete-entry-btn"
-            onClick={(e) => {
-              e.stopPropagation();
-              deleteEntry(entry.id);
-            }}
-          >
-            Delete
-          </button>
-        </td>
-      </tr>
-    ))
-    : [];
-
   return (
     <div className="content">
       <TopBar />
@@ -256,7 +213,35 @@ export default function UidTransactions() {
 
           {/* Temp Entries Table */}
           <h2>Temp ID Entries</h2>
-          <StyledTable headers={headers} rows={rows} emptyText="No entries found" />
+          <StyledTable
+            headers={[
+              "ID",
+              "Full Name",
+              "Mobile Number",
+              "Entry Type",
+              "UID Type",
+              "Update Type",
+            ]}
+            columns={[
+              "id",
+              "full_name",
+              "mobile_number",
+              "entry_type",
+              "uid_type",
+              "update_type",
+            ]}
+            data={entries}
+            renderCell={(row, column) => {
+              // Custom render for actions
+              if (column === "update_type") {
+                return row.entry_type === "new" ? "-" : row.update_type;
+              }
+
+              return row[column] ?? "-";
+            }}
+            onEdit={(row) => handleSelectEntry(row)}
+            onDelete={(row) => deleteEntry(row.id)}
+          />
 
 
           {/* Enrollment Suffix Form - Show only when an entry is selected */}
