@@ -7,6 +7,7 @@ import "./style.css";
 import StyledTable from "../components/StyledTable";
 import "../styles/balancecell.css";
 import BalanceCell from "../components/BalanceCell";
+import HeaderWithNewButton from "../components/common/HeaderWithNewButton";
 
 export default function Account() {
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -264,12 +265,11 @@ export default function Account() {
             )}
 
             <div className="bank-account-list">
-              <div className="create-new-account">
-                <h3 className="create-new-account-h-block">Accounts</h3>
-                <div className="create-new-account-btn-block" onClick={handleAddAccount}>
-                  <button className="cat-card-special-btn">+&nbsp;&nbsp;Create account</button>
-                </div>
-              </div>
+              <HeaderWithNewButton
+                title="Users"
+                buttonLabel="Add User"
+                onClick={handleAddAccount}
+              />
 
               <StyledTable
                 headers={columns.map((col) => col.label)}

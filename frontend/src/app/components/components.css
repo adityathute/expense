@@ -1,0 +1,25 @@
+.HeaderActionBar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.HeaderActionBar-h-block{
+  margin-left: 18px;
+}
+
+.HeaderActionBar-btn-block{
+  margin-left: auto;
+}
+
+.HeaderActionBar-btn {
+  border-radius: 5px;
+  padding: 7px 12px;
+  font-size: 15px;
+  font-weight: 600;
+  color: white;
+  background-color: #28a745;
+  border: none;
+  outline: none;
+  cursor: pointer;
+}

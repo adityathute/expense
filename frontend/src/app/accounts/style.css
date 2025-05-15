@@ -98,34 +98,8 @@
   font-weight: 700;
 }
 
-.cat-card-special-btn {
-  border-radius: 5px;
-  padding: 7px 12px;
-  font-size: 15px;
-  font-weight: 600;
-  color: white;
-  background-color: #28a745;
-  border: none;
-  outline: none;
-  cursor: pointer;
-}
-
 .category-card.selected {
   background: linear-gradient(to right, #e0e0e0, #e0e0e0);
-}
-
-.create-new-account {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-}
-
-.create-new-account-h-block{
-  margin-left: 18px;
-}
-
-.create-new-account-btn-block{
-  margin-left: auto;
 }
 
 .modal-overlay {

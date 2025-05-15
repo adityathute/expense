@@ -2,23 +2,11 @@ from django.db import models
 from django.conf import settings
 from decouple import config
 from django.core.exceptions import ValidationError
+from .choices import CATEGORY_TYPES, CORE_CATEGORIES, GENDER_CHOICES, ID_TYPES, REQUIREMENT_TYPES, ENTRY_TYPE_CHOICES, UID_TYPE_CHOICES,  UPDATE_TYPE_CHOICES, ENTRY_TYPE_CHOICES, STATUS_CHOICES, UID_TYPE_CHOICES, UPDATE_TYPE_CHOICES, PAYMENT_TYPE_CHOICES, ACCOUNT_TYPE_CHOICES, CATEGORY_CHOICES
 
 # ---------------------- CATEGORY RELATED MODEL ---------------------- #
 
 class Category(models.Model):
-    CATEGORY_TYPES = [
-        ("Home", "Home"),
-        ("Shop", "Shop"),
-    ]
-    
-    CORE_CATEGORIES = [
-        ("Income", "Income"),
-        ("Expense", "Expense"),
-        ("Money", "Money"),
-        ("Debt", "Debt"),
-        ("Invest", "Invest"),
-    ]
-
     name = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True)
     parent = models.ForeignKey(
@@ -49,32 +37,19 @@ class User(models.Model):
         ("Client", "Client"),
     ]
 
-    GENDER_CHOICES = [
-        ("Male", "Male"),
-        ("Female", "Female"),
-        ("Other", "Other"),
-    ]
-
-    # Basic Details
     name = models.CharField(max_length=255)
     address = models.TextField(blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
     date_of_birth = models.DateField(blank=True, null=True)
     mobile_number = models.CharField(max_length=10, blank=True, null=True)
-
-    # Multi-select User Type (Stored as JSON for MySQL/SQLite)
     user_type = models.JSONField(default=list)  # Example: ["Customer", "Agent"]
-
-    # Gender Field
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES, blank=True, null=True)
-
-    # Tracking Fields
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
         if not self.user_type:
-            self.user_type = ["Customer"]  # Default if not selected
+            self.user_type = ["Customer"] 
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -82,22 +57,9 @@ class User(models.Model):
 
 class UserID(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="identifications")
-
-    ID_TYPES = [
-        ("Aadhaar", "Aadhaar"),
-        ("Pancard", "Pancard"),
-        ("Voter ID", "Voter ID"),
-        ("Driving License", "Driving License"),
-        ("Passport", "Passport"),
-        ("Ration Card", "Ration Card"),
-        ("BOCW", "BOCW"),
-        ("Aapaar ID", "Aapaar ID"),
-        ("ABHA ID", "ABHA ID"),
-        ("Other", "Other"),  # ✅ Added Other
-    ]
-    id_type = models.CharField(max_length=20, choices=ID_TYPES, blank=True, null=True)  # ✅ Updated choices
-    id_number = models.CharField(max_length=20, unique=True, blank=True, null=True)  # ✅ Optional ID Number
-    other_doc_name = models.CharField(max_length=255, blank=True, null=True)  # ✅ Added for "Other"
+    id_type = models.CharField(max_length=20, choices=ID_TYPES, blank=True, null=True)
+    id_number = models.CharField(max_length=20, unique=True, blank=True, null=True)
+    other_doc_name = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
         return f"{self.user.name} - {self.id_type}: {self.id_number}" if self.id_number else f"{self.user.name} - No ID"
@@ -105,28 +67,17 @@ class UserID(models.Model):
 # ---------------------- SERVICE RELATED MODELS ---------------------- #
 
 class Service(models.Model):
-    # Basic Service Details
     name = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True, null=True)
-    
-    # Service Category (e.g., ID Cards, Tax Services, Utility Bills)
     category = models.CharField(max_length=100, blank=True, null=True)  
-
-    # Pricing & Charges
-    service_charge = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # Customer pays
-
-    # Page Tracking (For Printing & Document Services)
-    pages_required = models.PositiveIntegerField(default=0)  # If applicable, pages needed for this service
-
-    # Service Status & Additional Info
-    estimated_time_seconds = models.PositiveIntegerField(blank=True, null=True)  # Time in seconds (better for DB)
-    is_active = models.BooleanField(default=True)  # Mark active/inactive service
+    service_charge = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    pages_required = models.PositiveIntegerField(default=0)
+    estimated_time_seconds = models.PositiveIntegerField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
     priority_level = models.IntegerField(
         choices=[(1, 'Low'), (2, 'Medium'), (3, 'High')], 
         default=2
-    )  # Numeric priority for better sorting
-
-    # Tracking & Metadata
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -135,212 +86,94 @@ class Service(models.Model):
 
 
 class ServiceRequirement(models.Model):
-    service = models.ForeignKey(Service, on_delete=models.CASCADE)  # Link to Service
-    requirement_name = models.CharField(max_length=255)  # Ex: Aadhaar Card, Birth Certificate
-
-    REQUIREMENT_TYPES = [
-        ('Document', 'Document'),
-        ('Info', 'Information'),
-        ('Verification', 'Verification'),  # OTP, Signature, Biometric
-    ]
+    service = models.ForeignKey(Service, on_delete=models.CASCADE) 
+    requirement_name = models.CharField(max_length=255)
     requirement_type = models.CharField(max_length=50, choices=REQUIREMENT_TYPES, default='Document')
-
-    is_mandatory = models.BooleanField(default=True)  # If required for service
-    additional_details = models.TextField(blank=True, null=True)  # Any extra notes
+    is_mandatory = models.BooleanField(default=True)
+    additional_details = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.service.name} - {self.requirement_name}"
 
-# ---------------------- USER SERVICE RELATED MODELS ---------------------- #
-
-class UserService(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="services_used")
-    service = models.ForeignKey(Service, on_delete=models.CASCADE)
-    acknowledgment_number = models.CharField(max_length=255, unique=True)
-    tracking_number = models.CharField(max_length=255, unique=True)
-    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f"{self.user.name} - {self.service.name}"
-    
 # ---------------------- UID SERVICE RELATED MODELS ---------------------- #
 
 # Fetch the enrollment prefix from the environment
-ENROLLMENT_PREFIX = config("ENROLLMENT_PREFIX", default="085528018")  # 9-digit prefix
+ENROLLMENT_PREFIX = config("ENROLLMENT_PREFIX", default="085528018")
 
 class UIDTempEntry(models.Model):
-    ENTRY_TYPE_CHOICES = [
-        ("new", "New"),
-        ("update", "Update"),
-    ]
-
-    UID_TYPE_CHOICES = [
-        ("offline", "Offline"),
-        ("online", "Online"),
-        ("ucl", "UCL"),
-    ]
-
-    UPDATE_TYPE_CHOICES = [
-        ("new_adhar", "New Adhar"),
-        ("mobile_change", "Mobile Number Change"),
-        ("biometric_change", "Biometric Change"),
-        ("name_change", "Name Change"),
-        ("address_change", "Address Change"),
-        ("dob_change", "Date of Birth Change"),
-    ]
-
     full_name = models.CharField(max_length=255)
     mobile_number = models.CharField(max_length=10)
-    aadhaar_number = models.CharField(
-        max_length=12, blank=True, null=True
-    )  # Aadhaar number (optional)
+    aadhaar_number = models.CharField(max_length=12, blank=True, null=True) 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    entry_type = models.CharField(
-        max_length=10, choices=ENTRY_TYPE_CHOICES, default="new"
-    )  # Indicates whether it's a new or updated entry
-    uid_type = models.CharField(
-        max_length=15, choices=UID_TYPE_CHOICES, default="offline"
-    )  # UID Type (Offline UCL, Online, Offline [Default])
-    update_type = models.CharField(
-        max_length=20, choices=UPDATE_TYPE_CHOICES, blank=True, null=True
-    )  # Dropdown menu for selecting update type
+    entry_type = models.CharField(max_length=10, choices=ENTRY_TYPE_CHOICES, default="new")
+    uid_type = models.CharField(max_length=15, choices=UID_TYPE_CHOICES, default="offline")
+    update_type = models.CharField(max_length=20, choices=UPDATE_TYPE_CHOICES, blank=True, null=True)
 
     def __str__(self):
         return f"{self.full_name} - {self.aadhaar_number or 'No Aadhaar'} - Type: {self.entry_type} - Update: {self.get_update_type_display() or 'N/A'}"
 
 
 class UIDEntry(models.Model):
-    ENTRY_TYPE_CHOICES = [
-        ("new", "New"),
-        ("update", "Update"),
-    ]
-
-    STATUS_CHOICES = [
-        ("pending", "Pending"),
-        ("completed", "Completed"),
-        ("rejected", "Rejected"),
-    ]
-
-    UID_TYPE_CHOICES = [
-        ("offline", "Offline"),
-        ("online", "Online"),
-        ("ucl", "UCL"),
-    ]
-
-    UPDATE_TYPE_CHOICES = [
-        ("new_adhar", "New Adhar"),
-        ("mobile_change", "Mobile Number"),
-        ("biometric_change", "Biometric Change"),
-        ("name_change", "Name"),
-        ("address_change", "Address Change"),
-        ("dob_change", "Date of Birth Change"),
-    ]
-
-    PAYMENT_TYPE_CHOICES = [
-        ("cash", "Cash"),
-        ("online", "Online"),
-    ]
-
     full_name = models.CharField(max_length=255)
     mobile_number = models.CharField(max_length=10)
-    aadhaar_number = models.CharField(
-        max_length=12, blank=True, null=True
-    )  # Aadhaar number (optional)
+    aadhaar_number = models.CharField(max_length=12, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    entry_type = models.CharField(
-        max_length=10, choices=ENTRY_TYPE_CHOICES, default="update"
-    )  # Indicates whether it's a new or updated entry
-    status = models.CharField(
-        max_length=10, choices=STATUS_CHOICES, default="pending"
-    )  # Pending, Completed, or Rejected
-    uid_type = models.CharField(
-        max_length=15, choices=UID_TYPE_CHOICES, default="offline"
-    )  # UID Type (Offline UCL, Online, Offline [Default])
-    entry_time = models.CharField(max_length=6, blank=True, null=True)  # 6-digit format HHMMSS (Manual entry)
-    enrollment_suffix = models.CharField(max_length=5, blank=True, null=True)  # Only last 5 digits change
-    update_type = models.CharField(max_length=20, choices=UPDATE_TYPE_CHOICES, blank=True, null=True)  # Dropdown menu for selecting update type
-    # Pricing & Charges
-    service_charge = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)  # Customer pays
-    payment_type = models.CharField(max_length=20, choices=PAYMENT_TYPE_CHOICES, blank=True, null=True)  # Dropdown menu for selecting update type
+    entry_type = models.CharField(max_length=10, choices=ENTRY_TYPE_CHOICES, default="update")
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="pending")
+    uid_type = models.CharField(max_length=15, choices=UID_TYPE_CHOICES, default="offline")
+    entry_time = models.CharField(max_length=6, blank=True, null=True)
+    enrollment_suffix = models.CharField(max_length=5, blank=True, null=True)
+    update_type = models.CharField(max_length=20, choices=UPDATE_TYPE_CHOICES, blank=True, null=True)
+    service_charge = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    payment_type = models.CharField(max_length=20, choices=PAYMENT_TYPE_CHOICES, blank=True, null=True)
 
     @property
     def full_enrollment_number(self):
         """Generate full 14-digit enrollment number using ENV prefix"""
         if self.enrollment_suffix:
             return f"{ENROLLMENT_PREFIX}{self.enrollment_suffix}"
-        return None  # No enrollment number assigned yet
+        return None
 
     def __str__(self):
         return f"{self.full_name} - {self.aadhaar_number or 'No Aadhaar'} - Type: {self.entry_type} - Update: {self.get_update_type_display() or 'N/A'}"
 
+# ---------------------- USER SERVICE RELATED MODELS ---------------------- #
+
+class UserService(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="services_used")
+    service = models.ForeignKey(Service, on_delete=models.CASCADE)
+    acknowledgment_number = models.CharField(max_length=255, unique=True, blank=True, null=True)
+    tracking_number = models.CharField(max_length=255, unique=True, blank=True, null=True)
+    uidentry = models.ForeignKey(UIDEntry, on_delete=models.CASCADE, blank=True, null=True)
+    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user.name} - {self.service.name}"
+
 # ---------------------- ACCOUNTS RELATED MODELS ---------------------- #
 
-# Custom manager to return only non-deleted accounts
 class ActiveAccountManager(models.Manager):
     def get_queryset(self):
         return super().get_queryset().filter(is_deleted=False)
 
 class Account(models.Model):
-    # Name of the person or entity holding the account
     account_holder_name = models.CharField(max_length=255, blank=True, null=True, verbose_name="Account Holder's Name")
-
-    account_number = models.CharField(
-        max_length=50, blank=True, null=True, verbose_name="Account Number"
-    )
-
-    # Mode of account: Cash or Online (bank/digital wallet)
+    account_number = models.CharField(max_length=50, blank=True, null=True, verbose_name="Account Number")
     account_mode = models.CharField(choices=[('Cash', 'Cash'), ('Online', 'Online')],  max_length=25)
-
-    # Name of bank or service provider (optional for Cash accounts)
     bank_service_name = models.CharField(max_length=255, blank=True, null=True)
-
-    # Type of account (used mainly for Online accounts)
-    ACCOUNT_TYPE_CHOICES = [
-        ('Current', 'Current'),
-        ('Saving', 'Saving'),
-        ('Pigme', 'Pigme'),
-        ('Mutual Fund', 'Mutual Fund'),
-        ('Digital Gold', 'Digital Gold'),
-        ('Trading', 'Trading'),
-    ]
-    account_type = models.CharField(
-        max_length=25, blank=True, null=True, choices=ACCOUNT_TYPE_CHOICES)
-
-    # IFSC code for Online bank accounts (optional for Cash accounts)
+    account_type = models.CharField(max_length=25, blank=True, null=True, choices=ACCOUNT_TYPE_CHOICES)
     ifsc_code = models.CharField(max_length=20, blank=True, null=True)
-
-    # Current available balance in the account
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-
-    # Auto-recorded timestamp when account is created
     date_created = models.DateTimeField(auto_now_add=True)
-
-    # Auto-updated timestamp when account is modified
     date_modified = models.DateTimeField(auto_now=True)
-
-    # Used to categorize accounts based on purpose
-    CATEGORY_CHOICES = [
-        ('Personal', 'Personal'),
-        ('Home', 'Home'),
-        ('Business', 'Business'),
-    ]
-    category = models.CharField(
-        max_length=10, choices=CATEGORY_CHOICES, verbose_name="Category")
-
-    # Soft delete flag; used by ActiveAccountManager to filter inactive data
+    category = models.CharField(max_length=10, choices=CATEGORY_CHOICES, verbose_name="Category")
     is_deleted = models.BooleanField(default=False, verbose_name="Is Deleted")
-
-    # Default manager for querying all accounts (including deleted ones)
     objects = models.Manager()
-
-    # Custom manager to return only active (non-deleted) accounts
     active_objects = ActiveAccountManager()
-
-    # Marks whether the account is currently in use
     is_active = models.BooleanField(default=True)
 
     def clean(self):
@@ -350,22 +183,34 @@ class Account(models.Model):
             if Account.objects.exclude(pk=self.pk).filter(account_number=self.account_number).exists():
                 raise ValidationError("Account number must be unique.")
         else:
-            self.account_number = None  # Clear account_number if mode is Cash
+            self.account_number = None
 
     def save(self, *args, **kwargs):
-        self.full_clean()  # Runs clean() before saving
+        self.full_clean()
         super().save(*args, **kwargs)
 
     def __str__(self):
-        # String representation of the account for admin or logs
         return f"{self.account_holder_name} ({self.bank_service_name}) - {self.account_number}"
 
     class Meta:
         verbose_name = 'Account'
         verbose_name_plural = 'Accounts'
 
-        # Indexes for faster lookup and search
         indexes = [
             models.Index(fields=['account_number']),
             models.Index(fields=['account_holder_name']),
         ]
+
+# ---------------------- TRANSACTION RELATED MODELS ---------------------- #
+
+class Transactions(models.Model):
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
+    service = models.ForeignKey(UserService, on_delete=models.SET_NULL, null=True, blank=True)
+    account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    transaction_type = models.CharField(max_length=10, choices=CORE_CATEGORIES)
+    payment_method = models.CharField(max_length=10, choices=PAYMENT_TYPE_CHOICES)
+    description = models.TextField(blank=True, null=True)
+    date_created = models.DateTimeField(auto_now_add=True)
+    date_modified = models.DateTimeField(auto_now=True)
