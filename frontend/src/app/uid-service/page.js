@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import TopBar from "../components/TopBar";
 import "../uid-service/styles.css"; // Import the CSS
+import StyledTable from "../components/StyledTable";
 
 export default function UidTransactions() {
   const [loading, setLoading] = useState(false);
@@ -121,7 +122,6 @@ export default function UidTransactions() {
       payment_type: formData.payment_type,  // Add payment type
     };
 
-    console.log("Submitting Payload:", payload);
 
     try {
       const response = await fetch("http://127.0.0.1:8001/api/uid-entries/create/", {
@@ -157,6 +157,48 @@ export default function UidTransactions() {
     }
   };
 
+  const headers = [
+    "ID",
+    "Full Name",
+    "Mobile Number",
+    "Entry Type",
+    "UID Type",
+    "Update Type",
+    "Action",
+  ];
+
+  const rows = entries.length > 0
+    ? entries.map((entry) => (
+      <tr key={entry.id} onClick={() => handleSelectEntry(entry)} style={{ cursor: "pointer" }}>
+        <td>{entry.id}</td>
+        <td>{entry.full_name}</td>
+        <td>{entry.mobile_number}</td>
+        <td>{entry.entry_type}</td>
+        <td>{entry.uid_type}</td>
+        <td>{entry.update_type}</td>
+        <td>
+          <button
+            className="use-entry-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleSelectEntry(entry);
+            }}
+          >
+            Use Entry
+          </button>
+          <button
+            className="delete-entry-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              deleteEntry(entry.id);
+            }}
+          >
+            Delete
+          </button>
+        </td>
+      </tr>
+    ))
+    : [];
 
   return (
     <div className="content">
@@ -214,46 +256,8 @@ export default function UidTransactions() {
 
           {/* Temp Entries Table */}
           <h2>Temp ID Entries</h2>
-          <table className="uid-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Full Name</th>
-                <th>Mobile Number</th>
-                <th>Entry Type</th>
-                <th>UID Type</th>
-                <th>Update Type</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {entries.length > 0 ? (
-                entries.map((entry) => (
-                  <tr key={entry.id} onClick={() => handleSelectEntry(entry)} style={{ cursor: "pointer" }}>
-                    <td>{entry.id}</td>
-                    <td>{entry.full_name}</td>
-                    <td>{entry.mobile_number}</td>
-                    <td>{entry.entry_type}</td>
-                    <td>{entry.uid_type}</td>
-                    <td>{entry.update_type}</td>
-                    <td>
-                      <button className="use-entry-btn" onClick={() => handleSelectEntry(entry)}>
-                        Use Entry
-                      </button>
-                      <button className="delete-entry-btn" onClick={() => deleteEntry(entry.id)}>
-                        Delete
-                      </button>
-                    </td>
+          <StyledTable headers={headers} rows={rows} emptyText="No entries found" />
 
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="7">No entries found</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
 
           {/* Enrollment Suffix Form - Show only when an entry is selected */}
           {selectedEntry && (

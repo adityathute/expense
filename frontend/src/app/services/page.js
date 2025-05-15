@@ -6,6 +6,7 @@ import TopBar from "../components/TopBar";
 import "../services/ServicePage.css";
 import StyledTable from "../components/StyledTable";  // relative path
 import SearchBar from "../components/SearchBar";  // Import the SearchBar component
+import BalanceCell from "../components/BalanceCell"; // Import here
 
 export default function ServicesPage() {
   const [services, setServices] = useState([]);
@@ -128,32 +129,39 @@ export default function ServicesPage() {
             placeholder="Search service..."
           />
 
-          <StyledTable
-            headers={[
-              "Service Name",
-              "Category",
-              "Service Charge",
-              "Pages Required",
-              "Estimated Time (s)",
-              "Priority",
-              "Actions",
-            ]}
-            rows={filteredServices.map((service) => (
-              <tr key={service.id}>
-                <td>{service.name}</td>
-                <td>{service.category}</td>
-                <td>₹{service.service_charge}</td>
-                <td>{service.pages_required}</td>
-                <td>{service.estimated_time_seconds}</td>
-                <td>{service.priority_level}</td>
-                <td>
-                  <button onClick={() => handleEdit(service)}>Edit</button>
-                  <button onClick={() => handleDelete(service.id)}>Delete</button>
-                </td>
-              </tr>
-            ))}
-            emptyText="No services found."
-          />
+<StyledTable
+  headers={[
+    "Service Name",
+    "Category",
+    "Service Charge",
+    "Pages Required",
+    "Estimated Time (s)",
+    "Priority",
+  ]}
+  columns={[
+    "name",
+    "category",
+    "service_charge",
+    "pages_required",
+    "estimated_time_seconds",
+    "priority_level",
+  ]}
+  data={filteredServices}
+  emptyText="No services found."
+  onEdit={handleEdit}
+  onDelete={handleDelete}
+  renderCell={(row, column) => {
+    if (column === "service_charge") {
+      return <BalanceCell value={row.service_charge} />;
+    }
+    if (column === "priority_level") {
+      const labels = { 1: "Low", 2: "Medium", 3: "High" };
+      return labels[row.priority_level] || row.priority_level;
+    }
+    return row[column] ?? "-";
+  }}
+/>
+
 
           <button onClick={() => setShowForm(true)}>Add Service</button>
 

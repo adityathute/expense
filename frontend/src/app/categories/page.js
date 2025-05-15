@@ -5,6 +5,7 @@ import Sidebar from "../components/Sidebar";
 import TopBar from "../components/TopBar";
 import "./categories.css";
 import SearchBar from "../components/SearchBar"; // ✅ Add this line
+import StyledTable from "../components/StyledTable"; // adjust the path if needed
 
 export default function Categories() {
   const [showCategoryModal, setShowCategoryModal] = useState(false);
@@ -155,6 +156,7 @@ export default function Categories() {
       ? `Category: ${coreCategory} > ${path.join(" > ")}`
       : `Category: ${coreCategory}`;
   }
+  const headers = ["Name", "Description", "Core Category", "Hierarchy Path", "Actions"];
 
   return (
     <div className="content">
@@ -295,97 +297,39 @@ export default function Categories() {
             </div>
           )}
           {message && <div className="message">{message}</div>}
+          {showDeleteModal && (
+            <div className="modal-overlay">
+              <div className="modal-content">
+                <h3>Confirm Delete</h3>
+                <p>Are you sure you want to delete this category?</p>
+                <div className="modal-actions">
+                  <button className="delete-btn" onClick={handleDeleteCategory}>Yes, Delete</button>
+                  <button className="cancel-btn" onClick={() => setShowDeleteModal(false)}>Cancel</button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {loading ? <p>Loading categories...</p> : (
 
             <div className="category-table-container">
-              <table className="category-table">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Description</th>
-                    <th>Core Category</th>
-                    <th>Hierarchy Path</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredCategories.map((category) => {
-                    const parentPath = getParentPath(categories, category);
-                    return (
-                      <tr key={category.id}>
-                        <td className="">{category.name}</td>
-                        <td>{category.description || "-"}</td>
-                        <td>{category.core_category}</td>
-                        <td>{parentPath.replace("Category: ", "")}</td>
-                        <td>
-                          <div className="category-actions">
-                            <button
-                              type="button"
-                              className="edit-btn"
-                              onClick={() => handleEditCategory(category)}
-                            >
-                              <svg
-                                className="edit-icon"
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="20"
-                                height="20"
-                                viewBox="0 0 24 24"
-                                fill="currentColor"
-                              >
-                                <path d="M3 17.25V21h3.75l11.06-11.06-3.75-3.75L3 17.25zM21.41 6.34a1.25 1.25 0 000-1.77l-2.34-2.34a1.25 1.25 0 00-1.77 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
-                              </svg>
-                            </button>
-
-                            <button
-                              type="button"
-                              className="delete-btn"
-                              onClick={() => {
-                                setCategoryToDelete(category.id);
-                                setShowDeleteModal(true);
-                              }}
-                            >
-                              <svg
-                                className="trash-icon"
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="20"
-                                height="20"
-                                viewBox="0 0 24 24"
-                                fill="currentColor"
-                              >
-                                <path d="M3 6h18v2H3V6zm2 3h14v13H5V9zm2 2v9h10v-9H7zm4-6h2v2h-2V5zm-1 2h4v2h-4V7z" />
-                              </svg>
-                            </button>
-                            {showDeleteModal && (
-                              <div className="modal-overlay">
-                                <div className="modal-content">
-                                  <h2>Confirm Deletion</h2>
-                                  <p>Are you sure you want to delete this category? This action cannot be undone.</p>
-                                  <div className="modal-actions">
-                                    <button className="add-btn" onClick={handleDeleteCategory}>Yes, Delete</button>
-                                    <button
-                                      className="cancel-btn"
-                                      onClick={() => {
-                                        setShowDeleteModal(false);
-                                        setCategoryToDelete(null);
-                                      }}
-                                    >
-                                      Cancel
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-
-                          </div>
-                        </td>
-
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+              <StyledTable
+                headers={["Name", "Description", "Core Category", "Parent"]}
+                columns={["name", "description", "core_category", "parentPath"]}
+                data={filteredCategories.map(cat => ({
+                  ...cat,
+                  parentPath: getParentPath(categories, cat).replace("Category: ", ""),
+                  description: cat.description || "-"
+                }))}
+                emptyText="No categories found."
+                onEdit={handleEditCategory}
+                onDelete={(cat) => {
+                  setShowDeleteModal(true);
+                  setCategoryToDelete(cat.id);
+                }}
+              />
             </div>
+
           )}
         </div>
       </div>

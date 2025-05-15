@@ -71,41 +71,6 @@
   border-left: 6px solid #2196f3;
 }
 
-.report-table {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 16px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-}
-
-.report-table h2 {
-  margin-bottom: 1rem;
-  font-size: 1.3rem;
-}
-
-.report-table table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.report-table th,
-.report-table td {
-  padding: 0.75rem 1rem;
-  text-align: left;
-  border-bottom: 1px solid #eee;
-  font-size: 1rem;
-}
-
-.report-table .positive {
-  color: #388e3c;
-  font-weight: 600;
-}
-
-.report-table .negative {
-  color: #d32f2f;
-  font-weight: 600;
-}
-
 @media (max-width: 768px) {
   .header {
     flex-direction: column;

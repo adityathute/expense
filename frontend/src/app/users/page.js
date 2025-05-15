@@ -3,19 +3,19 @@
 import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import TopBar from "../components/TopBar";
-import SearchBar from "../components/SearchBar";  // Assuming you want to use SearchBar now
+import SearchBar from "../components/SearchBar";
 import UserDetailsPopup from "./components/UserDetailsPopup";
 import AddUserForm from "./components/AddUserForm";
-import "../users/styles.css"; // Import the CSS
-import StyledTable from "../components/StyledTable";  // Import StyledTable
+import "../users/styles.css";
+import StyledTable from "../components/StyledTable";
 
 export default function Users() {
   const [services, setServices] = useState([]);
-  const [filteredUsers, setFilteredUsers] = useState([]); // ✅ State for filtered results
+  const [filteredUsers, setFilteredUsers] = useState([]);
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [showForm, setShowForm] = useState(false);
-  const [searchQuery, setSearchQuery] = useState(""); // Local search query state
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchUsers = async () => {
     try {
@@ -23,7 +23,7 @@ export default function Users() {
       const data = await res.json();
       const updatedUsers = data.map(user => ({
         ...user,
-        identifications: user.identifications || [], // Ensure it's always an array
+        identifications: user.identifications || [],
       }));
       setFilteredUsers(updatedUsers);
       setUsers(updatedUsers);
@@ -33,7 +33,7 @@ export default function Users() {
   };
 
   useEffect(() => {
-    fetchUsers(); // ✅ Re-fetch the user list when the component mounts
+    fetchUsers();
   }, []);
 
   const handleSaveEdit = async () => {
@@ -48,8 +48,7 @@ export default function Users() {
 
       if (response.ok) {
         const updatedUser = await response.json();
-        setUsers(users.map((u) => (u.id === updatedUser.id ? updatedUser : u))); // Update list
-        setIsEditing(false);
+        setUsers(users.map((u) => (u.id === updatedUser.id ? updatedUser : u)));
       } else {
         console.error("Failed to update user");
       }
@@ -74,20 +73,18 @@ export default function Users() {
       }
 
       setShowForm(false);
-      fetchUsers(); // ✅ Re-fetch the user list to update immediately
+      fetchUsers();
     } catch (error) {
       console.error("Error adding user:", error);
     }
   };
 
-  // Handle the search query change from SearchBar
   const handleSearchChange = (e) => {
     const query = e.target.value;
     setSearchQuery(query);
 
     const filteredUsers = users.filter((user) => {
       const lowerCaseQuery = query.toLowerCase();
-
       return (
         (user.name?.toLowerCase().includes(lowerCaseQuery) || false) ||
         (user.mobile_number?.includes(lowerCaseQuery) || false) ||
@@ -95,32 +92,11 @@ export default function Users() {
       );
     });
 
-    setFilteredUsers(filteredUsers); // Update filtered results
+    setFilteredUsers(filteredUsers);
   };
 
-  // Define headers for the UserTable
-  const headers = [
-    "Name",
-    "Mobile",
-    "ID"
-  ];
-
-  // Map the filteredUsers to rows for the table
-  const rows = filteredUsers.map(user => (
-    <tr key={user.id}>
-      <td>
-        <span className="user-link" onClick={() => setSelectedUser(user)}>
-          {user.name}
-        </span>
-      </td>
-      <td>{user.mobile_number}</td>
-      <td>
-        {user.identifications.length > 0
-          ? user.identifications.map(id => `${id.id_type}: ${id.id_number}`).join(", ")
-          : "N/A"}
-      </td>
-    </tr>
-  ));
+  const headers = ["Name", "Mobile", "ID"];
+  const columns = ["name", "mobile_number", "id"];
 
   return (
     <div className="content">
@@ -130,12 +106,12 @@ export default function Users() {
         <div className="main-content">
           <h1>Welcome to the Users</h1>
 
-          {/* Search and Add User */}
           <SearchBar
             value={searchQuery}
             onChange={handleSearchChange}
             placeholder="Search users..."
           />
+
           <div className="row-straight-container">
             <h3 className="row-straight-left">Accounts</h3>
             <button className="row-straight-right add-button" onClick={() => setShowForm(true)}>
@@ -145,15 +121,34 @@ export default function Users() {
               </svg> Add
             </button>
           </div>
-          {/* Show Add User Form */}
+
           {showForm && <AddUserForm onClose={() => setShowForm(false)} onAddUser={handleAddUser} />}
 
-          {/* Use the StyledTable Component for displaying users */}
-          <StyledTable headers={headers} rows={rows} emptyText="No users found." />
+          <StyledTable
+            headers={headers}
+            columns={columns}
+            data={filteredUsers}
+            emptyText="No users found."
+            renderCell={(user, col) => {
+              if (col === "name") {
+                return (
+                  <span className="user-link" onClick={() => setSelectedUser(user)}>
+                    {user.name}
+                  </span>
+                );
+              }
+              if (col === "mobile_number") return user.mobile_number;
+              if (col === "id") {
+                return user.identifications?.length > 0
+                  ? user.identifications.map((id) => `${id.id_type}: ${id.id_number}`).join(", ")
+                  : "N/A";
+              }
+              return "-";
+            }}
+          />
         </div>
       </div>
 
-      {/* Use the Separate Popup Component */}
       {selectedUser && (
         <UserDetailsPopup
           selectedUser={selectedUser}

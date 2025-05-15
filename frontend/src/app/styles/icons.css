@@ -1,0 +1,7 @@
+/* Icon Style */
+.icon {
+  width: 20px;
+  height: 20px;
+  fill: gray;
+  transition: fill 0.2s ease-in-out, color 0.2s ease-in-out;
+}

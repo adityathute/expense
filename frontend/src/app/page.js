@@ -5,7 +5,6 @@ import TopBar from "./components/TopBar";
 import StyledTable from "./components/StyledTable";
 import BalanceCell from "./components/BalanceCell"; // Import here
 import "./page.css";
-import "./styles/common.css";
 
 export default function Dashboard() {
   const income = 25000;
@@ -19,14 +18,15 @@ export default function Dashboard() {
   ];
 
   const headers = ["Date", "Name", "Amount"];
+  const columns = ["date", "name", "amount"];
 
-  const rows = recentTransactions.map((txn) => (
-    <tr key={txn.id}>
-      <td>{txn.date}</td>
-      <td>{txn.name}</td>
-      <BalanceCell value={txn.amount} />
-    </tr>
-  ));
+  // Custom render function to handle BalanceCell for "amount" column
+  function renderCell(row, column) {
+    if (column === "amount") {
+      return <BalanceCell value={row.amount} />;
+    }
+    return row[column];
+  }
 
   return (
     <div className="content">
@@ -45,7 +45,12 @@ export default function Dashboard() {
 
           <div className="transactions">
             <h2>Recent Transactions</h2>
-            <StyledTable headers={headers} rows={rows} />
+            <StyledTable
+              headers={headers}
+              columns={columns}
+              data={recentTransactions}
+              renderCell={renderCell}
+            />
           </div>
         </div>
       </div>

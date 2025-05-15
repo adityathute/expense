@@ -1,5 +1,5 @@
 /* Category Table */
-.category-table-container {
+/* .category-table-container {
   width: 100%;
   overflow-x: auto;
   background: white;
@@ -58,19 +58,9 @@
 .category-table td {
   padding: 16px;
   border-bottom: 1px solid #eaeaea;
-  vertical-align: middle; /* ✅ Vertically center cell contents */
-}
-
-/* Action Buttons */
-.edit-btn, .delete-btn {
-  border: 1px solid transparent;
-  background: none;
-  cursor: pointer;
-  font-size: 16px;
-}
-
-.edit-btn { color: #28a745; }
-.delete-btn { color: #dc3545; }
+  vertical-align: middle; 
+} 
+*/
 
 /* Category Cards */
 .category-list {
@@ -271,49 +261,6 @@
   animation: fadeIn 0.4s ease;
 }
 
-.edit-btn, .delete-btn {
-  border: none;
-  background: none;
-  cursor: pointer;
-  padding: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Edit Button Styles */
-.edit-btn {
-  color: gray;
-  transition: color 0.2s ease-in-out;
-}
-
-.edit-btn:hover {
-  color: #28a745;
-}
-
-.edit-icon {
-  width: 20px;
-  height: 20px;
-  fill: currentColor;
-  transition: fill 0.2s ease-in-out;
-}
-
-/* Delete Button Styles */
-.delete-btn {
-  color: gray;
-  transition: color 0.2s ease-in-out;
-}
-
-.delete-btn:hover {
-  color: #dc3545;
-}
-
-.trash-icon {
-  width: 20px;
-  height: 20px;
-  fill: currentColor;
-  transition: fill 0.2s ease-in-out;
-}
 /* 
 .modal-overlay {
   position: fixed;

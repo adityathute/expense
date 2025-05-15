@@ -4,8 +4,9 @@ import Sidebar from "../components/Sidebar";
 import TopBar from "../components/TopBar";
 import { useState, useEffect } from "react";
 import "./style.css";
-import StyledTable from "../components/StyledTable";  // relative path
-import "../styles/common.css";
+import StyledTable from "../components/StyledTable";
+import "../styles/balancecell.css";
+import BalanceCell from "../components/BalanceCell";
 
 export default function Account() {
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -21,12 +22,12 @@ export default function Account() {
     account_type: "",
     category: "Business",
   });
-  const [editingId, setEditingId] = useState(null); // State for edit mode
+  const [editingId, setEditingId] = useState(null);
 
   useEffect(() => {
     fetch("http://127.0.0.1:8001/api/accounts/")
       .then((res) => res.json())
-      .then((data) => setBankAccounts(data))
+      .then(setBankAccounts)
       .catch((err) => console.error("Error fetching accounts:", err));
   }, []);
 
@@ -38,19 +39,7 @@ export default function Account() {
     }));
   };
 
-  function formatBalance(amount) {
-    const parsed = parseFloat(amount);
-    return parsed % 1 === 0 ? parsed.toFixed(0) : parsed.toFixed(2);
-  }
-
-  function getBalanceClass(amount) {
-    if (amount < 0) return "balance-negative";
-    if (amount > 0) return "balance-positive";
-    return "balance-zero";
-  }
-
   const handleAddAccount = () => {
-    // Reset form
     setFormData({
       account_holder_name: "",
       account_number: "",
@@ -65,7 +54,6 @@ export default function Account() {
     setShowForm(true);
   };
 
-
   const handleFormSubmit = () => {
     const method = editingId ? "PUT" : "POST";
     const url = editingId
@@ -73,7 +61,7 @@ export default function Account() {
       : "http://127.0.0.1:8001/api/accounts/";
 
     fetch(url, {
-      method: method,
+      method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formData),
     })
@@ -82,14 +70,13 @@ export default function Account() {
         return res.json();
       })
       .then((savedAccount) => {
-        if (editingId) {
-          // Replace edited item
-          setBankAccounts((prev) =>
-            prev.map((acc) => (acc.id === editingId ? savedAccount : acc))
-          );
-        } else {
-          setBankAccounts((prev) => [...prev, savedAccount]);
-        }
+        setBankAccounts((prev) => {
+          if (editingId) {
+            return prev.map((acc) => (acc.id === editingId ? savedAccount : acc));
+          } else {
+            return [...prev, savedAccount];
+          }
+        });
 
         setFormData({
           account_holder_name: "",
@@ -101,7 +88,6 @@ export default function Account() {
           account_type: "",
           category: "Business",
         });
-
         setShowForm(false);
         setEditingId(null);
       })
@@ -122,18 +108,42 @@ export default function Account() {
     setEditingId(account.id);
     setShowForm(true);
   };
+
   const handleCloseForm = () => {
     setShowForm(false);
     setEditingId(null);
   };
 
   const isCash = formData.account_mode === "Cash";
+
   const categoryTotals = bankAccounts.reduce((acc, account) => {
     const category = account.category || "Uncategorized";
     acc[category] = (acc[category] || 0) + parseFloat(account.balance || 0);
     return acc;
   }, {});
+
   const totalBalance = Object.values(categoryTotals).reduce((sum, val) => sum + val, 0);
+
+  // Prepare data and columns for StyledTable
+  const filteredAccounts = selectedCategory
+    ? bankAccounts.filter((acc) => acc.category === selectedCategory)
+    : bankAccounts;
+
+  const columns = [
+    { key: "index", label: "#" },
+    { key: "account_holder_name", label: "Holder Name" },
+    { key: "bank_service_name", label: "Service/Bank" },
+    { key: "balance", label: "Balance" },
+    { key: "account_mode", label: "Mode" },
+    { key: "account_type", label: "Type" },
+    { key: "category", label: "Category" },
+  ];
+
+  // Add index for display (1-based)
+  const tableData = filteredAccounts.map((account, i) => ({
+    ...account,
+    index: i + 1,
+  }));
 
   return (
     <div className="content">
@@ -142,6 +152,7 @@ export default function Account() {
         <Sidebar />
         <div className="main-content">
           <h1>Welcome to the Accounts</h1>
+
           <div className="category-grid">
             {Object.entries(categoryTotals).map(([category, total]) => (
               <div
@@ -150,36 +161,24 @@ export default function Account() {
                 onClick={() => setSelectedCategory(category === selectedCategory ? null : category)}
               >
                 <h3>{category}</h3>
-                <p className={`cat-card-special-block ${getBalanceClass(total)}`}>
-                  ₹&nbsp;{formatBalance(total)}
-                </p>
+                <p className="cat-card-special-block">₹&nbsp;{total.toFixed(2)}</p>
               </div>
-
             ))}
-            {/* Total Balance Block */}
             <div className="category-card total-balance-block">
               <h3>Total Balance</h3>
-              <div className={`cat-card-special-block ${getBalanceClass(totalBalance)}`}>
-                <p>₹&nbsp;{formatBalance(totalBalance)}</p>
+              <div className="cat-card-special-block">
+                <p>₹&nbsp;{totalBalance.toFixed(2)}</p>
               </div>
             </div>
-
           </div>
 
-
           <div className="bank-account-section">
-
             {showForm && (
               <div className="modal-overlay">
                 <div className="modal-content">
                   <h3>{editingId ? "Edit Account" : "Add New Account"}</h3>
                   <div className="form">
-                    {/* Account Mode on Top */}
-                    <select
-                      name="account_mode"
-                      value={formData.account_mode}
-                      onChange={handleChange}
-                    >
+                    <select name="account_mode" value={formData.account_mode} onChange={handleChange}>
                       <option value="Cash">Cash</option>
                       <option value="Online">Online</option>
                     </select>
@@ -227,11 +226,8 @@ export default function Account() {
                           value={formData.ifsc_code}
                           onChange={handleChange}
                         />
-                        <select
-                          name="account_type"
-                          value={formData.account_type}
-                          onChange={handleChange}
-                        >
+                        <select name="account_type" value={formData.account_type} onChange={handleChange}>
+                          <option value="">Select Account Type</option>
                           <option value="Current">Current</option>
                           <option value="Saving">Saving</option>
                           <option value="Pigme">Pigme</option>
@@ -249,22 +245,17 @@ export default function Account() {
                       placeholder="Initial Balance"
                       value={formData.balance}
                       onChange={handleChange}
+                      step="0.01"
                     />
 
-                    <select
-                      name="category"
-                      value={formData.category}
-                      onChange={handleChange}
-                    >
+                    <select name="category" value={formData.category} onChange={handleChange}>
                       <option value="Business">Business</option>
                       <option value="Personal">Personal</option>
                       <option value="Home">Home</option>
                     </select>
 
                     <div style={{ display: "flex", gap: "10px" }}>
-                      <button onClick={handleFormSubmit}>
-                        {editingId ? "Update" : "Submit"}
-                      </button>
+                      <button onClick={handleFormSubmit}>{editingId ? "Update" : "Submit"}</button>
                       <button onClick={handleCloseForm}>Close</button>
                     </div>
                   </div>
@@ -275,29 +266,24 @@ export default function Account() {
             <div className="bank-account-list">
               <div className="create-new-account">
                 <h3 className="create-new-account-h-block">Accounts</h3>
-                {/* Add Account Button Block */}
                 <div className="create-new-account-btn-block" onClick={handleAddAccount}>
                   <button className="cat-card-special-btn">+&nbsp;&nbsp;Create account</button>
                 </div>
               </div>
+
               <StyledTable
-                headers={["#", "Holder Name", "Service/Bank", "Balance", "Mode", "Type", "Category", "Edit"]}
-                rows={bankAccounts
-                  .filter(acc => !selectedCategory || acc.category === selectedCategory)
-                  .map((account, index) => (
-                    <tr key={index}>
-                      <td>{index + 1}</td>
-                      <td>{account.account_holder_name || "-"}</td>
-                      <td>{account.bank_service_name || "-"}</td>
-                      <td className={getBalanceClass(account.balance)}>₹&nbsp;{formatBalance(account.balance)}</td>
-                      <td>{account.account_mode}</td>
-                      <td>{account.account_type || "-"}</td>
-                      <td>{account.category}</td>
-                      <td>
-                        <button onClick={() => handleEdit(account)}>Edit</button>
-                      </td>
-                    </tr>
-                  ))}
+                headers={columns.map((col) => col.label)}
+                columns={columns.map((col) => col.key)}
+                data={tableData}
+                onEdit={handleEdit}
+                renderCell={(row, col) =>
+                  col === "balance" ? (
+                    <BalanceCell value={parseFloat(row.balance)} />
+                  ) : (
+                    row[col] ?? "-"
+                  )
+                }
+                emptyText="No accounts found."
               />
             </div>
           </div>

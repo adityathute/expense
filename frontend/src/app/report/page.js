@@ -2,12 +2,13 @@
 import { useState } from "react";
 import Sidebar from "../components/Sidebar";
 import TopBar from "../components/TopBar";
+import StyledTable from "../components/StyledTable";
+import BalanceCell from "../components/BalanceCell";
 import "./reports.css";
 
 export default function Reports() {
   const [selectedMonth, setSelectedMonth] = useState("2025-05");
 
-  // Mock data (Replace with real data/API)
   const summary = {
     income: 42000,
     expense: 28000,
@@ -21,6 +22,9 @@ export default function Reports() {
     { category: "Freelance", amount: -20000 },
     { category: "Salary", amount: -22000 },
   ];
+
+  const headers = ["Category", "Amount"];
+  const columns = ["category", "amount"];
 
   return (
     <div className="content">
@@ -47,48 +51,36 @@ export default function Reports() {
               <span>💰</span>
               <div>
                 <h3>Income</h3>
-                <p>₹{summary.income}</p>
+                <p><BalanceCell value={summary.income} /></p>
               </div>
             </div>
             <div className="card expense">
               <span>🧾</span>
               <div>
                 <h3>Expense</h3>
-                <p>₹{summary.expense}</p>
+                <p><BalanceCell value={summary.expense} /></p>
               </div>
             </div>
             <div className="card balance">
               <span>📊</span>
               <div>
                 <h3>Balance</h3>
-                <p>₹{summary.balance}</p>
+                <p><BalanceCell value={summary.balance} /></p>
               </div>
             </div>
           </div>
 
           <div className="report-table">
             <h2>Category Breakdown</h2>
-            <table>
-              <thead>
-                <tr>
-                  <th>Category</th>
-                  <th>Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {categoryBreakdown.map((item, index) => (
-                  <tr key={index}>
-                    <td>{item.category}</td>
-                    <td className={item.amount < 0 ? "positive" : "negative"}>
-                      ₹{Math.abs(item.amount)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <StyledTable
+              headers={headers}
+              columns={columns}
+              data={categoryBreakdown}
+              renderCell={(row, col) =>
+                col === "amount" ? <BalanceCell value={row[col]} /> : row[col]
+              }
+            />
           </div>
-
-          {/* Future: Export, chart buttons */}
         </div>
       </div>
     </div>

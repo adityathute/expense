@@ -3,17 +3,18 @@
 import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import TopBar from "../components/TopBar";
+import SearchBar from "../components/SearchBar";
+import StyledTable from "../components/StyledTable";
+import Pagination from "../components/Pagination";
+import BalanceCell from "../components/BalanceCell";
 import "./transactions.css";
-import SearchBar from "../components/SearchBar";  // relative path
-import StyledTable from "../components/StyledTable";  // relative path
-import Pagination from "../components/Pagination";  // relative path
 
 export default function UidTransactions() {
   const [loading, setLoading] = useState(false);
   const [entries, setEntries] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const entriesPerPage = 10; // Number of entries per page
+  const entriesPerPage = 10;
 
   useEffect(() => {
     fetchEntries();
@@ -25,8 +26,9 @@ export default function UidTransactions() {
       const response = await fetch("http://127.0.0.1:8001/api/uid-entries/");
       if (response.ok) {
         const data = await response.json();
-        // Sort entries by created_at in descending order
-        const sortedEntries = data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        const sortedEntries = data.sort(
+          (a, b) => new Date(b.created_at) - new Date(a.created_at)
+        );
         setEntries(sortedEntries);
       }
     } catch (error) {
@@ -36,30 +38,35 @@ export default function UidTransactions() {
     }
   };
 
-  // Filter entries based on search query
-  const filteredEntries = entries.filter(entry =>
-    entry.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    entry.mobile_number.includes(searchQuery) ||
-    entry.aadhaar_number.includes(searchQuery)
+  // Filtering based on search query
+  const filteredEntries = entries.filter(
+    (entry) =>
+      entry.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      entry.mobile_number.includes(searchQuery) ||
+      entry.aadhaar_number.includes(searchQuery)
   );
 
-  // Paginate the entries
+  // Pagination logic
   const indexOfLastEntry = currentPage * entriesPerPage;
   const indexOfFirstEntry = indexOfLastEntry - entriesPerPage;
   const currentEntries = filteredEntries.slice(indexOfFirstEntry, indexOfLastEntry);
 
-  // Handle search input change
   const handleSearch = (e) => {
     setSearchQuery(e.target.value);
+    setCurrentPage(1); // reset page on search
   };
 
-  // Handle pagination change
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  // Pagination buttons
-  const pageNumbers = [];
-  for (let i = 1; i <= Math.ceil(filteredEntries.length / entriesPerPage); i++) {
-    pageNumbers.push(i);
+  const headers = ["ID", "Name", "Mobile", "Aadhaar", "Entry Type", "UID Type", "Update Type", "Charge"];
+  const columns = ["id", "full_name", "mobile_number", "aadhaar_number", "entry_type", "uid_type", "update_type", "service_charge"];
+
+  // Custom renderCell function for BalanceCell in the "service_charge" column
+  function renderCell(row, column) {
+    if (column === "service_charge") {
+      return <BalanceCell value={row.service_charge} />;
+    }
+    return row[column] ?? "-";
   }
 
   return (
@@ -73,29 +80,22 @@ export default function UidTransactions() {
             <p>Loading...</p>
           ) : (
             <>
-              <SearchBar value={searchQuery} onChange={handleSearch} placeholder="Search by Name, Mobile, Aadhaar" />
-              <StyledTable
-                headers={["ID", "Name", "Mobile", "Aadhaar", "Entry Type", "UID Type", "Update Type", "Charge"]}
-                rows={currentEntries.map(entry => (
-                  <tr key={entry.id}>
-                    <td>{entry.id}</td>
-                    <td>{entry.full_name}</td>
-                    <td>{entry.mobile_number}</td>
-                    <td>{entry.aadhaar_number}</td>
-                    <td>{entry.entry_type}</td>
-                    <td>{entry.uid_type}</td>
-                    <td>{entry.update_type}</td>
-                    <td>{entry.service_charge}</td>
-                  </tr>
-                ))}
+              <SearchBar
+                value={searchQuery}
+                onChange={handleSearch}
+                placeholder="Search by Name, Mobile, Aadhaar"
               />
-
+              <StyledTable
+                headers={headers}
+                columns={columns}
+                data={currentEntries}
+                renderCell={renderCell}
+              />
               <Pagination
                 currentPage={currentPage}
                 totalPages={Math.ceil(filteredEntries.length / entriesPerPage)}
                 onPageChange={paginate}
               />
-
             </>
           )}
         </div>

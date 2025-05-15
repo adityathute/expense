@@ -1,3 +1,5 @@
+import "./../styles/balancecell.css";
+
 export default function BalanceCell({ value }) {
   const getBalanceClass = (val) => {
     if (val > 0) return "balance-positive";
@@ -12,8 +14,9 @@ export default function BalanceCell({ value }) {
     }).format(val);
 
   return (
-    <td className={getBalanceClass(value)}>
+    // Remove <td>, just use a <span> or <div> here
+    <span className={getBalanceClass(value)}>
       ₹&nbsp;{formatBalance(value)}
-    </td>
+    </span>
   );
 }
