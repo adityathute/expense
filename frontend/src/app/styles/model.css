@@ -1,9 +1,3 @@
-/* User Name Clickable */
-.user-link {
-  color: #007bff;
-  cursor: pointer;
-}
-
 /* Modal Overlay */
 .id-main-group-outer{
   display: flex;
@@ -74,7 +68,7 @@
   margin-top: 10px;
 }
 
-.add-more-id-button[disabled] {
+button[disabled] {
   background: #ddd;
   color: gray;
   cursor: not-allowed;
@@ -307,35 +301,6 @@
 
 .close-button:hover {
   color: #ff3b30;
-}
-
-.model-header-with-button{
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  margin-bottom: 15px;
-  margin: 15px 8px;
-}
-
-.model-header h2{
-  margin: 0;
-  font-size: 22px;
-}
-
-.modal-close-button{
-  display: flex;
-  margin-left: auto;
-}
-
-.modal-close-button svg{
-  width: 20px;
-  height: 20px;
-}
-
-.modal-close-button svg:hover{
-  fill: #ff3b30;
-  stroke: #ff3b30;
-  cursor: pointer;
 }
 
 @keyframes fadeIn {

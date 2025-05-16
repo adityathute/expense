@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import Sidebar from "../components/Sidebar";
 import TopBar from "../components/TopBar";
 import "./categories.css";
+// import "../globals.css";
 import SearchBar from "../components/SearchBar"; // ✅ Add this line
 import StyledTable from "../components/StyledTable"; // adjust the path if needed
 
@@ -194,102 +195,125 @@ export default function Categories() {
 
           {/* Modal for Category Form */}
           {showCategoryModal && (
-            <div className="modal-overlay">
-              <div className="modal-content">
-                <h2>{editingCategory ? "Edit Category" : "Add Category"}</h2>
+            <div className="modal">
+              <div className="modal-overlay">
+                <div className="modal-content">
 
-                <input
-                  type="text"
-                  placeholder="Category Name"
-                  value={newCategory.name}
-                  onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
-                />
-                <input
-                  type="text"
-                  placeholder="Description"
-                  value={newCategory.description}
-                  onChange={(e) => setNewCategory({ ...newCategory, description: e.target.value })}
-                />
+                  <div className="model-header-with-button">
+                    <div className="model-header">
+                      <h2>{editingCategory ? "Edit Category" : "Add Category"}</h2>
+                    </div>
+                    <span className="modal-close-button" onClick={closeModal}>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                      </svg>
+                    </span>
+                  </div>
 
-                <select
-                  value={newCategory.core_category || ""}
-                  onChange={(e) => {
-                    setNewCategory({
-                      ...newCategory,
-                      core_category: e.target.value,
-                      parent: null,
-                      hierarchy: [],
-                    });
-                  }}
-                >
-                  <option value="">Select Core Category</option>
-                  {coreCategories.map((core) => (
-                    <option key={core} value={core}>
-                      {core}
-                    </option>
-                  ))}
-                </select>
+                  <input
+                    type="text"
+                    placeholder="Category Name"
+                    value={newCategory.name}
+                    onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Description"
+                    value={newCategory.description}
+                    onChange={(e) => setNewCategory({ ...newCategory, description: e.target.value })}
+                  />
 
-                {newCategory.core_category &&
-                  categories.some((cat) => cat.core_category === newCategory.core_category && !cat.parent) && (
-                    <select
-                      value={newCategory.hierarchy[0] || ""}
-                      onChange={(e) => {
-                        const selectedCategoryId = e.target.value;
-                        setNewCategory({
-                          ...newCategory,
-                          parent: selectedCategoryId || null,
-                          hierarchy: selectedCategoryId ? [selectedCategoryId] : [],
-                        });
-                      }}
-                    >
-                      <option value="">Select Main Category</option>
-                      {categories
-                        .filter((cat) => cat.core_category === newCategory.core_category && !cat.parent)
-                        .map((cat) => (
-                          <option key={cat.id} value={cat.id}>
-                            {cat.name}
+                  <select
+                    value={newCategory.core_category || ""}
+                    onChange={(e) => {
+                      setNewCategory({
+                        ...newCategory,
+                        core_category: e.target.value,
+                        parent: null,
+                        hierarchy: [],
+                      });
+                    }}
+                  >
+                    <option value="">Select Core Category</option>
+                    {coreCategories.map((core) => (
+                      <option key={core} value={core}>
+                        {core}
+                      </option>
+                    ))}
+                  </select>
+
+                  {newCategory.core_category &&
+                    categories.some((cat) => cat.core_category === newCategory.core_category && !cat.parent) && (
+                      <select
+                        value={newCategory.hierarchy[0] || ""}
+                        onChange={(e) => {
+                          const selectedCategoryId = e.target.value;
+                          setNewCategory({
+                            ...newCategory,
+                            parent: selectedCategoryId || null,
+                            hierarchy: selectedCategoryId ? [selectedCategoryId] : [],
+                          });
+                        }}
+                      >
+                        <option value="">Select Main Category</option>
+                        {categories
+                          .filter((cat) => cat.core_category === newCategory.core_category && !cat.parent)
+                          .map((cat) => (
+                            <option key={cat.id} value={cat.id}>
+                              {cat.name}
+                            </option>
+                          ))}
+                      </select>
+                    )}
+
+                  {newCategory.hierarchy.map((parentId, index) => {
+                    const subcategories = categories.filter((cat) => cat.parent == parentId);
+                    if (subcategories.length === 0) return null;
+
+                    return (
+                      <select
+                        key={index}
+                        value={newCategory.hierarchy[index + 1] || ""}
+                        onChange={(e) => {
+                          const selectedSubcategoryId = e.target.value;
+                          let newHierarchy = [...newCategory.hierarchy.slice(0, index + 1)];
+
+                          if (selectedSubcategoryId) newHierarchy.push(selectedSubcategoryId);
+
+                          setNewCategory({
+                            ...newCategory,
+                            parent: selectedSubcategoryId || null,
+                            hierarchy: newHierarchy,
+                          });
+                        }}
+                      >
+                        <option value="">Select Subcategory</option>
+                        {subcategories.map((sub) => (
+                          <option key={sub.id} value={sub.id}>
+                            {sub.name}
                           </option>
                         ))}
-                    </select>
-                  )}
+                      </select>
+                    );
+                  })}
 
-                {newCategory.hierarchy.map((parentId, index) => {
-                  const subcategories = categories.filter((cat) => cat.parent == parentId);
-                  if (subcategories.length === 0) return null;
-
-                  return (
-                    <select
-                      key={index}
-                      value={newCategory.hierarchy[index + 1] || ""}
-                      onChange={(e) => {
-                        const selectedSubcategoryId = e.target.value;
-                        let newHierarchy = [...newCategory.hierarchy.slice(0, index + 1)];
-
-                        if (selectedSubcategoryId) newHierarchy.push(selectedSubcategoryId);
-
-                        setNewCategory({
-                          ...newCategory,
-                          parent: selectedSubcategoryId || null,
-                          hierarchy: newHierarchy,
-                        });
-                      }}
-                    >
-                      <option value="">Select Subcategory</option>
-                      {subcategories.map((sub) => (
-                        <option key={sub.id} value={sub.id}>
-                          {sub.name}
-                        </option>
-                      ))}
-                    </select>
-                  );
-                })}
-
-                <div className="modal-actions">
-                  <button className="add-btn" onClick={editingCategory ? handleUpdateCategory : handleAddCategory}>
-                    {editingCategory ? "Update Category" : "Add Category"}
-                  </button>
-                  <button className="cancel-btn" onClick={closeModal}>Cancel</button>
+                  <div className="modal-actions">
+                    <button className="add-btn" onClick={editingCategory ? handleUpdateCategory : handleAddCategory}>
+                      {editingCategory ? "Update Category" : "Add Category"}
+                    </button>
+                    <button className="cancel-btn" onClick={closeModal}>Cancel</button>
+                  </div>
                 </div>
               </div>
             </div>

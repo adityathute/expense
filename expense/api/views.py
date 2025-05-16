@@ -7,12 +7,13 @@ from .serializers import CategorySerializer, UserSerializer, ServiceSerializer, 
 from rest_framework.generics import DestroyAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
+from .choices import CORE_CATEGORIES
 
 # ---------------------- CATEGORY RELATED VIEWS ---------------------- #
 
 @api_view(['GET', 'POST'])
 def category_list(request):
-    category_type = request.GET.get('type', 'Home')  # Default to Home
+    category_type = request.GET.get('type', 'Home')
 
     if request.method == "POST":
         data = request.data.copy()
@@ -20,15 +21,15 @@ def category_list(request):
         serializer = CategorySerializer(data=data)
         
         if serializer.is_valid():
-            category_instance = serializer.save()  # ✅ Save the category first
-            category_instance.category_type = data.get("category_type", category_type)  # ✅ Explicitly set category_type
-            category_instance.save()  # ✅ Save the updated category
+            category_instance = serializer.save()
+            category_instance.category_type = data.get("category_type", category_type)
+            category_instance.save()
             
             return Response(CategorySerializer(category_instance).data, status=201)
         
         return Response(serializer.errors, status=400)
 
-    core_category_names = [c[0] for c in Category.CORE_CATEGORIES]
+    core_category_names = [c[0] for c in CORE_CATEGORIES]
     categories = Category.objects.filter(category_type=category_type).exclude(name__in=core_category_names)
     
     return Response({

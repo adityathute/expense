@@ -8,6 +8,7 @@ import UserDetailsPopup from "./components/UserDetailsPopup";
 import AddUserForm from "./components/AddUserForm";
 import "../users/styles.css";
 import StyledTable from "../components/StyledTable";
+import HeaderWithNewButton from "../components/common/HeaderWithNewButton";
 
 export default function Users() {
   const [services, setServices] = useState([]);
@@ -104,24 +105,18 @@ export default function Users() {
       <div className="container">
         <Sidebar />
         <div className="main-content">
-          <h1>Welcome to the Users</h1>
+
+          <HeaderWithNewButton
+            title="Users"
+            buttonLabel="Add User"
+            onClick={() => setShowForm(true)}
+          />
 
           <SearchBar
             value={searchQuery}
             onChange={handleSearchChange}
             placeholder="Search users..."
           />
-
-          <div className="row-straight-container">
-            <h3 className="row-straight-left">Accounts</h3>
-            <button className="row-straight-right add-button" onClick={() => setShowForm(true)}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg> Add
-            </button>
-          </div>
-
           {showForm && <AddUserForm onClose={() => setShowForm(false)} onAddUser={handleAddUser} />}
 
           <StyledTable

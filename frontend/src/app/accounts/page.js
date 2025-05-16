@@ -266,8 +266,8 @@ export default function Account() {
 
             <div className="bank-account-list">
               <HeaderWithNewButton
-                title="Users"
-                buttonLabel="Add User"
+                title="Account"
+                buttonLabel="Add Account"
                 onClick={handleAddAccount}
               />
 

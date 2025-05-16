@@ -7,6 +7,7 @@ import "../services/ServicePage.css";
 import StyledTable from "../components/StyledTable";  // relative path
 import SearchBar from "../components/SearchBar";  // Import the SearchBar component
 import BalanceCell from "../components/BalanceCell"; // Import here
+import HeaderWithNewButton from "../components/common/HeaderWithNewButton";
 
 export default function ServicesPage() {
   const [services, setServices] = useState([]);
@@ -120,50 +121,51 @@ export default function ServicesPage() {
         <div className="main-content">
           {successMessage && <div className="success-message">{successMessage}</div>}
 
-          <h1>Available Services</h1>
+          <HeaderWithNewButton
+            title="Services"
+            buttonLabel="Add Service"
+            onClick={() => setShowForm(true)}
+          />
 
           {/* Add the SearchBar component here */}
-          <SearchBar 
-            value={searchTerm} 
-            onChange={(e) => setSearchTerm(e.target.value)} 
+          <SearchBar
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search service..."
           />
 
-<StyledTable
-  headers={[
-    "Service Name",
-    "Category",
-    "Service Charge",
-    "Pages Required",
-    "Estimated Time (s)",
-    "Priority",
-  ]}
-  columns={[
-    "name",
-    "category",
-    "service_charge",
-    "pages_required",
-    "estimated_time_seconds",
-    "priority_level",
-  ]}
-  data={filteredServices}
-  emptyText="No services found."
-  onEdit={handleEdit}
-  onDelete={handleDelete}
-  renderCell={(row, column) => {
-    if (column === "service_charge") {
-      return <BalanceCell value={row.service_charge} />;
-    }
-    if (column === "priority_level") {
-      const labels = { 1: "Low", 2: "Medium", 3: "High" };
-      return labels[row.priority_level] || row.priority_level;
-    }
-    return row[column] ?? "-";
-  }}
-/>
-
-
-          <button onClick={() => setShowForm(true)}>Add Service</button>
+          <StyledTable
+            headers={[
+              "Service Name",
+              "Category",
+              "Service Charge",
+              "Pages Required",
+              "Estimated Time (s)",
+              "Priority",
+            ]}
+            columns={[
+              "name",
+              "category",
+              "service_charge",
+              "pages_required",
+              "estimated_time_seconds",
+              "priority_level",
+            ]}
+            data={filteredServices}
+            emptyText="No services found."
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            renderCell={(row, column) => {
+              if (column === "service_charge") {
+                return <BalanceCell value={row.service_charge} />;
+              }
+              if (column === "priority_level") {
+                const labels = { 1: "Low", 2: "Medium", 3: "High" };
+                return labels[row.priority_level] || row.priority_level;
+              }
+              return row[column] ?? "-";
+            }}
+          />
 
           {showForm && (
             <form onSubmit={handleSubmit}>
