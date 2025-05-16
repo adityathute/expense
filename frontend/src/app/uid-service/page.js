@@ -22,6 +22,22 @@ export default function UidTransactions() {
     service_charge: 100,
     payment_type: "cash",
   });
+  const [showDirectFormModal, setShowDirectFormModal] = useState(false);
+  const [directFormData, setDirectFormData] = useState({
+    full_name: "",
+    mobile_number: "",
+    aadhaar_number: "",
+    entry_type: "update",
+    uid_type: "offline",
+    update_type: "new_adhar",
+    enrollment_suffix: "",
+    entry_time: "",
+    service_charge: 100,
+    payment_type: "cash",
+  });
+  const handleDirectChange = (e) => {
+    setDirectFormData({ ...directFormData, [e.target.name]: e.target.value });
+  };
 
   useEffect(() => {
     fetchEntries();
@@ -148,6 +164,27 @@ export default function UidTransactions() {
       alert("An error occurred while moving the entry.");
     }
   };
+  const handleSubmitDirectUID = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch("http://127.0.0.1:8001/api/uid-entries/create/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(directFormData),
+      });
+
+      if (response.ok) {
+        setShowDirectFormModal(false);
+        alert("Entry submitted directly!");
+        window.location.reload();
+      } else {
+        alert("Failed to submit direct UID entry.");
+      }
+    } catch (error) {
+      console.error("Direct UID submission error:", error);
+      alert("Error in direct UID entry submission.");
+    }
+  };
 
   return (
     <div className="content">
@@ -155,9 +192,8 @@ export default function UidTransactions() {
       <div className="container">
         <Sidebar />
         <div className="main-content">
-          <button className="new-entry-btn" onClick={() => setShowFormModal(true)}>
-            New Temp Entry
-          </button>
+          <button onClick={() => setShowFormModal(true)}>New Temp Entry</button>
+          <button onClick={() => setShowDirectFormModal(true)}>New Direct Entry</button>
 
           {/* Modal Popup Form */}
           {showFormModal && (
@@ -203,6 +239,54 @@ export default function UidTransactions() {
 
                   <button type="submit" className="submit-btn">Submit Entry</button>
                   <button type="button" className="close-btn" onClick={() => setShowFormModal(false)}>Close</button>
+                </form>
+              </div>
+            </div>
+          )}
+          {showDirectFormModal && (
+            <div className="modal-overlay" onClick={() => setShowDirectFormModal(false)}>
+              <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                <h2>New Direct UID Entry</h2>
+                <form className="uid-direct-form" onSubmit={handleSubmitDirectUID}>
+                  <input type="text" name="full_name" placeholder="Full Name" value={directFormData.full_name} onChange={handleDirectChange} required />
+                  <input type="text" name="mobile_number" placeholder="Mobile Number" value={directFormData.mobile_number} onChange={handleDirectChange} required />
+                  <input type="text" name="aadhaar_number" placeholder="Aadhaar Number (optional)" value={directFormData.aadhaar_number} onChange={handleDirectChange} />
+
+                  <select name="entry_type" value={directFormData.entry_type} onChange={handleDirectChange}>
+                    <option value="new">New</option>
+                    <option value="update">Update</option>
+                  </select>
+
+                  {directFormData.entry_type === "update" && (
+                    <select name="update_type" value={directFormData.update_type} onChange={handleDirectChange}>
+                      <option value="mobile_change">Mobile Number Change</option>
+                      <option value="biometric_change">Biometric Change</option>
+                      <option value="name_change">Name Change</option>
+                      <option value="address_change">Address Change</option>
+                      <option value="dob_change">Date of Birth Change</option>
+                    </select>
+                  )}
+
+                  <select name="uid_type" value={directFormData.uid_type} onChange={handleDirectChange}>
+                    <option value="offline">Offline</option>
+                    <option value="online">Online</option>
+                    <option value="ucl">UCL</option>
+                  </select>
+
+                  <input type="text" name="enrollment_suffix" placeholder="Enrollment Suffix (5 digits)" value={directFormData.enrollment_suffix} onChange={handleDirectChange} required />
+                  <input type="text" name="entry_time" placeholder="Entry Time (6 digits)" value={directFormData.entry_time} onChange={handleDirectChange} required />
+
+                  <select name="payment_type" value={directFormData.payment_type} onChange={handleDirectChange}>
+                    <option value="cash">Cash</option>
+                    <option value="online">Online</option>
+                    <option value="upi">UPI</option>
+                    <option value="card">Card</option>
+                  </select>
+
+                  <input type="number" name="service_charge" value={directFormData.service_charge} onChange={handleDirectChange} />
+
+                  <button type="submit">Submit Direct Entry</button>
+                  <button type="button" onClick={() => setShowDirectFormModal(false)}>Close</button>
                 </form>
               </div>
             </div>

@@ -202,7 +202,6 @@ class Account(models.Model):
         ]
 
 # ---------------------- TRANSACTION RELATED MODELS ---------------------- #
-
 class Transactions(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
