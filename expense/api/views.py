@@ -2,8 +2,8 @@ from django.http import JsonResponse
 from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 from rest_framework import generics, status, viewsets
-from .models import Category, Service, User, UserService, UIDTempEntry, UIDEntry, Account
-from .serializers import CategorySerializer, UserSerializer, ServiceSerializer, UserServiceSerializer, UIDTempEntrySerializer, UIDEntrySerializer, AccountSerializer
+from .models import Category, Service, User, ServiceEntry, ServiceTempEntry, Account
+from .serializers import CategorySerializer, UserSerializer, ServiceSerializer, AccountSerializer
 from rest_framework.generics import DestroyAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
@@ -97,70 +97,6 @@ class ServiceViewSet(viewsets.ModelViewSet):
         self.perform_destroy(instance)
         return Response({"message": "Service deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
 
-# ---------------------- USERS SERVICE RELATED VIEWS ---------------------- #
-
-class UserServiceListCreateView(generics.ListCreateAPIView):
-    queryset = UserService.objects.all()
-    serializer_class = UserServiceSerializer
-
-class UserServiceDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = UserService.objects.all()
-    serializer_class = UserServiceSerializer
-
-class UserServiceViewSet(viewsets.ModelViewSet):
-    queryset = UserService.objects.all()
-    serializer_class = UserServiceSerializer
-
-    def create(self, request, *args, **kwargs):
-        data = request.data.copy()
-
-        print("Received data:", data)  # Debugging: Log incoming request
-
-        if not data.get("user"):
-            return Response({"error": "User is required"}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            user = User.objects.get(id=data["user"])  # Ensure user exists
-        except User.DoesNotExist:
-            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = self.get_serializer(data=request.data)
-        if not serializer.is_valid():
-            print("Serializer errors:", serializer.errors)  # Debugging
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        serializer.save(user=user)  # Assign user properly
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-# ---------------------- UID SERVICE RELATED VIEWS ---------------------- #
-
-# Create a new UIDTempEntry
-class UIDTempEntryCreateView(generics.CreateAPIView):
-    queryset = UIDTempEntry.objects.all()
-    serializer_class = UIDTempEntrySerializer
-
-    def perform_create(self, serializer):
-        print("Creating Temp Entry:", serializer.validated_data)
-        super().perform_create(serializer)
-
-# Get all UIDTempEntry records
-class UIDTempEntryListView(generics.ListAPIView):
-    queryset = UIDTempEntry.objects.all()
-    serializer_class = UIDTempEntrySerializer
-
-class UIDEntryCreateView(generics.CreateAPIView):
-    queryset = UIDEntry.objects.all()
-    serializer_class = UIDEntrySerializer
-
-class TempEntryDeleteView(DestroyAPIView):
-    queryset = UIDTempEntry.objects.all()
-    serializer_class = UIDTempEntrySerializer
-    
-# List all UID Entries
-class UIDEntryListView(generics.ListAPIView):
-    queryset = UIDEntry.objects.all()
-    serializer_class = UIDEntrySerializer
-
 # ---------------------- ACCOUNTS RELATED VIEWS ---------------------- #
 
 class AccountListView(APIView):
@@ -176,3 +112,5 @@ class AccountViewSet(viewsets.ModelViewSet):
     queryset = Account.active_objects.all()
     serializer_class = AccountSerializer
     permission_classes = [AllowAny]  # You can change this later for authentication
+
+# ---------------------- SERVICE RELATED VIEWS ---------------------- #

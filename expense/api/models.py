@@ -4,27 +4,6 @@ from decouple import config
 from django.core.exceptions import ValidationError
 from .choices import CATEGORY_TYPES, CORE_CATEGORIES, GENDER_CHOICES, ID_TYPES, REQUIREMENT_TYPES, ENTRY_TYPE_CHOICES, UID_TYPE_CHOICES,  UPDATE_TYPE_CHOICES, ENTRY_TYPE_CHOICES, STATUS_CHOICES, UID_TYPE_CHOICES, UPDATE_TYPE_CHOICES, PAYMENT_TYPE_CHOICES, ACCOUNT_TYPE_CHOICES, CATEGORY_CHOICES
 
-# ---------------------- CATEGORY RELATED MODEL ---------------------- #
-
-class Category(models.Model):
-    name = models.CharField(max_length=255, unique=True)
-    description = models.TextField(blank=True)
-    parent = models.ForeignKey(
-        "self", on_delete=models.CASCADE, null=True, blank=True, related_name="subcategories"
-    )
-    core_category = models.CharField(
-        max_length=20, choices=CORE_CATEGORIES, null=True, blank=True
-    )
-    category_type = models.CharField(
-        max_length=10, choices=CATEGORY_TYPES, blank=True, null=True
-    )
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        ordering = ["core_category", "name"]
-
 # ---------------------- USER RELATED MODELS ---------------------- #
 
 class User(models.Model):
@@ -64,6 +43,27 @@ class UserID(models.Model):
     def __str__(self):
         return f"{self.user.name} - {self.id_type}: {self.id_number}" if self.id_number else f"{self.user.name} - No ID"
 
+# ---------------------- CATEGORY RELATED MODEL ---------------------- #
+
+class Category(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    description = models.TextField(blank=True)
+    parent = models.ForeignKey(
+        "self", on_delete=models.CASCADE, null=True, blank=True, related_name="subcategories"
+    )
+    core_category = models.CharField(
+        max_length=20, choices=CORE_CATEGORIES, null=True, blank=True
+    )
+    category_type = models.CharField(
+        max_length=10, choices=CATEGORY_TYPES, blank=True, null=True
+    )
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ["core_category", "name"]
+
 # ---------------------- SERVICE RELATED MODELS ---------------------- #
 
 class Service(models.Model):
@@ -84,7 +84,6 @@ class Service(models.Model):
     def __str__(self):
         return self.name
 
-
 class ServiceRequirement(models.Model):
     service = models.ForeignKey(Service, on_delete=models.CASCADE) 
     requirement_name = models.CharField(max_length=255)
@@ -94,65 +93,6 @@ class ServiceRequirement(models.Model):
 
     def __str__(self):
         return f"{self.service.name} - {self.requirement_name}"
-
-# ---------------------- UID SERVICE RELATED MODELS ---------------------- #
-
-# Fetch the enrollment prefix from the environment
-ENROLLMENT_PREFIX = config("ENROLLMENT_PREFIX", default="085528018")
-
-class UIDTempEntry(models.Model):
-    full_name = models.CharField(max_length=255)
-    mobile_number = models.CharField(max_length=10)
-    aadhaar_number = models.CharField(max_length=12, blank=True, null=True) 
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    entry_type = models.CharField(max_length=10, choices=ENTRY_TYPE_CHOICES, default="new")
-    uid_type = models.CharField(max_length=15, choices=UID_TYPE_CHOICES, default="offline")
-    update_type = models.CharField(max_length=20, choices=UPDATE_TYPE_CHOICES, blank=True, null=True)
-
-    def __str__(self):
-        return f"{self.full_name} - {self.aadhaar_number or 'No Aadhaar'} - Type: {self.entry_type} - Update: {self.get_update_type_display() or 'N/A'}"
-
-
-class UIDEntry(models.Model):
-    full_name = models.CharField(max_length=255)
-    mobile_number = models.CharField(max_length=10)
-    aadhaar_number = models.CharField(max_length=12, blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    entry_type = models.CharField(max_length=10, choices=ENTRY_TYPE_CHOICES, default="update")
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="pending")
-    uid_type = models.CharField(max_length=15, choices=UID_TYPE_CHOICES, default="offline")
-    entry_time = models.CharField(max_length=6, blank=True, null=True)
-    enrollment_suffix = models.CharField(max_length=5, blank=True, null=True)
-    update_type = models.CharField(max_length=20, choices=UPDATE_TYPE_CHOICES, blank=True, null=True)
-    service_charge = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    payment_type = models.CharField(max_length=20, choices=PAYMENT_TYPE_CHOICES, blank=True, null=True)
-
-    @property
-    def full_enrollment_number(self):
-        """Generate full 14-digit enrollment number using ENV prefix"""
-        if self.enrollment_suffix:
-            return f"{ENROLLMENT_PREFIX}{self.enrollment_suffix}"
-        return None
-
-    def __str__(self):
-        return f"{self.full_name} - {self.aadhaar_number or 'No Aadhaar'} - Type: {self.entry_type} - Update: {self.get_update_type_display() or 'N/A'}"
-
-# ---------------------- USER SERVICE RELATED MODELS ---------------------- #
-
-class UserService(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="services_used")
-    service = models.ForeignKey(Service, on_delete=models.CASCADE)
-    acknowledgment_number = models.CharField(max_length=255, unique=True, blank=True, null=True)
-    tracking_number = models.CharField(max_length=255, unique=True, blank=True, null=True)
-    uidentry = models.ForeignKey(UIDEntry, on_delete=models.CASCADE, blank=True, null=True)
-    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f"{self.user.name} - {self.service.name}"
 
 # ---------------------- ACCOUNTS RELATED MODELS ---------------------- #
 
@@ -205,7 +145,7 @@ class Account(models.Model):
 class Transactions(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
-    service = models.ForeignKey(UserService, on_delete=models.SET_NULL, null=True, blank=True)
+    service = models.ForeignKey(Service, on_delete=models.SET_NULL, null=True, blank=True)
     account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     transaction_type = models.CharField(max_length=10, choices=CORE_CATEGORIES)
@@ -213,3 +153,41 @@ class Transactions(models.Model):
     description = models.TextField(blank=True, null=True)
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
+
+
+# ---------------------- ENTRY RELATED MODELS ---------------------- #
+
+# Fetch the enrollment prefix from the environment
+ENROLLMENT_PREFIX = config("ENROLLMENT_PREFIX", default="085528018")
+
+class ServiceTempEntry(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    service = models.ForeignKey(Service, on_delete=models.CASCADE)
+    service_type = models.CharField(max_length=20, choices=UPDATE_TYPE_CHOICES, blank=True, null=True)
+    mobile_number = models.CharField(max_length=10)
+    update_type = models.CharField(max_length=15, choices=UID_TYPE_CHOICES, default="offline")
+    entry_type = models.CharField(max_length=10, choices=ENTRY_TYPE_CHOICES, default="update")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user}"
+
+
+class ServiceEntry(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    service = models.ForeignKey(Service, on_delete=models.CASCADE)
+    service_type = models.CharField(max_length=20, choices=UPDATE_TYPE_CHOICES, blank=True, null=True)
+    mobile_number = models.CharField(max_length=10)
+    update_type = models.CharField(max_length=15, choices=UID_TYPE_CHOICES, default="offline")
+    entry_type = models.CharField(max_length=10, choices=ENTRY_TYPE_CHOICES, default="update")
+    account = models.ForeignKey(Account, on_delete=models.CASCADE, blank=True, null=True)
+    service_charge = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    payment_type = models.CharField(max_length=20, choices=PAYMENT_TYPE_CHOICES, blank=True, null=True)
+    enrollment_number = models.CharField(max_length=50, blank=True, null=True)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="pending")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user}"
