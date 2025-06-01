@@ -154,14 +154,13 @@ class Transactions(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
 
-
 # ---------------------- ENTRY RELATED MODELS ---------------------- #
 
 # Fetch the enrollment prefix from the environment
 ENROLLMENT_PREFIX = config("ENROLLMENT_PREFIX", default="085528018")
 
 class ServiceTempEntry(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     service = models.ForeignKey(Service, on_delete=models.CASCADE)
     service_type = models.CharField(max_length=20, choices=UPDATE_TYPE_CHOICES, blank=True, null=True)
     mobile_number = models.CharField(max_length=10)
@@ -173,12 +172,12 @@ class ServiceTempEntry(models.Model):
     def __str__(self):
         return f"{self.user}"
 
-
 class ServiceEntry(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     service = models.ForeignKey(Service, on_delete=models.CASCADE)
     service_type = models.CharField(max_length=20, choices=UPDATE_TYPE_CHOICES, blank=True, null=True)
     mobile_number = models.CharField(max_length=10)
+    is_miscellaneous = models.BooleanField(default=False, help_text="True if this is a non-standard or walk-in transaction.")
     update_type = models.CharField(max_length=15, choices=UID_TYPE_CHOICES, default="offline")
     entry_type = models.CharField(max_length=10, choices=ENTRY_TYPE_CHOICES, default="update")
     account = models.ForeignKey(Account, on_delete=models.CASCADE, blank=True, null=True)
