@@ -17,12 +17,15 @@ class User(models.Model):
     ]
 
     name = models.CharField(max_length=255)
-    address = models.TextField(blank=True, null=True)
+    old_name = models.CharField(max_length=255, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
+    old_email = models.EmailField(blank=True, null=True)
     date_of_birth = models.DateField(blank=True, null=True)
+    old_date_of_birth = models.DateField(blank=True, null=True)
     mobile_number = models.CharField(max_length=10, blank=True, null=True)
     user_type = models.JSONField(default=list)  # Example: ["Customer", "Agent"]
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES, blank=True, null=True)
+    is_deleted = models.BooleanField(default=False, verbose_name="Is Deleted")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -34,11 +37,33 @@ class User(models.Model):
     def __str__(self):
         return self.name
 
+class Address(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="address")
+    house_number = models.CharField(max_length=10, blank=True, null=True)
+    street = models.CharField(max_length=255, blank=True, null=True)
+    landmark = models.CharField(max_length=510, blank=True, null=True)
+    area = models.CharField(max_length=510, blank=True, null=True)
+    village = models.CharField(max_length=255, blank=True, null=True)
+    post_office = models.CharField(max_length=255, blank=True, null=True)
+    sub_dist = models.CharField(max_length=255, blank=True, null=True)
+    district = models.CharField(max_length=255, blank=True, null=True)
+    state = models.CharField(max_length=255, blank=True, null=True)
+    pincode = models.CharField(max_length=6, blank=True, null=True)
+    is_deleted = models.BooleanField(default=False, verbose_name="Is Deleted")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user.name}"
+
 class UserID(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="identifications")
     id_type = models.CharField(max_length=20, choices=ID_TYPES, blank=True, null=True)
     id_number = models.CharField(max_length=20, unique=True, blank=True, null=True)
     other_doc_name = models.CharField(max_length=255, blank=True, null=True)
+    is_deleted = models.BooleanField(default=False, verbose_name="Is Deleted")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.user.name} - {self.id_type}: {self.id_number}" if self.id_number else f"{self.user.name} - No ID"
@@ -57,6 +82,9 @@ class Category(models.Model):
     category_type = models.CharField(
         max_length=10, choices=CATEGORY_TYPES, blank=True, null=True
     )
+    is_deleted = models.BooleanField(default=False, verbose_name="Is Deleted")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
@@ -71,6 +99,7 @@ class Service(models.Model):
     description = models.TextField(blank=True, null=True)
     category = models.CharField(max_length=100, blank=True, null=True)  
     service_charge = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    actual_charge = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     pages_required = models.PositiveIntegerField(default=0)
     estimated_time_seconds = models.PositiveIntegerField(blank=True, null=True)
     is_active = models.BooleanField(default=True)
@@ -78,6 +107,7 @@ class Service(models.Model):
         choices=[(1, 'Low'), (2, 'Medium'), (3, 'High')], 
         default=2
     )
+    is_deleted = models.BooleanField(default=False, verbose_name="Is Deleted")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -90,6 +120,9 @@ class ServiceRequirement(models.Model):
     requirement_type = models.CharField(max_length=50, choices=REQUIREMENT_TYPES, default='Document')
     is_mandatory = models.BooleanField(default=True)
     additional_details = models.TextField(blank=True, null=True)
+    is_deleted = models.BooleanField(default=False, verbose_name="Is Deleted")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.service.name} - {self.requirement_name}"
@@ -108,13 +141,14 @@ class Account(models.Model):
     account_type = models.CharField(max_length=25, blank=True, null=True, choices=ACCOUNT_TYPE_CHOICES)
     ifsc_code = models.CharField(max_length=20, blank=True, null=True)
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    date_created = models.DateTimeField(auto_now_add=True)
-    date_modified = models.DateTimeField(auto_now=True)
+    issue_date = models.DateTimeField(null=True, blank=True)
     category = models.CharField(max_length=10, choices=CATEGORY_CHOICES, verbose_name="Category")
-    is_deleted = models.BooleanField(default=False, verbose_name="Is Deleted")
+    is_active = models.BooleanField(default=True)
     objects = models.Manager()
     active_objects = ActiveAccountManager()
-    is_active = models.BooleanField(default=True)
+    is_deleted = models.BooleanField(default=False, verbose_name="Is Deleted")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def clean(self):
         if self.account_mode != "Cash":
