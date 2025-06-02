@@ -16,4 +16,5 @@ urlpatterns = [
     path('api/users/', views.UserListCreateView.as_view(), name='user-list-create'),
     path('api/users/<int:pk>/', views.UserDetailView.as_view(), name='user-detail'),
     path('api/accounts/', views.AccountListView.as_view(), name='account-list'),
+    path("api/generate-pdf/", views.generate_pdf, name="generate_pdf"),
 ]
