@@ -13,7 +13,11 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from PyPDF2 import PdfReader, PdfWriter
 import os
-import re
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+
+# Register the Gotham font (run once before using it)
+pdfmetrics.registerFont(TTFont('Gotham', os.path.join('static', 'fonts', 'Gotham-Book.ttf')))
 # ---------------------- CATEGORY RELATED VIEWS ---------------------- #
 
 @api_view(['GET', 'POST'])
@@ -130,21 +134,34 @@ def generate_pdf(request):
     name = data.get("name", "").upper()
 
     # Aadhaar digit positioning
-    start_x = 469  # Adjust starting X coordinate as needed
-    y = 610        # Y-coordinate where Aadhaar number should be printed
-    gap = 8.2       # Horizontal spacing between each digit (try 14–18)
+    start_x = 218  # Adjust starting X coordinate as needed
+    y = 300.8        # Y-coordinate where Aadhaar number should be printed
 
     # ✅ Generate overlay PDF with Aadhaar number
     overlay_buffer = BytesIO()
     overlay_canvas = canvas.Canvas(overlay_buffer, pagesize=A4)
 
-    overlay_canvas.setFont("Helvetica", 12)
-    
-    # 🔧 You may need to adjust this coordinate to fit the correct field in the form
-    overlay_canvas.drawString(110, 676, name)  # X=120, Y=557 — adjust as needed
+    overlay_canvas.setFont("Gotham", 11)
+
+    name_start_x = 110  # Starting X position for name
+    name_y = 676        # Y position for name
+    name_gap = 8.5      # Horizontal spacing between characters — adjust as needed
+
+    for index, char in enumerate(name):
+        overlay_canvas.drawString(name_start_x + index * name_gap, name_y, char)
+
     # Draw Aadhaar number digit by digit
+    aadhaar_gap = 10.5      # base gap between digits
+    extra_block_gap = 10.7  # extra gap after every 4 digits
+
+    x = start_x
     for index, digit in enumerate(aadhaar):
-        overlay_canvas.drawString(start_x + index * gap, y, digit)
+        overlay_canvas.drawString(x, y, digit)
+        x += aadhaar_gap
+        # Add extra space after 4th and 8th digit
+        if (index + 1) % 4 == 0 and index != len(aadhaar) - 1:
+            x += extra_block_gap
+
     overlay_canvas.save()
     overlay_buffer.seek(0)
 
