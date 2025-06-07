@@ -4,33 +4,96 @@ import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import TopBar from "../components/TopBar";
 import "../services/ServicePage.css";
-import StyledTable from "../components/StyledTable";  // relative path
-import SearchBar from "../components/SearchBar";  // Import the SearchBar component
-import BalanceCell from "../components/BalanceCell"; // Import here
+import StyledTable from "../components/StyledTable";
+import SearchBar from "../components/SearchBar";
+import BalanceCell from "../components/BalanceCell";
 import HeaderWithNewButton from "../components/common/HeaderWithNewButton";
+import React from 'react';
 
 export default function ServicesPage() {
   const [services, setServices] = useState([]);
+  const [serviceDepartments, setServiceDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState(null);
   const [editingService, setEditingService] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [newParentGroupName, setNewParentGroupName] = useState("");
 
   const [newService, setNewService] = useState({
     name: "",
     description: "",
-    category: "",
+    service_department_id: null,
     service_charge: 0,
+    actual_charge: 0,
     pages_required: 0,
-    estimated_time_seconds: 0,
+    required_time_hours: 0,
     is_active: true,
     priority_level: 2,
+    links: [{ label: "", url: "" }],
   });
+
+  const [parentGroups, setParentGroups] = useState([]);
+  const [parentGroupNames, setParentGroupNames] = useState([]);
+  const [selectedParentGroup, setSelectedParentGroup] = useState(null);
+
+  const handleServiceDepartmentChange = (e) => {
+    const { value } = e.target;
+    const selectedDepartmentId = value ? parseInt(value, 10) : null;
+    setNewService((prev) => ({ ...prev, service_department_id: selectedDepartmentId }));
+
+    if (selectedDepartmentId) {
+      const selectedDepartment = serviceDepartments.find(d => d.id === selectedDepartmentId);
+      setSelectedParentGroup(selectedDepartment);
+      setParentGroups([]);
+      setParentGroupNames(['']);
+    } else {
+      setSelectedParentGroup(null);
+      setParentGroups([]);
+      setParentGroupNames([]);
+    }
+  };
+
+  const handleParentGroupNameChange = (index, value) => {
+    const newNames = [...parentGroupNames];
+    newNames[index] = value;
+    setParentGroupNames(newNames);
+  };
+
+  const handleAddParentGroup = async (index) => {
+    const parentName = parentGroupNames[index];
+    if (!parentName.trim()) return;
+
+    try {
+      const response = await fetch("http://127.0.0.1:8001/api/service-departments/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: parentName,
+          parent: index > 0 ? parentGroups[index - 1].id : selectedParentGroup.id
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to create parent department');
+
+      const newGroup = await response.json();
+      setParentGroups([...parentGroups, newGroup]);
+
+      // Add new input field if not empty
+      if (parentGroupNames[index] !== '') {
+        setParentGroupNames([...parentGroupNames, '']);
+      }
+
+      await fetchServiceDepartments();
+    } catch (error) {
+      alert("Error creating parent service department.");
+    }
+  };
 
   useEffect(() => {
     fetchServices();
+    fetchServiceDepartments();
   }, []);
 
   const fetchServices = () => {
@@ -40,17 +103,31 @@ export default function ServicesPage() {
         setServices(data);
         setLoading(false);
       })
-      .catch((err) => {
+      .catch(() => {
         setError("Error fetching services.");
         setLoading(false);
       });
   };
 
+  const fetchServiceDepartments = () => {
+    fetch("http://127.0.0.1:8001/api/service-departments/list/")
+      .then((res) => res.json())
+      .then(setServiceDepartments)
+      .catch(() => setError("Error fetching service departments."));
+  };
+
   const handleInputChange = (e) => {
     const { name, value, type } = e.target;
+    const parsedValue =
+      ["service_department_id", "priority_level"].includes(name)
+        ? parseInt(value, 10) || null
+        : type === "number"
+          ? parseFloat(value) || 0
+          : value;
+
     setNewService((prev) => ({
       ...prev,
-      [name]: type === "number" ? parseFloat(value) || 0 : value,
+      [name]: parsedValue,
     }));
   };
 
@@ -62,23 +139,35 @@ export default function ServicesPage() {
       : "http://127.0.0.1:8001/api/services/";
 
     fetch(url, {
-      method: method,
+      method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(newService),
     })
-      .then((res) => res.json())
-      .then(() => {
+      .then((res) => {
+        if (!res.ok) {
+          return res.json().then(err => Promise.reject(err));
+        }
+        return res.json();
+      })
+      .then((data) => {
         fetchServices();
         resetForm();
         setSuccessMessage(editingService ? "Service updated!" : "Service added!");
-        setTimeout(() => setSuccessMessage(""), 3000);
+        setTimeout(() => setSuccessMessage("", 3000));
       })
-      .catch(() => alert("Error saving service."));
+      .catch((err) => {
+        const errorMessage = err.detail || err.message || "Error saving service.";
+        alert(errorMessage);
+      });
   };
 
   const handleEdit = (service) => {
     setEditingService(service.id);
-    setNewService({ ...service });
+    setNewService({
+      ...service,
+      service_department_id: service.service_department?.id,
+      links: service.links ?? [{ label: "", url: "" }],
+    });
     setShowForm(true);
   };
 
@@ -86,24 +175,55 @@ export default function ServicesPage() {
     if (!confirm("Are you sure you want to delete this service?")) return;
     fetch(`http://127.0.0.1:8001/api/services/${id}/`, {
       method: "DELETE",
+      headers: { "Content-Type": "application/json" },
     })
-      .then(() => fetchServices())
-      .catch(() => alert("Error deleting service."));
+      .then((res) => {
+        if (!res.ok) {
+          return res.json().then(err => Promise.reject(err));
+        }
+        fetchServices();
+      })
+      .catch((err) => {
+        const errorMessage = err.detail || err.message || "Error deleting service.";
+        alert(errorMessage);
+      });
+  };
+
+  const handleLinkChange = (index, field, value) => {
+    const updatedLinks = [...newService.links];
+    updatedLinks[index][field] = value;
+    setNewService((prev) => ({ ...prev, links: updatedLinks }));
+  };
+
+  const addLink = () => {
+    setNewService((prev) => ({
+      ...prev,
+      links: [...prev.links, { label: "", url: "" }],
+    }));
+  };
+
+  const removeLink = (index) => {
+    const updatedLinks = [...newService.links];
+    updatedLinks.splice(index, 1);
+    setNewService((prev) => ({ ...prev, links: updatedLinks }));
   };
 
   const resetForm = () => {
     setNewService({
       name: "",
       description: "",
-      category: "",
+      service_department_id: null,
       service_charge: 0,
+      actual_charge: 0,
       pages_required: 0,
-      estimated_time_seconds: 0,
+      required_time_hours: 0,
       is_active: true,
       priority_level: 2,
+      links: [{ label: "", url: "" }],
     });
     setEditingService(null);
     setShowForm(false);
+    setNewParentGroupName("");
   };
 
   const filteredServices = services.filter((service) =>
@@ -127,7 +247,6 @@ export default function ServicesPage() {
             onClick={() => setShowForm(true)}
           />
 
-          {/* Add the SearchBar component here */}
           <SearchBar
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -137,18 +256,18 @@ export default function ServicesPage() {
           <StyledTable
             headers={[
               "Service Name",
-              "Category",
+              "Service Department",
               "Service Charge",
               "Pages Required",
-              "Estimated Time (s)",
+              "Required Time (days)",
               "Priority",
             ]}
             columns={[
               "name",
-              "category",
+              "service_department",
               "service_charge",
               "pages_required",
-              "estimated_time_seconds",
+              "required_time_hours",
               "priority_level",
             ]}
             data={filteredServices}
@@ -163,25 +282,119 @@ export default function ServicesPage() {
                 const labels = { 1: "Low", 2: "Medium", 3: "High" };
                 return labels[row.priority_level] || row.priority_level;
               }
+              if (column === "required_time_hours") {
+                const hours = row.required_time_hours ?? 0;
+                const days = (hours / 24).toFixed(1);
+                return `${days} days`;
+              }
+              if (column === "service_department") {
+                return row.service_department?.name || "-";
+              }
               return row[column] ?? "-";
             }}
           />
 
           {showForm && (
             <form onSubmit={handleSubmit}>
-              <label>Name: <input type="text" name="name" value={newService.name} onChange={handleInputChange} required /></label>
-              <label>Description: <textarea name="description" value={newService.description} onChange={handleInputChange} /></label>
-              <label>Category: <input type="text" name="category" value={newService.category} onChange={handleInputChange} /></label>
-              <label>Service Charge: <input type="number" name="service_charge" value={newService.service_charge} onChange={handleInputChange} /></label>
-              <label>Pages Required: <input type="number" name="pages_required" value={newService.pages_required} onChange={handleInputChange} /></label>
-              <label>Estimated Time (s): <input type="number" name="estimated_time_seconds" value={newService.estimated_time_seconds} onChange={handleInputChange} /></label>
-              <label>Priority Level:
+              <label>
+                Name:
+                <input type="text" name="name" value={newService.name} onChange={handleInputChange} required />
+              </label>
+
+              <label>
+                Description:
+                <textarea name="description" value={newService.description} onChange={handleInputChange} />
+              </label>
+
+              <label>
+                Service Charge:
+                <input type="number" name="service_charge" value={newService.service_charge} onChange={handleInputChange} />
+              </label>
+
+              <label>
+                Actual Charge:
+                <input type="number" name="actual_charge" value={newService.actual_charge} onChange={handleInputChange} />
+              </label>
+
+              <label>
+                Pages Required:
+                <input type="number" name="pages_required" value={newService.pages_required} onChange={handleInputChange} />
+              </label>
+
+              <label>
+                Required Time (hours):
+                <input type="number" step="0.1" name="required_time_hours" value={newService.required_time_hours} onChange={handleInputChange} />
+              </label>
+
+              <label>
+                Priority Level:
                 <select name="priority_level" value={newService.priority_level} onChange={handleInputChange}>
-                  <option value="1">Low</option>
-                  <option value="2">Medium</option>
-                  <option value="3">High</option>
+                  <option value={1}>Low</option>
+                  <option value={2}>Medium</option>
+                  <option value={3}>High</option>
                 </select>
               </label>
+
+              <label>
+                Service Department:
+                <select
+                  name="service_department_id"
+                  value={newService.service_department_id || ''}
+                  onChange={handleServiceDepartmentChange}
+                  style={{ paddingLeft: '4px' }}
+                >
+                  <option value="">Select Service Department</option>
+                  {renderServiceDepartmentOptions(serviceDepartments)}
+                </select>
+              </label>
+
+              {newService.service_department_id && (
+                <div className="parent-groups-section">
+                  <h4>Parent Service Departments</h4>
+                  {parentGroupNames.map((name, index) => (
+                    <div key={index} className="parent-group-input">
+                      <label>
+                        {index === 0 ? `Parent for ${selectedParentGroup?.name}:` : `Parent for ${parentGroups[index - 1]?.name}:`}
+                        <select
+                          value={name}
+                          onChange={(e) => handleParentGroupNameChange(index, e.target.value)}
+                        >
+                          <option value="">Select Parent Department</option>
+                          {renderServiceDepartmentOptions(serviceDepartments.filter(g => g.id !== newService.service_department_id))}
+                        </select>
+                        <button
+                          type="button"
+                          onClick={() => handleAddParentGroup(index)}
+                          disabled={!name}
+                        >
+                          Add Parent Department
+                        </button>
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <h4>Links</h4>
+              {newService.links.map((link, index) => (
+                <div key={index}>
+                  <input
+                    type="text"
+                    placeholder="Label"
+                    value={link.label}
+                    onChange={(e) => handleLinkChange(index, "label", e.target.value)}
+                  />
+                  <input
+                    type="url"
+                    placeholder="URL"
+                    value={link.url}
+                    onChange={(e) => handleLinkChange(index, "url", e.target.value)}
+                  />
+                  <button type="button" onClick={() => removeLink(index)}>Remove</button>
+                </div>
+              ))}
+              <button type="button" onClick={addLink}>Add Link</button>
+
               <button type="submit">{editingService ? "Update Service" : "Create Service"}</button>
               <button type="button" onClick={resetForm}>Cancel</button>
             </form>
@@ -191,3 +404,12 @@ export default function ServicesPage() {
     </div>
   );
 }
+
+const renderServiceDepartmentOptions = (groups, level = 0) => {
+  return groups.map(group => (
+    <React.Fragment key={group.id}>
+      <option value={group.id}>{"\u00A0".repeat(level * 4)}{group.name}</option>
+      {group.children && group.children.length > 0 && renderServiceDepartmentOptions(group.children, level + 1)}
+    </React.Fragment>
+  ));
+};
