@@ -127,7 +127,7 @@ class ServiceDepartmentListView(generics.ListAPIView):
 
     def get_queryset(self):
         # Return only top-level service departments (those without a parent)
-        return ServiceDepartment.objects.filter(parent=None)
+        return ServiceDepartment.objects.all()
 
 # ---------------------- ACCOUNTS RELATED VIEWS ---------------------- #
 

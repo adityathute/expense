@@ -49,12 +49,8 @@ class UserSerializer(serializers.ModelSerializer):
 
 # ---------- Service Group Serializer with parent ----------
 class ServiceDepartmentSerializer(serializers.ModelSerializer):
+    parent = serializers.PrimaryKeyRelatedField(queryset=ServiceDepartment.objects.all(), allow_null=True, required=False)
     children = serializers.SerializerMethodField()
-    parent = serializers.PrimaryKeyRelatedField(
-        queryset=ServiceDepartment.objects.all(),
-        allow_null=True,
-        required=False
-    )
 
     class Meta:
         model = ServiceDepartment

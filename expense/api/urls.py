@@ -22,5 +22,6 @@ urlpatterns = [
 
     # PDF Generation
     path('api/generate-pdf/', views.generate_pdf, name='generate_pdf'),
+    path('api/service-departments/', views.ServiceDepartmentCreateView.as_view(), name='service-department-create'),
     path('api/service-departments/list/', views.ServiceDepartmentListView.as_view(), name='service-department-list'),
 ]

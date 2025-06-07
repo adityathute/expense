@@ -34,9 +34,8 @@ export default function ServicesPage() {
     links: [{ label: "", url: "" }],
   });
 
-  const [parentGroups, setParentGroups] = useState([]);
-  const [parentGroupNames, setParentGroupNames] = useState([]);
-  const [selectedParentGroup, setSelectedParentGroup] = useState(null);
+  const [selectedDepartmentPath, setSelectedDepartmentPath] = useState([]); // Stores IDs of selected departments in hierarchy
+  const [newChildDepartmentName, setNewChildDepartmentName] = useState(''); // For adding new child
 
   const handleServiceDepartmentChange = (e) => {
     const { value } = e.target;
@@ -44,50 +43,79 @@ export default function ServicesPage() {
     setNewService((prev) => ({ ...prev, service_department_id: selectedDepartmentId }));
 
     if (selectedDepartmentId) {
-      const selectedDepartment = serviceDepartments.find(d => d.id === selectedDepartmentId);
-      setSelectedParentGroup(selectedDepartment);
-      setParentGroups([]);
-      setParentGroupNames(['']);
+      // Find the selected department and its path
+      let currentPath = [];
+      let currentDepartments = serviceDepartments;
+      let found = false;
+
+      const findPath = (departments, path) => {
+        for (const dept of departments) {
+          if (dept.id === selectedDepartmentId) {
+            currentPath = [...path, dept.id];
+            found = true;
+            return;
+          }
+          if (dept.children && dept.children.length > 0) {
+            findPath(dept.children, [...path, dept.id]);
+            if (found) return;
+          }
+        }
+      };
+
+      findPath(serviceDepartments, []);
+      setSelectedDepartmentPath(currentPath);
+      setNewChildDepartmentName(''); // Reset new child name
     } else {
-      setSelectedParentGroup(null);
-      setParentGroups([]);
-      setParentGroupNames([]);
+      setSelectedDepartmentPath([]);
+      setNewChildDepartmentName('');
     }
   };
 
-  const handleParentGroupNameChange = (index, value) => {
-    const newNames = [...parentGroupNames];
-    newNames[index] = value;
-    setParentGroupNames(newNames);
+  const handleDynamicDepartmentChange = (index, value) => {
+    const selectedId = value ? parseInt(value, 10) : null;
+    const newPath = selectedDepartmentPath.slice(0, index + 1);
+    if (selectedId) {
+      newPath[index] = selectedId;
+    }
+    setSelectedDepartmentPath(newPath);
+    setNewService((prev) => ({ ...prev, service_department_id: selectedId }));
+    setNewChildDepartmentName(''); // Reset new child name when a new selection is made
   };
 
-  const handleAddParentGroup = async (index) => {
-    const parentName = parentGroupNames[index];
-    if (!parentName.trim()) return;
+  const handleAddChildDepartment = async () => {
+    if (!newChildDepartmentName.trim()) return;
+
+    const parentId = selectedDepartmentPath[selectedDepartmentPath.length - 1];
+    if (!parentId) {
+      alert("Please select a parent department first.");
+      return;
+    }
 
     try {
       const response = await fetch("http://127.0.0.1:8001/api/service-departments/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          name: parentName,
-          parent: index > 0 ? parentGroups[index - 1].id : selectedParentGroup.id
+          name: newChildDepartmentName,
+          parent: parentId
         })
       });
 
-      if (!response.ok) throw new Error('Failed to create parent department');
-
-      const newGroup = await response.json();
-      setParentGroups([...parentGroups, newGroup]);
-
-      // Add new input field if not empty
-      if (parentGroupNames[index] !== '') {
-        setParentGroupNames([...parentGroupNames, '']);
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Backend Error:", errorData);
+        throw new Error(errorData.detail || JSON.stringify(errorData));
       }
 
-      await fetchServiceDepartments();
+      const newDept = await response.json();
+      setNewChildDepartmentName(''); // Clear input after successful addition
+      await fetchServiceDepartments(); // Re-fetch departments to update dropdowns
+      // Optionally, update the selected path to include the newly added department
+      setSelectedDepartmentPath(prevPath => [...prevPath, newDept.id]);
+      setNewService((prev) => ({ ...prev, service_department_id: newDept.id }));
+
     } catch (error) {
-      alert("Error creating parent service department.");
+      alert("Error creating child service department: " + error.message);
     }
   };
 
@@ -223,7 +251,8 @@ export default function ServicesPage() {
     });
     setEditingService(null);
     setShowForm(false);
-    setNewParentGroupName("");
+    setNewChildDepartmentName("");
+    setSelectedDepartmentPath([]);
   };
 
   const filteredServices = services.filter((service) =>
@@ -339,41 +368,78 @@ export default function ServicesPage() {
                 Service Department:
                 <select
                   name="service_department_id"
-                  value={newService.service_department_id || ''}
-                  onChange={handleServiceDepartmentChange}
+                  value={selectedDepartmentPath[0] || ''}
+                  onChange={(e) => handleDynamicDepartmentChange(0, e.target.value)}
                   style={{ paddingLeft: '4px' }}
                 >
                   <option value="">Select Service Department</option>
-                  {renderServiceDepartmentOptions(serviceDepartments)}
+                  {renderServiceDepartmentOptions(serviceDepartments, 0)}
                 </select>
               </label>
 
-              {newService.service_department_id && (
-                <div className="parent-groups-section">
-                  <h4>Parent Service Departments</h4>
-                  {parentGroupNames.map((name, index) => (
-                    <div key={index} className="parent-group-input">
-                      <label>
-                        {index === 0 ? `Parent for ${selectedParentGroup?.name}:` : `Parent for ${parentGroups[index - 1]?.name}:`}
-                        <select
-                          value={name}
-                          onChange={(e) => handleParentGroupNameChange(index, e.target.value)}
-                        >
-                          <option value="">Select Parent Department</option>
-                          {renderServiceDepartmentOptions(serviceDepartments.filter(g => g.id !== newService.service_department_id))}
-                        </select>
-                        <button
-                          type="button"
-                          onClick={() => handleAddParentGroup(index)}
-                          disabled={!name}
-                        >
-                          Add Parent Department
-                        </button>
-                      </label>
+              {selectedDepartmentPath.map((deptId, index) => {
+                if (index === selectedDepartmentPath.length - 1) return null; // Skip the last selected department as it's the current one
+
+                let currentDepartments = serviceDepartments;
+                let parentDept = null;
+                for (let i = 0; i <= index; i++) {
+                  parentDept = currentDepartments.find(d => d.id === selectedDepartmentPath[i]);
+                  if (parentDept && parentDept.children) {
+                    currentDepartments = parentDept.children;
+                  } else {
+                    currentDepartments = [];
+                    break;
+                  }
+                }
+
+                if (currentDepartments.length === 0) return null; // No children to display
+
+                return (
+                  <label key={index + 1}>
+                    Select Child Department:
+                    <select
+                      value={selectedDepartmentPath[index + 1] || ''}
+                      onChange={(e) => handleDynamicDepartmentChange(index + 1, e.target.value)}
+                      style={{ paddingLeft: '4px' }}
+                    >
+                      <option value="">Select Child Department</option>
+                      {renderServiceDepartmentOptions(currentDepartments, 0)}
+                    </select>
+                  </label>
+                );
+              })}
+
+              {selectedDepartmentPath.length > 0 && (() => {
+                let lastSelectedDept = null;
+                let currentDepartments = serviceDepartments;
+                for (const id of selectedDepartmentPath) {
+                  lastSelectedDept = currentDepartments.find(d => d.id === id);
+                  if (lastSelectedDept && lastSelectedDept.children) {
+                    currentDepartments = lastSelectedDept.children;
+                  } else {
+                    currentDepartments = [];
+                    break;
+                  }
+                }
+
+                if (lastSelectedDept && currentDepartments.length === 0) {
+                  return (
+                    <div className="add-child-department-section">
+                      <h4>Add New Child Department to {lastSelectedDept.name}</h4>
+                      <input
+                        type="text"
+                        placeholder="New Child Department Name"
+                        value={newChildDepartmentName}
+                        onChange={(e) => setNewChildDepartmentName(e.target.value)}
+                      />
+                      <button type="button" onClick={handleAddChildDepartment}>
+                        Add Child Department
+                      </button>
                     </div>
-                  ))}
-                </div>
-              )}
+                  );
+                }
+                return null;
+              })()}
 
               <h4>Links</h4>
               {newService.links.map((link, index) => (
