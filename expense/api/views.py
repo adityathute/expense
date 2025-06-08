@@ -1,8 +1,8 @@
 from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 from rest_framework import generics, status, viewsets
-from .models import Category, Service, ServiceDepartment, User, ServiceEntry, ServiceTempEntry, Account
-from .serializers import CategorySerializer, UserSerializer, ServiceSerializer,  ServiceDepartmentSerializer, AccountSerializer
+from .models import Category, Service, User, Account
+from .serializers import CategorySerializer, UserSerializer, ServiceSerializer, AccountSerializer
 from rest_framework.generics import DestroyAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
@@ -77,7 +77,7 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     
-# --------- SERVICE RELATED VIEWS ---------
+# --------- SERVICE RELATED VIEWS --------- #
 class ServiceListCreateView(generics.ListCreateAPIView):
     queryset = Service.objects.all()
     serializer_class = ServiceSerializer
@@ -87,7 +87,6 @@ class ServiceListCreateView(generics.ListCreateAPIView):
         instance = self.get_queryset().get(pk=response.data['id'])
         full_data = self.get_serializer(instance).data
         return Response(full_data)
-
 
 class ServiceDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Service.objects.all()
@@ -108,26 +107,6 @@ class ServiceViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         self.perform_destroy(instance)
         return Response({"message": "Service deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
-
-
-class ServiceDepartmentCreateView(generics.CreateAPIView):
-    queryset = ServiceDepartment.objects.all()
-    serializer_class = ServiceDepartmentSerializer
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            self.perform_create(serializer)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class ServiceDepartmentListView(generics.ListAPIView):
-    serializer_class = ServiceDepartmentSerializer
-
-    def get_queryset(self):
-        # Return only top-level service departments (those without a parent)
-        return ServiceDepartment.objects.all()
 
 # ---------------------- ACCOUNTS RELATED VIEWS ---------------------- #
 

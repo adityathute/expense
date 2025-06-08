@@ -1,6 +1,5 @@
 from rest_framework import serializers
-from .models import Category, Service, ServiceLink, ServiceDepartment, User, UserID, ServiceTempEntry, ServiceEntry, Account
-from rest_framework.generics import DestroyAPIView
+from .models import Category, Service, ServiceLink, User, UserID, Account
 
 # ---------------------- CATEGORY RELATED SERIALIZER ---------------------- #
 
@@ -47,41 +46,22 @@ class UserSerializer(serializers.ModelSerializer):
 
         return super().update(instance, validated_data)
 
-# ---------- Service Group Serializer with parent ----------
-class ServiceDepartmentSerializer(serializers.ModelSerializer):
-    parent = serializers.PrimaryKeyRelatedField(queryset=ServiceDepartment.objects.all(), allow_null=True, required=False)
-    children = serializers.SerializerMethodField()
-
-    class Meta:
-        model = ServiceDepartment
-        fields = ['id', 'name', 'parent', 'children']
-
-    def get_children(self, obj):
-        # Recursively get children that have this object as their parent
-        return ServiceDepartmentSerializer(obj.children.all(), many=True).data
-
-
-# ---------- Service Link Serializer ----------
+# ---------- SERVICE RELATED SERIALIZERS ----------
 class ServiceLinkSerializer(serializers.ModelSerializer):
     class Meta:
         model = ServiceLink
         fields = ['label', 'url']
 
 
-# ---------- Service Serializer ----------
 class ServiceSerializer(serializers.ModelSerializer):
     links = ServiceLinkSerializer(many=True, required=False)
-    service_department = ServiceDepartmentSerializer(read_only=True)
-    service_department_id = serializers.PrimaryKeyRelatedField(
-        queryset=ServiceDepartment.objects.all(), source='service_department', write_only=True
-    )
 
     class Meta:
         model = Service
         fields = [
             'id', 'name', 'description', 'service_fee', 'service_charge', 'other_charge',
-            'pages_required', 'required_time_hours', 'is_active', 'priority_level',
-            'links', 'service_department', 'service_department_id'
+            'pages_required', 'required_time_hours', 'is_active',
+            'links'
         ]
 
     def validate_links(self, value):
@@ -104,7 +84,6 @@ class ServiceSerializer(serializers.ModelSerializer):
         for link in links_data:
             ServiceLink.objects.create(service=instance, **link)
         return super().update(instance, validated_data)
-
 
 # ---------------------- ACCOUNTS RELATED SERIALIZER ---------------------- #
 
