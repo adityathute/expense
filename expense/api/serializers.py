@@ -79,9 +79,16 @@ class ServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Service
         fields = [
-            'id', 'name', 'description', 'service_charge', 'actual_charge',
+            'id', 'name', 'description', 'service_fee', 'service_charge', 'other_charge',
             'pages_required', 'required_time_hours', 'is_active', 'priority_level',
             'links', 'service_department', 'service_department_id'
+        ]
+
+    def validate_links(self, value):
+        # Filter out links with both label and url empty
+        return [
+            link for link in value
+            if link.get('label') or link.get('url')
         ]
 
     def create(self, validated_data):

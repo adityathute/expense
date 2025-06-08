@@ -9,6 +9,20 @@ import SearchBar from "../components/SearchBar";
 import BalanceCell from "../components/BalanceCell";
 import HeaderWithNewButton from "../components/common/HeaderWithNewButton";
 import React from 'react';
+import Loader from "../components/Loder";
+
+
+function findDepartmentPath(departments, targetId, path = []) {
+  for (const dept of departments) {
+    const currentPath = [...path, dept.id];
+    if (dept.id === targetId) return currentPath;
+    if (dept.children && dept.children.length > 0) {
+      const childPath = findDepartmentPath(dept.children, targetId, currentPath);
+      if (childPath) return childPath;
+    }
+  }
+  return null;
+}
 
 export default function ServicesPage() {
   const [services, setServices] = useState([]);
@@ -19,57 +33,26 @@ export default function ServicesPage() {
   const [editingService, setEditingService] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
-  const [newParentGroupName, setNewParentGroupName] = useState("");
+  const [description, setDescription] = useState("");
+  const [formErrors, setFormErrors] = useState({});
+  const [showLinksSection, setShowLinksSection] = useState(false);
 
   const [newService, setNewService] = useState({
     name: "",
-    description: "",
+    descriptions: "",
     service_department_id: null,
+    service_fee: 0,
     service_charge: 0,
-    actual_charge: 0,
+    other_charge: 0,
     pages_required: 0,
     required_time_hours: 0,
     is_active: true,
     priority_level: 2,
-    links: [{ label: "", url: "" }],
+    links: [],
   });
 
   const [selectedDepartmentPath, setSelectedDepartmentPath] = useState([]); // Stores IDs of selected departments in hierarchy
   const [newChildDepartmentName, setNewChildDepartmentName] = useState(''); // For adding new child
-
-  const handleServiceDepartmentChange = (e) => {
-    const { value } = e.target;
-    const selectedDepartmentId = value ? parseInt(value, 10) : null;
-    setNewService((prev) => ({ ...prev, service_department_id: selectedDepartmentId }));
-
-    if (selectedDepartmentId) {
-      // Find the selected department and its path
-      let currentPath = [];
-      let currentDepartments = serviceDepartments;
-      let found = false;
-
-      const findPath = (departments, path) => {
-        for (const dept of departments) {
-          if (dept.id === selectedDepartmentId) {
-            currentPath = [...path, dept.id];
-            found = true;
-            return;
-          }
-          if (dept.children && dept.children.length > 0) {
-            findPath(dept.children, [...path, dept.id]);
-            if (found) return;
-          }
-        }
-      };
-
-      findPath(serviceDepartments, []);
-      setSelectedDepartmentPath(currentPath);
-      setNewChildDepartmentName(''); // Reset new child name
-    } else {
-      setSelectedDepartmentPath([]);
-      setNewChildDepartmentName('');
-    }
-  };
 
   const handleDynamicDepartmentChange = (index, value) => {
     const selectedId = value ? parseInt(value, 10) : null;
@@ -129,11 +112,11 @@ export default function ServicesPage() {
       .then((res) => res.json())
       .then((data) => {
         setServices(data);
-        setLoading(false);
+        setLoading(false); // Immediately stop loading
       })
       .catch(() => {
         setError("Error fetching services.");
-        setLoading(false);
+        setLoading(false); // Immediately stop loading on error too
       });
   };
 
@@ -161,6 +144,59 @@ export default function ServicesPage() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // 1. Validate name
+    if (!newService.name?.trim()) {
+      alert("Service name is required.");
+      return;
+    }
+
+    // 2. Validate service department
+    if (!newService.service_department_id) {
+      alert("Please select a Service Department.");
+      return;
+    }
+
+    // 3. Validate links
+    const validLinks = [];
+    let linkError = null;
+
+    for (const link of newService.links) {
+      const label = link.label?.trim();
+      const url = link.url?.trim();
+
+      if (!label && !url) {
+        continue; // Skip completely empty entries
+      }
+
+      if (label && !url) {
+        linkError = "You cannot add a label without a link.";
+        break;
+      }
+
+      if (url) {
+        try {
+          new URL(url); // Check valid URL format
+          validLinks.push({ label: label || "Apply Online", url });
+        } catch {
+          linkError = "Invalid URL format detected.";
+          break;
+        }
+      }
+    }
+
+    if (linkError) {
+      alert(linkError);
+      return;
+    }
+
+    // Prepare data
+    const serviceToSubmit = {
+      ...newService,
+      links: validLinks,
+      description: description,
+    };
+
     const method = editingService ? "PUT" : "POST";
     const url = editingService
       ? `http://127.0.0.1:8001/api/services/${editingService}/`
@@ -169,19 +205,19 @@ export default function ServicesPage() {
     fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newService),
+      body: JSON.stringify(serviceToSubmit),
     })
       .then((res) => {
         if (!res.ok) {
-          return res.json().then(err => Promise.reject(err));
+          return res.json().then((err) => Promise.reject(err));
         }
         return res.json();
       })
-      .then((data) => {
+      .then(() => {
         fetchServices();
         resetForm();
         setSuccessMessage(editingService ? "Service updated!" : "Service added!");
-        setTimeout(() => setSuccessMessage("", 3000));
+        setTimeout(() => setSuccessMessage(""), 3000);
       })
       .catch((err) => {
         const errorMessage = err.detail || err.message || "Error saving service.";
@@ -191,13 +227,26 @@ export default function ServicesPage() {
 
   const handleEdit = (service) => {
     setEditingService(service.id);
+
     setNewService({
       ...service,
       service_department_id: service.service_department?.id,
-      links: service.links ?? [{ label: "", url: "" }],
+      links: service.links && service.links.length > 0 ? service.links : [{ label: "", url: "" }],
     });
+
+    // Show link section if there are existing links
+    setShowLinksSection((service.links && service.links.length > 0) || false);
+
+    // Recursively build the department path from the tree
+    const departmentId = service.service_department?.id;
+    if (departmentId && serviceDepartments.length > 0) {
+      const path = findDepartmentPath(serviceDepartments, departmentId);
+      setSelectedDepartmentPath(path || []);
+    }
+
     setShowForm(true);
   };
+
 
   const handleDelete = (id) => {
     if (!confirm("Are you sure you want to delete this service?")) return;
@@ -224,11 +273,15 @@ export default function ServicesPage() {
   };
 
   const addLink = () => {
+    if (!showLinksSection) {
+      setShowLinksSection(true);
+    }
     setNewService((prev) => ({
       ...prev,
       links: [...prev.links, { label: "", url: "" }],
     }));
   };
+
 
   const removeLink = (index) => {
     const updatedLinks = [...newService.links];
@@ -241,26 +294,36 @@ export default function ServicesPage() {
       name: "",
       description: "",
       service_department_id: null,
+      service_fee: 0,
       service_charge: 0,
-      actual_charge: 0,
+      other_charge: 0,
       pages_required: 0,
       required_time_hours: 0,
       is_active: true,
       priority_level: 2,
-      links: [{ label: "", url: "" }],
+      links: [],
     });
     setEditingService(null);
     setShowForm(false);
     setNewChildDepartmentName("");
     setSelectedDepartmentPath([]);
+    setShowLinksSection(false);
+
   };
 
   const filteredServices = services.filter((service) =>
     service.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (loading) return <p>Loading services...</p>;
-  if (error) return <p style={{ color: "red" }}>{error}</p>;
+  if (loading) return <Loader />;
+
+  if (error) return (
+    <div className="error-container">
+      <div className="error-icon">⚠️</div>
+      <div className="error-message">{error}</div>
+      <button className="error-close" onClick={() => setError(null)}>×</button>
+    </div>
+  );
 
   return (
     <div className="content">
@@ -294,7 +357,7 @@ export default function ServicesPage() {
             columns={[
               "name",
               "service_department",
-              "service_charge",
+              "service_fee",
               "pages_required",
               "required_time_hours",
               "priority_level",
@@ -304,8 +367,8 @@ export default function ServicesPage() {
             onEdit={handleEdit}
             onDelete={handleDelete}
             renderCell={(row, column) => {
-              if (column === "service_charge") {
-                return <BalanceCell value={row.service_charge} />;
+              if (column === "service_fee") {
+                return <BalanceCell value={row.service_fee} />;
               }
               if (column === "priority_level") {
                 const labels = { 1: "Low", 2: "Medium", 3: "High" };
@@ -328,11 +391,21 @@ export default function ServicesPage() {
               <label>
                 Name:
                 <input type="text" name="name" value={newService.name} onChange={handleInputChange} required />
+                {formErrors.name && <div className="error-text">{formErrors.name}</div>}
+
               </label>
 
               <label>
                 Description:
-                <textarea name="description" value={newService.description} onChange={handleInputChange} />
+                <textarea
+                  value={description ?? ""}  // Use empty string instead of null
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+              </label>
+
+              <label>
+                Service Fee:
+                <input type="number" name="service_fee" value={newService.service_fee} onChange={handleInputChange} />
               </label>
 
               <label>
@@ -341,8 +414,8 @@ export default function ServicesPage() {
               </label>
 
               <label>
-                Actual Charge:
-                <input type="number" name="actual_charge" value={newService.actual_charge} onChange={handleInputChange} />
+                Other Charge:
+                <input type="number" name="other_charge" value={newService.other_charge} onChange={handleInputChange} />
               </label>
 
               <label>
@@ -375,6 +448,7 @@ export default function ServicesPage() {
                   <option value="">Select Service Department</option>
                   {renderServiceDepartmentOptions(serviceDepartments, 0)}
                 </select>
+                {formErrors.service_department_id && <div className="error-text">{formErrors.service_department_id}</div>}
               </label>
 
               {selectedDepartmentPath.map((deptId, index) => {
@@ -441,24 +515,29 @@ export default function ServicesPage() {
                 return null;
               })()}
 
-              <h4>Links</h4>
-              {newService.links.map((link, index) => (
-                <div key={index}>
-                  <input
-                    type="text"
-                    placeholder="Label"
-                    value={link.label}
-                    onChange={(e) => handleLinkChange(index, "label", e.target.value)}
-                  />
-                  <input
-                    type="url"
-                    placeholder="URL"
-                    value={link.url}
-                    onChange={(e) => handleLinkChange(index, "url", e.target.value)}
-                  />
-                  <button type="button" onClick={() => removeLink(index)}>Remove</button>
-                </div>
-              ))}
+              {showLinksSection && newService.links.length > 0 && (
+                <>
+                  <h4>Links</h4>
+                  {newService.links.map((link, index) => (
+
+                    <div key={index}>
+                      <input
+                        type="text"
+                        placeholder="Label"
+                        value={link.label}
+                        onChange={(e) => handleLinkChange(index, "label", e.target.value)}
+                      />
+                      <input
+                        type="url"
+                        placeholder="URL"
+                        value={link.url}
+                        onChange={(e) => handleLinkChange(index, "url", e.target.value)}
+                      />
+                      <button type="button" onClick={() => removeLink(index)}>Remove</button>
+                    </div>
+                  ))}
+                </>
+              )}
               <button type="button" onClick={addLink}>Add Link</button>
 
               <button type="submit">{editingService ? "Update Service" : "Create Service"}</button>

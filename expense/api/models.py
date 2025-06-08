@@ -114,8 +114,9 @@ class Service(models.Model):
     service_department = models.ForeignKey(ServiceDepartment, on_delete=models.CASCADE, related_name='services')
 
     description = models.TextField(blank=True, null=True)
-    service_charge = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    actual_charge = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    service_fee = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    service_charge = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    other_charge = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     pages_required = models.PositiveIntegerField(default=0)
 
     estimated_time_seconds = models.PositiveIntegerField(blank=True, null=True)
@@ -140,8 +141,6 @@ class ServiceLink(models.Model):
     def __str__(self):
         return f"{self.label} - {self.service.name}"
 
-
-   
 class ServiceRequirement(models.Model):
     service = models.ForeignKey(Service, on_delete=models.CASCADE) 
     requirement_name = models.CharField(max_length=255)
