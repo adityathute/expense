@@ -18,10 +18,10 @@ export default function ServiceForm({
   setShowLinksSection
 }) {
   useEffect(() => {
-  if (editingService && newService.links.length > 0) {
-    setShowLinksSection(true);
-  }
-}, [editingService, newService.links.length, setShowLinksSection]);
+    if (editingService && newService.links.length > 0) {
+      setShowLinksSection(true);
+    }
+  }, [editingService, newService.links.length, setShowLinksSection]);
 
   return (
     <form onSubmit={handleSubmit}>
@@ -62,30 +62,30 @@ export default function ServiceForm({
       </label>
 
       {/* Links Section */}
-{showLinksSection && newService.links.length > 0 && (
-  <>
-    <h4>Links</h4>
-    {newService.links.map((link, index) => (
-      <div key={index}>
-        <input
-          type="text"
-          placeholder="Label"
-          value={link.label}
-          onChange={(e) => handleLinkChange(index, "label", e.target.value)}
-        />
-        <input
-          type="url"
-          placeholder="URL"
-          value={link.url}
-          onChange={(e) => handleLinkChange(index, "url", e.target.value)}
-        />
-        <button type="button" onClick={() => removeLink(index)}>Remove</button>
-      </div>
-    ))}
-  </>
-)}
+      {showLinksSection && newService.links.length > 0 && (
+        <>
+          <h4>Links</h4>
+          {newService.links.map((link, index) => (
+            <div key={index}>
+              <input
+                type="text"
+                placeholder="Label"
+                value={link.label}
+                onChange={(e) => handleLinkChange(index, "label", e.target.value)}
+              />
+              <input
+                type="url"
+                placeholder="URL"
+                value={link.url}
+                onChange={(e) => handleLinkChange(index, "url", e.target.value)}
+              />
+              <button type="button" onClick={() => removeLink(index)}>Remove</button>
+            </div>
+          ))}
+        </>
+      )}
 
-<button type="button" onClick={addLink}>Add Link</button>
+      <button type="button" onClick={addLink}>Add Link</button>
 
       <button type="submit">{editingService ? "Update Service" : "Create Service"}</button>
       <button type="button" onClick={resetForm}>Cancel</button>

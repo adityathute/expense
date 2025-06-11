@@ -405,7 +405,6 @@ export default function AddUserForm({ onClose, onAddUser }) {
               </div>
             ))}
 
-
             <button
               className="add-more-id-button"
               type="button"
@@ -415,7 +414,6 @@ export default function AddUserForm({ onClose, onAddUser }) {
               + Add More ID
             </button>
             {errorMessage.user_id && <p className="error-text">{errorMessage.user_id}</p>}
-
             <button className="add-id-button mt-15" onClick={handleSubmit}>
               Save
             </button>

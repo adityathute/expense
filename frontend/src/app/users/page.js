@@ -6,7 +6,7 @@ import TopBar from "../components/TopBar";
 import SearchBar from "../components/SearchBar";
 import UserDetailsPopup from "./components/UserDetailsPopup";
 import AddUserForm from "./components/AddUserForm";
-import "../users/styles.css";
+// import "../users/styles.css";
 import StyledTable from "../components/StyledTable";
 import HeaderWithNewButton from "../components/common/HeaderWithNewButton";
 

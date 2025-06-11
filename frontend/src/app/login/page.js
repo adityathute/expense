@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import "./login.css"; // Import the CSS file
+// import "./login.css";
 
 export default function Login() {
     return (

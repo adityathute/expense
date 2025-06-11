@@ -3,9 +3,9 @@
 import Sidebar from "../components/Sidebar";
 import TopBar from "../components/TopBar";
 import { useState, useEffect } from "react";
-import "./style.css";
+// import "./style.css";
 import StyledTable from "../components/StyledTable";
-import "../styles/balancecell.css";
+// import "../styles/balancecell.css";
 import BalanceCell from "../components/BalanceCell";
 import HeaderWithNewButton from "../components/common/HeaderWithNewButton";
 

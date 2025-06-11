@@ -1,4 +1,4 @@
-import "./../styles/table.css";
+// import "./../styles/table.css";
 import ActionButtons from "../components/ActionButtons";
 
 export default function StyledTable({

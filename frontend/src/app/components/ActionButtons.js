@@ -1,5 +1,5 @@
-import { EditIcon, DeleteIcon } from "../components/icons";
-import "./../styles/actionbuttons.css";
+import { EditIcon, DeleteIcon } from "../components/Icons";
+// import "./../styles/actionbuttons.css";
 
 export default function ActionButtons({ row, onEdit, onDelete }) {
   return (

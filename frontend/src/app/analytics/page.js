@@ -2,7 +2,7 @@
 import Sidebar from "../components/Sidebar";
 import TopBar from "../components/TopBar";
 import dynamic from "next/dynamic";
-import "./analytics.css";
+// import "./analytics.css";
 
 // Dynamically import with SSR disabled
 const ClientOnlyChart = dynamic(() => import("./ClientOnlyChart"), { ssr: false });

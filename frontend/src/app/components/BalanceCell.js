@@ -1,4 +1,4 @@
-import "./../styles/balancecell.css";
+// import "./../styles/balancecell.css";
 
 export default function BalanceCell({ value }) {
   const getBalanceClass = (val) => {

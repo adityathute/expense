@@ -1,7 +1,7 @@
 "use client";
 import Sidebar from "../components/Sidebar";
 import TopBar from "../components/TopBar";
-import "./settings.css";
+// import "./settings.css";
 
 export default function Settings() {
   return (

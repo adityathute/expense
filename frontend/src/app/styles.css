@@ -18,14 +18,13 @@ body {
   margin: 0;
 }
 
-
 /* Top Bar */
 .topbarOuter {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  z-index: 1000; /* Ensure navbar remains on top */
+  z-index: 1000;
 }
 
 .topbar {
@@ -153,7 +152,7 @@ body {
 .switch-text {
   font-weight: 600;
   font-size: 18px;
-  margin-left: 12px; /* Add space between switch and text */
+  margin-left: 12px; 
 }
 
 .switch-container span{
@@ -258,4 +257,3 @@ input, textarea {
 .add-button svg {
   margin-right: 5px;
 }
-

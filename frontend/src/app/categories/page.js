@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import Sidebar from "../components/Sidebar";
 import TopBar from "../components/TopBar";
-import "./categories.css";
+// import "./categories.css";
 // import "../globals.css";
 import SearchBar from "../components/SearchBar"; // ✅ Add this line
 import StyledTable from "../components/StyledTable"; // adjust the path if needed

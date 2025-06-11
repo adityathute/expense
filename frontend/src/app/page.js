@@ -3,8 +3,8 @@
 import Sidebar from "./components/Sidebar";
 import TopBar from "./components/TopBar";
 import StyledTable from "./components/StyledTable";
-import BalanceCell from "./components/BalanceCell"; // Import here
-import "./page.css";
+import BalanceCell from "./components/BalanceCell";
+// import "./page.css";
 
 export default function Dashboard() {
   const income = 25000;

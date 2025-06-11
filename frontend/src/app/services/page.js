@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import TopBar from "../components/TopBar";
-import "../services/ServicePage.css";
+// import "../services/ServicePage.css";
 import StyledTable from "../components/StyledTable";
 import SearchBar from "../components/SearchBar";
 import BalanceCell from "../components/BalanceCell";
@@ -19,7 +19,7 @@ export default function ServicesPage() {
   const [editingService, setEditingService] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
-const [showLinksSection, setShowLinksSection] = useState(false);
+  const [showLinksSection, setShowLinksSection] = useState(false);
 
   const [newService, setNewService] = useState({
     name: "",
@@ -90,15 +90,15 @@ const [showLinksSection, setShowLinksSection] = useState(false);
       });
   };
 
-const handleEdit = (service) => {
-  setEditingService(service.id);
-  setNewService({
-    ...service,
-    links: service.links ?? [],
-  });
-  setShowForm(true);
-  setShowLinksSection(service.links && service.links.length > 0); // shows only if links exist
-};
+  const handleEdit = (service) => {
+    setEditingService(service.id);
+    setNewService({
+      ...service,
+      links: service.links ?? [],
+    });
+    setShowForm(true);
+    setShowLinksSection(service.links && service.links.length > 0); // shows only if links exist
+  };
 
 
   const handleDelete = (id) => {
@@ -125,13 +125,13 @@ const handleEdit = (service) => {
     setNewService((prev) => ({ ...prev, links: updatedLinks }));
   };
 
-const addLink = () => {
-  if (!showLinksSection) setShowLinksSection(true);
-  setNewService((prev) => ({
-    ...prev,
-    links: [...prev.links, { label: "", url: "" }],
-  }));
-};
+  const addLink = () => {
+    if (!showLinksSection) setShowLinksSection(true);
+    setNewService((prev) => ({
+      ...prev,
+      links: [...prev.links, { label: "", url: "" }],
+    }));
+  };
 
 
   const removeLink = (index) => {
@@ -139,31 +139,29 @@ const addLink = () => {
     updatedLinks.splice(index, 1);
     setNewService((prev) => ({ ...prev, links: updatedLinks }));
   };
-const resetForm = () => {
-  setNewService({
-    name: "",
-    description: "",
-    service_fee: 0,
-    service_charge: 0,
-    other_charge: 0,
-    pages_required: 0,
-    required_time_hours: 0,
-    is_active: true,
-    links: [],
-  });
-  setEditingService(null);
-  setShowForm(false);
-  setShowLinksSection(false); // <- reset it here too
-};
-
-
+  const resetForm = () => {
+    setNewService({
+      name: "",
+      description: "",
+      service_fee: 0,
+      service_charge: 0,
+      other_charge: 0,
+      pages_required: 0,
+      required_time_hours: 0,
+      is_active: true,
+      links: [],
+    });
+    setEditingService(null);
+    setShowForm(false);
+    setShowLinksSection(false); // <- reset it here too
+  };
 
   const filteredServices = services.filter((service) =>
     service.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (loading) return <Loader />;
-  if (error) return <p style={{ color: "red" }}>{error}</p>;
+  // if (error) return <p style={{ color: "red" }}>{error}</p>;
 
   return (
     <div className="content">
@@ -173,16 +171,15 @@ const resetForm = () => {
         <div className="main-content">
           {successMessage && <div className="success-message">{successMessage}</div>}
 
-<HeaderWithNewButton
-  title="Services"
-  buttonLabel="Add Service"
-  onClick={() => {
-    resetForm();                // Clears old state
-    setShowForm(true);         // Shows the form
-    setShowLinksSection(false); // Hides links section
-  }}
-/>
-
+          <HeaderWithNewButton
+            title="Services"
+            buttonLabel="Add Service"
+            onClick={() => {
+              resetForm();              
+              setShowForm(true);         
+              setShowLinksSection(false);
+            }}
+          />
 
           <SearchBar
             value={searchTerm}

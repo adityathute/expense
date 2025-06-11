@@ -7,7 +7,7 @@ import SearchBar from "../components/SearchBar";
 import StyledTable from "../components/StyledTable";
 import Pagination from "../components/Pagination";
 import BalanceCell from "../components/BalanceCell";
-import "./transactions.css";
+// import "./transactions.css";
 
 export default function UidTransactions() {
   const [loading, setLoading] = useState(false);

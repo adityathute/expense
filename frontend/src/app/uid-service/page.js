@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import TopBar from "../components/TopBar";
-import "../uid-service/styles.css"; // Your existing CSS
+// import "../uid-service/styles.css";
 import StyledTable from "../components/StyledTable";
 
 export default function UidTransactions() {

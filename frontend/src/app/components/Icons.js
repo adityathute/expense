@@ -1,4 +1,4 @@
-import "./../styles/icons.css";
+// import "./../styles/icons.css";
 
 export function EditIcon({ className = "icon" }) {
   return (

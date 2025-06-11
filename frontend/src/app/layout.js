@@ -1,6 +1,6 @@
 // layout.js
 
-import "./styles.css"; // Import the global CSS file
+import "./styles.css";
 
 export const metadata = {
   title: "Shivanya Multiservices",
