@@ -1,3 +1,4 @@
+// components/Loader.js
 "use client";
 import React from 'react';
 // import './Loader.css';

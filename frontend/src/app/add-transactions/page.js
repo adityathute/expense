@@ -1,7 +1,6 @@
+// add-transactions/page.js
 "use client";
 import { useState } from "react";
-import Sidebar from "../components/Sidebar";
-import TopBar from "../components/TopBar";
 import Link from "next/link";
 
 export default function AddTransactions() {
@@ -40,7 +39,6 @@ export default function AddTransactions() {
 
       const blob = await res.blob();
       console.log("Blob received:", blob);
-
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -54,91 +52,84 @@ export default function AddTransactions() {
     }
   };
 
-
   return (
-    <div className="content">
-      <TopBar />
-      <div className="container">
-        <Sidebar />
-        <div className="main-content">
-          <Link href="/uid-service">
-            <button className="btn btn-primary">Aadhaar</button>
-          </Link>
+    <div>
+      <Link href="/uid-service">
+        <button className="btn btn-primary">Aadhaar</button>
+      </Link>
 
-          <button className="btn btn-success" onClick={() => setShowForm(true)}>
-            Fill Form
-          </button>
+      <button className="btn btn-success" onClick={() => setShowForm(true)}>
+        Fill Form
+      </button>
 
-          {showForm && (
-            <form onSubmit={handleSubmit} className="form-box">
-              <h2>Fill Aadhaar Update Form</h2>
-              <label>Full Name:</label>
-<input
-  type="text"
-  name="name"
-  value={formData.name}
-  onChange={(e) =>
-    setFormData((prev) => ({
-      ...prev,
-      name: e.target.value.toUpperCase(), // Force capital letters
-    }))
-  }
-  required
-/>
+      {showForm && (
+        <form onSubmit={handleSubmit} className="form-box">
+          <h2>Fill Aadhaar Update Form</h2>
+          <label>Full Name:</label>
+          <input
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                name: e.target.value.toUpperCase(), // Force capital letters
+              }))
+            }
+            required
+          />
 
-              <label>Form Name: Aadhaar Enrolment / Update</label>
+          <label>Form Name: Aadhaar Enrolment / Update</label>
 
-              <label>Aadhaar Number:</label>
+          <label>Aadhaar Number:</label>
+          <input
+            type="text"
+            name="aadhaarNumber"
+            value={formData.aadhaarNumber}
+            onChange={handleChange}
+            required
+          />
+
+          <label>Mobile Number:</label>
+          <input
+            type="text"
+            name="mobileNumber"
+            value={formData.mobileNumber}
+            onChange={handleChange}
+            required
+          />
+
+          <label>Update Type:</label>
+          <select
+            name="updateType"
+            value={formData.updateType}
+            onChange={handleChange}
+          >
+            <option value="">Select</option>
+            <option value="dob">Date of Birth</option>
+            <option value="address">Address</option>
+            <option value="mobile">Mobile Number</option>
+            <option value="email">Email</option>
+          </select>
+
+          {formData.updateType === "dob" && (
+            <>
+              <label>Date of Birth:</label>
               <input
-                type="text"
-                name="aadhaarNumber"
-                value={formData.aadhaarNumber}
+                type="date"
+                name="dob"
+                value={formData.dob}
                 onChange={handleChange}
                 required
               />
-
-              <label>Mobile Number:</label>
-              <input
-                type="text"
-                name="mobileNumber"
-                value={formData.mobileNumber}
-                onChange={handleChange}
-                required
-              />
-
-              <label>Update Type:</label>
-              <select
-                name="updateType"
-                value={formData.updateType}
-                onChange={handleChange}
-              >
-                <option value="">Select</option>
-                <option value="dob">Date of Birth</option>
-                <option value="address">Address</option>
-                <option value="mobile">Mobile Number</option>
-                <option value="email">Email</option>
-              </select>
-
-              {formData.updateType === "dob" && (
-                <>
-                  <label>Date of Birth:</label>
-                  <input
-                    type="date"
-                    name="dob"
-                    value={formData.dob}
-                    onChange={handleChange}
-                    required
-                  />
-                </>
-              )}
-
-              <button type="submit" className="btn btn-primary">
-                Generate & Download PDF
-              </button>
-            </form>
+            </>
           )}
-        </div>
-      </div>
+
+          <button type="submit" className="btn btn-primary">
+            Generate & Download PDF
+          </button>
+        </form>
+      )}
     </div>
   );
 }

@@ -1,7 +1,6 @@
+// uid-service/page.js
 "use client";
 import { useState, useEffect } from "react";
-import Sidebar from "../components/Sidebar";
-import TopBar from "../components/TopBar";
 // import "../uid-service/styles.css";
 import StyledTable from "../components/StyledTable";
 
@@ -187,197 +186,191 @@ export default function UidTransactions() {
   };
 
   return (
-    <div className="content">
-      <TopBar />
-      <div className="container">
-        <Sidebar />
-        <div className="main-content">
-          <button onClick={() => setShowFormModal(true)}>New Temp Entry</button>
-          <button onClick={() => setShowDirectFormModal(true)}>New Direct Entry</button>
+    <div>
+      <button onClick={() => setShowFormModal(true)}>New Temp Entry</button>
+      <button onClick={() => setShowDirectFormModal(true)}>New Direct Entry</button>
 
-          {/* Modal Popup Form */}
-          {showFormModal && (
-            <div className="modal-overlay" onClick={() => setShowFormModal(false)}>
-              <div className="modal-content" onClick={e => e.stopPropagation()}>
-                <h2>New Temporary Entry</h2>
-                <form className="temp-entry-form" onSubmit={handleSubmit}>
-                  <label>Full Name:</label>
-                  <input type="text" name="full_name" value={formData.full_name} onChange={handleChange} required />
+      {/* Modal Popup Form */}
+      {showFormModal && (
+        <div className="modal-overlay" onClick={() => setShowFormModal(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <h2>New Temporary Entry</h2>
+            <form className="temp-entry-form" onSubmit={handleSubmit}>
+              <label>Full Name:</label>
+              <input type="text" name="full_name" value={formData.full_name} onChange={handleChange} required />
 
-                  <label>Mobile Number:</label>
-                  <input type="text" name="mobile_number" value={formData.mobile_number} onChange={handleChange} required />
+              <label>Mobile Number:</label>
+              <input type="text" name="mobile_number" value={formData.mobile_number} onChange={handleChange} required />
 
-                  <label>Aadhaar Number (Optional):</label>
-                  <input type="text" name="aadhaar_number" value={formData.aadhaar_number} onChange={handleChange} />
+              <label>Aadhaar Number (Optional):</label>
+              <input type="text" name="aadhaar_number" value={formData.aadhaar_number} onChange={handleChange} />
 
-                  <label>Entry Type:</label>
-                  <select name="entry_type" value={formData.entry_type} onChange={handleChange}>
-                    <option value="new">New</option>
-                    <option value="update">Update</option>
-                  </select>
+              <label>Entry Type:</label>
+              <select name="entry_type" value={formData.entry_type} onChange={handleChange}>
+                <option value="new">New</option>
+                <option value="update">Update</option>
+              </select>
 
-                  {formData.entry_type === "update" && (
-                    <>
-                      <label>Update Type:</label>
-                      <select name="update_type" value={formData.update_type} onChange={handleChange}>
-                        <option value="">Select Update Type</option>
-                        <option value="mobile_change">Mobile Number Change</option>
-                        <option value="biometric_change">Biometric Change</option>
-                        <option value="name_change">Name Change</option>
-                        <option value="address_change">Address Change</option>
-                        <option value="dob_change">Date of Birth Change</option>
-                      </select>
-                    </>
-                  )}
-
-                  <label>UID Type:</label>
-                  <select name="uid_type" value={formData.uid_type} onChange={handleChange}>
-                    <option value="offline">Offline</option>
-                    <option value="online">Online</option>
-                    <option value="ucl">UCL</option>
-                  </select>
-
-                  <button type="submit" className="submit-btn">Submit Entry</button>
-                  <button type="button" className="close-btn" onClick={() => setShowFormModal(false)}>Close</button>
-                </form>
-              </div>
-            </div>
-          )}
-          {showDirectFormModal && (
-            <div className="modal-overlay" onClick={() => setShowDirectFormModal(false)}>
-              <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                <h2>New Direct UID Entry</h2>
-                <form className="uid-direct-form" onSubmit={handleSubmitDirectUID}>
-                  <input type="text" name="full_name" placeholder="Full Name" value={directFormData.full_name} onChange={handleDirectChange} required />
-                  <input type="text" name="mobile_number" placeholder="Mobile Number" value={directFormData.mobile_number} onChange={handleDirectChange} required />
-                  <input type="text" name="aadhaar_number" placeholder="Aadhaar Number (optional)" value={directFormData.aadhaar_number} onChange={handleDirectChange} />
-
-                  <select name="entry_type" value={directFormData.entry_type} onChange={handleDirectChange}>
-                    <option value="new">New</option>
-                    <option value="update">Update</option>
-                  </select>
-
-                  {directFormData.entry_type === "update" && (
-                    <select name="update_type" value={directFormData.update_type} onChange={handleDirectChange}>
-                      <option value="mobile_change">Mobile Number Change</option>
-                      <option value="biometric_change">Biometric Change</option>
-                      <option value="name_change">Name Change</option>
-                      <option value="address_change">Address Change</option>
-                      <option value="dob_change">Date of Birth Change</option>
-                    </select>
-                  )}
-
-                  <select name="uid_type" value={directFormData.uid_type} onChange={handleDirectChange}>
-                    <option value="offline">Offline</option>
-                    <option value="online">Online</option>
-                    <option value="ucl">UCL</option>
-                  </select>
-
-                  <input type="text" name="enrollment_suffix" placeholder="Enrollment Suffix (5 digits)" value={directFormData.enrollment_suffix} onChange={handleDirectChange} required />
-                  <input type="text" name="entry_time" placeholder="Entry Time (6 digits)" value={directFormData.entry_time} onChange={handleDirectChange} required />
-
-                  <select name="payment_type" value={directFormData.payment_type} onChange={handleDirectChange}>
-                    <option value="cash">Cash</option>
-                    <option value="online">Online</option>
-                    <option value="upi">UPI</option>
-                    <option value="card">Card</option>
-                  </select>
-
-                  <input type="number" name="service_charge" value={directFormData.service_charge} onChange={handleDirectChange} />
-
-                  <button type="submit">Submit Direct Entry</button>
-                  <button type="button" onClick={() => setShowDirectFormModal(false)}>Close</button>
-                </form>
-              </div>
-            </div>
-          )}
-
-          {/* Temp Entries Table */}
-          <h2>Temp ID Entries</h2>
-          <StyledTable
-            headers={[
-              "ID",
-              "Full Name",
-              "Mobile Number",
-              "Entry Type",
-              "UID Type",
-              "Update Type",
-            ]}
-            columns={[
-              "id",
-              "full_name",
-              "mobile_number",
-              "entry_type",
-              "uid_type",
-              "update_type",
-            ]}
-            data={entries}
-            renderCell={(row, column) => {
-              if (column === "update_type") {
-                return row.entry_type === "new" ? "-" : row.update_type;
-              }
-              return row[column] ?? "-";
-            }}
-            onEdit={(row) => handleSelectEntry(row)}
-            onDelete={(row) => deleteEntry(row.id)}
-          />
-
-          {/* Enrollment Suffix Form - show when entry selected */}
-          {selectedEntry && (
-            <div className="enrollment-form">
-              <h3>Move to UID System</h3>
-
-              <p><strong>Entry ID:</strong> {selectedEntry.id}</p>
-              <p><strong>Name:</strong> {selectedEntry.full_name}</p>
-
-              <label>Enrollment Suffix (5 digits):</label>
-              <input
-                type="text"
-                value={enrollmentSuffix}
-                onChange={(e) => setEnrollmentSuffix(e.target.value)}
-                maxLength={5}
-                required
-              />
-
-              {selectedEntry.entry_type === "new" && (
+              {formData.entry_type === "update" && (
                 <>
-                  <label>Entry Time (HHMMSS - 6 digits):</label>
-                  <input
-                    type="text"
-                    value={timeSuffix}
-                    onChange={(e) => setTimeSuffix(e.target.value)}
-                    maxLength={6}
-                    required
-                  />
+                  <label>Update Type:</label>
+                  <select name="update_type" value={formData.update_type} onChange={handleChange}>
+                    <option value="">Select Update Type</option>
+                    <option value="mobile_change">Mobile Number Change</option>
+                    <option value="biometric_change">Biometric Change</option>
+                    <option value="name_change">Name Change</option>
+                    <option value="address_change">Address Change</option>
+                    <option value="dob_change">Date of Birth Change</option>
+                  </select>
                 </>
               )}
 
-              <label>Payment Type:</label>
-              <select
-                name="payment_type"
-                value={formData.payment_type}
-                onChange={handleChange}
-              >
+              <label>UID Type:</label>
+              <select name="uid_type" value={formData.uid_type} onChange={handleChange}>
+                <option value="offline">Offline</option>
+                <option value="online">Online</option>
+                <option value="ucl">UCL</option>
+              </select>
+
+              <button type="submit" className="submit-btn">Submit Entry</button>
+              <button type="button" className="close-btn" onClick={() => setShowFormModal(false)}>Close</button>
+            </form>
+          </div>
+        </div>
+      )}
+      {showDirectFormModal && (
+        <div className="modal-overlay" onClick={() => setShowDirectFormModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h2>New Direct UID Entry</h2>
+            <form className="uid-direct-form" onSubmit={handleSubmitDirectUID}>
+              <input type="text" name="full_name" placeholder="Full Name" value={directFormData.full_name} onChange={handleDirectChange} required />
+              <input type="text" name="mobile_number" placeholder="Mobile Number" value={directFormData.mobile_number} onChange={handleDirectChange} required />
+              <input type="text" name="aadhaar_number" placeholder="Aadhaar Number (optional)" value={directFormData.aadhaar_number} onChange={handleDirectChange} />
+
+              <select name="entry_type" value={directFormData.entry_type} onChange={handleDirectChange}>
+                <option value="new">New</option>
+                <option value="update">Update</option>
+              </select>
+
+              {directFormData.entry_type === "update" && (
+                <select name="update_type" value={directFormData.update_type} onChange={handleDirectChange}>
+                  <option value="mobile_change">Mobile Number Change</option>
+                  <option value="biometric_change">Biometric Change</option>
+                  <option value="name_change">Name Change</option>
+                  <option value="address_change">Address Change</option>
+                  <option value="dob_change">Date of Birth Change</option>
+                </select>
+              )}
+
+              <select name="uid_type" value={directFormData.uid_type} onChange={handleDirectChange}>
+                <option value="offline">Offline</option>
+                <option value="online">Online</option>
+                <option value="ucl">UCL</option>
+              </select>
+
+              <input type="text" name="enrollment_suffix" placeholder="Enrollment Suffix (5 digits)" value={directFormData.enrollment_suffix} onChange={handleDirectChange} required />
+              <input type="text" name="entry_time" placeholder="Entry Time (6 digits)" value={directFormData.entry_time} onChange={handleDirectChange} required />
+
+              <select name="payment_type" value={directFormData.payment_type} onChange={handleDirectChange}>
                 <option value="cash">Cash</option>
                 <option value="online">Online</option>
                 <option value="upi">UPI</option>
                 <option value="card">Card</option>
               </select>
 
-              <label>Service Charge (Default: 100 Rs):</label>
-              <input
-                type="number"
-                name="service_charge"
-                value={formData.service_charge}
-                onChange={handleChange}
-              />
+              <input type="number" name="service_charge" value={directFormData.service_charge} onChange={handleDirectChange} />
 
-              <button onClick={handleSubmitToUID}>Submit to UID System</button>
-              <button onClick={() => setSelectedEntry(null)}>Close</button>
-            </div>
-          )}
+              <button type="submit">Submit Direct Entry</button>
+              <button type="button" onClick={() => setShowDirectFormModal(false)}>Close</button>
+            </form>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Temp Entries Table */}
+      <h2>Temp ID Entries</h2>
+      <StyledTable
+        headers={[
+          "ID",
+          "Full Name",
+          "Mobile Number",
+          "Entry Type",
+          "UID Type",
+          "Update Type",
+        ]}
+        columns={[
+          "id",
+          "full_name",
+          "mobile_number",
+          "entry_type",
+          "uid_type",
+          "update_type",
+        ]}
+        data={entries}
+        renderCell={(row, column) => {
+          if (column === "update_type") {
+            return row.entry_type === "new" ? "-" : row.update_type;
+          }
+          return row[column] ?? "-";
+        }}
+        onEdit={(row) => handleSelectEntry(row)}
+        onDelete={(row) => deleteEntry(row.id)}
+      />
+
+      {/* Enrollment Suffix Form - show when entry selected */}
+      {selectedEntry && (
+        <div className="enrollment-form">
+          <h3>Move to UID System</h3>
+
+          <p><strong>Entry ID:</strong> {selectedEntry.id}</p>
+          <p><strong>Name:</strong> {selectedEntry.full_name}</p>
+
+          <label>Enrollment Suffix (5 digits):</label>
+          <input
+            type="text"
+            value={enrollmentSuffix}
+            onChange={(e) => setEnrollmentSuffix(e.target.value)}
+            maxLength={5}
+            required
+          />
+
+          {selectedEntry.entry_type === "new" && (
+            <>
+              <label>Entry Time (HHMMSS - 6 digits):</label>
+              <input
+                type="text"
+                value={timeSuffix}
+                onChange={(e) => setTimeSuffix(e.target.value)}
+                maxLength={6}
+                required
+              />
+            </>
+          )}
+
+          <label>Payment Type:</label>
+          <select
+            name="payment_type"
+            value={formData.payment_type}
+            onChange={handleChange}
+          >
+            <option value="cash">Cash</option>
+            <option value="online">Online</option>
+            <option value="upi">UPI</option>
+            <option value="card">Card</option>
+          </select>
+
+          <label>Service Charge (Default: 100 Rs):</label>
+          <input
+            type="number"
+            name="service_charge"
+            value={formData.service_charge}
+            onChange={handleChange}
+          />
+
+          <button onClick={handleSubmitToUID}>Submit to UID System</button>
+          <button onClick={() => setSelectedEntry(null)}>Close</button>
+        </div>
+      )}
     </div>
   );
 }

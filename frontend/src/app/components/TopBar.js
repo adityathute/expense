@@ -1,17 +1,23 @@
+// components/TopBar.js
 "use client";
 
 import Link from "next/link";
+import "../styles/components/topbar.css";
 
 export default function TopBar() {
   return (
-    <div className="topbarOuter">
-      <div className="topbar">
-        <div className="leftTopbar">Shivanya Multiservices</div>
-        <div className="rightTopbar">
-        <Link href="/add-transactions"><button className="btn btn-primary">Add Transaction</button></Link>
-        <Link href="/login"><button className="btn btn-dark">Login</button></Link>
+    <header className="topbar-wrapper">
+      <nav className="topbar-container">
+        <div className="topbar-brand">Shivanya Multiservices</div>
+        <div className="topbar-actions">
+          <Link href="/add-transactions">
+            <button className="btn btn-primary">Add Transaction</button>
+          </Link>
+          <Link href="/login">
+            <button className="btn btn-dark">Login</button>
+          </Link>
         </div>
-      </div>
-    </div>
+      </nav>
+    </header>
   );
 }

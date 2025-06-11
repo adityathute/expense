@@ -1,10 +1,8 @@
+// app/page.js
 "use client";
 
-import Sidebar from "./components/Sidebar";
-import TopBar from "./components/TopBar";
 import StyledTable from "./components/StyledTable";
 import BalanceCell from "./components/BalanceCell";
-// import "./page.css";
 
 export default function Dashboard() {
   const income = 25000;
@@ -20,7 +18,6 @@ export default function Dashboard() {
   const headers = ["Date", "Name", "Amount"];
   const columns = ["date", "name", "amount"];
 
-  // Custom render function to handle BalanceCell for "amount" column
   function renderCell(row, column) {
     if (column === "amount") {
       return <BalanceCell value={row.amount} />;
@@ -29,32 +26,25 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="content">
-      <TopBar />
-      <div className="container">
-        <Sidebar />
-        <div className="main-content">
-          <h1>Dashboard</h1>
-          <p>Track your income, expenses, and balance.</p>
+    <>
+      <h1>Dashboard</h1>
+      <p>Track your income, expenses, and balance.</p>
 
-          <div className="balance-cards">
-            <div className="card income">Income ₹{income}</div>
-            <div className="card expense">Expense ₹{expense}</div>
-            <div className="card balance">Balance ₹{balance}</div>
-          </div>
-
-          <div className="transactions">
-            <h2>Recent Transactions</h2>
-            <StyledTable
-              headers={headers}
-              columns={columns}
-              data={recentTransactions}
-              renderCell={renderCell}
-            />
-          </div>
-        </div>
+      <div>
+        <div>Income ₹{income}</div>
+        <div>Expense ₹{expense}</div>
+        <div>Balance ₹{balance}</div>
       </div>
-    </div>
+
+      <div>
+        <h2>Recent Transactions</h2>
+        <StyledTable
+          headers={headers}
+          columns={columns}
+          data={recentTransactions}
+          renderCell={renderCell}
+        />
+      </div>
+    </>
   );
 }
-

@@ -1,3 +1,4 @@
+// users/components/UserDetailsPopup.js
 "use client";
 
 import React, { useState } from "react";
@@ -23,7 +24,7 @@ export default function UserDetailsPopup({ selectedUser, onClose, onSave }) {
     <div className="modal">
       <div className="modal-content">
         <span className="close-button" onClick={onClose}>&times;</span>
-        
+
         {isEditing ? (
           <>
             <h2>Edit User</h2>
@@ -63,8 +64,8 @@ export default function UserDetailsPopup({ selectedUser, onClose, onSave }) {
               <strong>ID:</strong>{" "}
               {selectedUser.identifications.length > 0
                 ? selectedUser.identifications.map(
-                    (id) => `${id.id_type}: ${id.id_number}`
-                  ).join(", ")
+                  (id) => `${id.id_type}: ${id.id_number}`
+                ).join(", ")
                 : "N/A"}
             </p>
             <button className="edit-button" onClick={() => setIsEditing(true)}>

@@ -1,3 +1,4 @@
+// components/Pagination.js
 // import "./../styles/pagination.css";
 
 export default function Pagination({ currentPage, totalPages, onPageChange }) {

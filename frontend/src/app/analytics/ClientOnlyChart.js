@@ -1,3 +1,4 @@
+// analytics/clientOnlyChart.js
 "use client";
 import {
   BarChart, Bar,

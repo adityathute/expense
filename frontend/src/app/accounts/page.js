@@ -1,7 +1,5 @@
+// accounts/page.js
 "use client";
-
-import Sidebar from "../components/Sidebar";
-import TopBar from "../components/TopBar";
 import { useState, useEffect } from "react";
 // import "./style.css";
 import StyledTable from "../components/StyledTable";
@@ -147,146 +145,140 @@ export default function Account() {
   }));
 
   return (
-    <div className="content">
-      <TopBar />
-      <div className="container">
-        <Sidebar />
-        <div className="main-content">
-          <h1>Welcome to the Accounts</h1>
+    <div className="main-content">
+      <h1>Welcome to the Accounts</h1>
 
-          <div className="category-grid">
-            {Object.entries(categoryTotals).map(([category, total]) => (
-              <div
-                key={category}
-                className={`category-card ${selectedCategory === category ? "selected" : ""}`}
-                onClick={() => setSelectedCategory(category === selectedCategory ? null : category)}
-              >
-                <h3>{category}</h3>
-                <p className="cat-card-special-block">₹&nbsp;{total.toFixed(2)}</p>
-              </div>
-            ))}
-            <div className="category-card total-balance-block">
-              <h3>Total Balance</h3>
-              <div className="cat-card-special-block">
-                <p>₹&nbsp;{totalBalance.toFixed(2)}</p>
-              </div>
-            </div>
+      <div className="category-grid">
+        {Object.entries(categoryTotals).map(([category, total]) => (
+          <div
+            key={category}
+            className={`category-card ${selectedCategory === category ? "selected" : ""}`}
+            onClick={() => setSelectedCategory(category === selectedCategory ? null : category)}
+          >
+            <h3>{category}</h3>
+            <p className="cat-card-special-block">₹&nbsp;{total.toFixed(2)}</p>
           </div>
+        ))}
+        <div className="category-card total-balance-block">
+          <h3>Total Balance</h3>
+          <div className="cat-card-special-block">
+            <p>₹&nbsp;{totalBalance.toFixed(2)}</p>
+          </div>
+        </div>
+      </div>
 
-          <div className="bank-account-section">
-            {showForm && (
-              <div className="modal-overlay">
-                <div className="modal-content">
-                  <h3>{editingId ? "Edit Account" : "Add New Account"}</h3>
-                  <div className="form">
-                    <select name="account_mode" value={formData.account_mode} onChange={handleChange}>
-                      <option value="Cash">Cash</option>
-                      <option value="Online">Online</option>
-                    </select>
+      <div className="bank-account-section">
+        {showForm && (
+          <div className="modal-overlay">
+            <div className="modal-content">
+              <h3>{editingId ? "Edit Account" : "Add New Account"}</h3>
+              <div className="form">
+                <select name="account_mode" value={formData.account_mode} onChange={handleChange}>
+                  <option value="Cash">Cash</option>
+                  <option value="Online">Online</option>
+                </select>
 
-                    {isCash ? (
-                      <input
-                        type="text"
-                        name="bank_service_name"
-                        placeholder="Service Name"
-                        value={formData.bank_service_name}
-                        onChange={handleChange}
-                      />
-                    ) : (
-                      <>
-                        <input
-                          type="text"
-                          name="bank_service_name"
-                          placeholder="Bank Name"
-                          value={formData.bank_service_name}
-                          onChange={handleChange}
-                        />
-                        <input
-                          type="text"
-                          name="account_holder_name"
-                          placeholder="Account Holder Name"
-                          value={formData.account_holder_name}
-                          onChange={handleChange}
-                        />
-                      </>
-                    )}
-
-                    {!isCash && (
-                      <>
-                        <input
-                          type="text"
-                          name="account_number"
-                          placeholder="Account Number"
-                          value={formData.account_number}
-                          onChange={handleChange}
-                        />
-                        <input
-                          type="text"
-                          name="ifsc_code"
-                          placeholder="IFSC Code"
-                          value={formData.ifsc_code}
-                          onChange={handleChange}
-                        />
-                        <select name="account_type" value={formData.account_type} onChange={handleChange}>
-                          <option value="">Select Account Type</option>
-                          <option value="Current">Current</option>
-                          <option value="Saving">Saving</option>
-                          <option value="Pigme">Pigme</option>
-                          <option value="Fixed Deposit">Fixed Deposit</option>
-                          <option value="Mutual Fund">Mutual Fund</option>
-                          <option value="Digital Gold">Digital Gold</option>
-                          <option value="Trading">Trading</option>
-                        </select>
-                      </>
-                    )}
-
+                {isCash ? (
+                  <input
+                    type="text"
+                    name="bank_service_name"
+                    placeholder="Service Name"
+                    value={formData.bank_service_name}
+                    onChange={handleChange}
+                  />
+                ) : (
+                  <>
                     <input
-                      type="number"
-                      name="balance"
-                      placeholder="Initial Balance"
-                      value={formData.balance}
+                      type="text"
+                      name="bank_service_name"
+                      placeholder="Bank Name"
+                      value={formData.bank_service_name}
                       onChange={handleChange}
-                      step="0.01"
                     />
+                    <input
+                      type="text"
+                      name="account_holder_name"
+                      placeholder="Account Holder Name"
+                      value={formData.account_holder_name}
+                      onChange={handleChange}
+                    />
+                  </>
+                )}
 
-                    <select name="category" value={formData.category} onChange={handleChange}>
-                      <option value="Business">Business</option>
-                      <option value="Personal">Personal</option>
-                      <option value="Home">Home</option>
+                {!isCash && (
+                  <>
+                    <input
+                      type="text"
+                      name="account_number"
+                      placeholder="Account Number"
+                      value={formData.account_number}
+                      onChange={handleChange}
+                    />
+                    <input
+                      type="text"
+                      name="ifsc_code"
+                      placeholder="IFSC Code"
+                      value={formData.ifsc_code}
+                      onChange={handleChange}
+                    />
+                    <select name="account_type" value={formData.account_type} onChange={handleChange}>
+                      <option value="">Select Account Type</option>
+                      <option value="Current">Current</option>
+                      <option value="Saving">Saving</option>
+                      <option value="Pigme">Pigme</option>
+                      <option value="Fixed Deposit">Fixed Deposit</option>
+                      <option value="Mutual Fund">Mutual Fund</option>
+                      <option value="Digital Gold">Digital Gold</option>
+                      <option value="Trading">Trading</option>
                     </select>
+                  </>
+                )}
 
-                    <div style={{ display: "flex", gap: "10px" }}>
-                      <button onClick={handleFormSubmit}>{editingId ? "Update" : "Submit"}</button>
-                      <button onClick={handleCloseForm}>Close</button>
-                    </div>
-                  </div>
+                <input
+                  type="number"
+                  name="balance"
+                  placeholder="Initial Balance"
+                  value={formData.balance}
+                  onChange={handleChange}
+                  step="0.01"
+                />
+
+                <select name="category" value={formData.category} onChange={handleChange}>
+                  <option value="Business">Business</option>
+                  <option value="Personal">Personal</option>
+                  <option value="Home">Home</option>
+                </select>
+
+                <div style={{ display: "flex", gap: "10px" }}>
+                  <button onClick={handleFormSubmit}>{editingId ? "Update" : "Submit"}</button>
+                  <button onClick={handleCloseForm}>Close</button>
                 </div>
               </div>
-            )}
-
-            <div className="bank-account-list">
-              <HeaderWithNewButton
-                title="Account"
-                buttonLabel="Add Account"
-                onClick={handleAddAccount}
-              />
-
-              <StyledTable
-                headers={columns.map((col) => col.label)}
-                columns={columns.map((col) => col.key)}
-                data={tableData}
-                onEdit={handleEdit}
-                renderCell={(row, col) =>
-                  col === "balance" ? (
-                    <BalanceCell value={parseFloat(row.balance)} />
-                  ) : (
-                    row[col] ?? "-"
-                  )
-                }
-                emptyText="No accounts found."
-              />
             </div>
           </div>
+        )}
+
+        <div className="bank-account-list">
+          <HeaderWithNewButton
+            title="Account"
+            buttonLabel="Add Account"
+            onClick={handleAddAccount}
+          />
+
+          <StyledTable
+            headers={columns.map((col) => col.label)}
+            columns={columns.map((col) => col.key)}
+            data={tableData}
+            onEdit={handleEdit}
+            renderCell={(row, col) =>
+              col === "balance" ? (
+                <BalanceCell value={parseFloat(row.balance)} />
+              ) : (
+                row[col] ?? "-"
+              )
+            }
+            emptyText="No accounts found."
+          />
         </div>
       </div>
     </div>

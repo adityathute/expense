@@ -1,3 +1,4 @@
+// components/StyledTable.js
 // import "./../styles/table.css";
 import ActionButtons from "../components/ActionButtons";
 

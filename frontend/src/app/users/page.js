@@ -1,8 +1,7 @@
+// users/page.js
 "use client";
 
 import { useEffect, useState } from "react";
-import Sidebar from "../components/Sidebar";
-import TopBar from "../components/TopBar";
 import SearchBar from "../components/SearchBar";
 import UserDetailsPopup from "./components/UserDetailsPopup";
 import AddUserForm from "./components/AddUserForm";
@@ -100,12 +99,7 @@ export default function Users() {
   const columns = ["name", "mobile_number", "id"];
 
   return (
-    <div className="content">
-      <TopBar />
-      <div className="container">
-        <Sidebar />
-        <div className="main-content">
-
+        <div>
           <HeaderWithNewButton
             title="Users"
             buttonLabel="Add User"
@@ -141,9 +135,6 @@ export default function Users() {
               return "-";
             }}
           />
-        </div>
-      </div>
-
       {selectedUser && (
         <UserDetailsPopup
           selectedUser={selectedUser}

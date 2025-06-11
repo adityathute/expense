@@ -1,8 +1,7 @@
+// trasactions/page.js
 "use client";
 
 import { useState, useEffect } from "react";
-import Sidebar from "../components/Sidebar";
-import TopBar from "../components/TopBar";
 import SearchBar from "../components/SearchBar";
 import StyledTable from "../components/StyledTable";
 import Pagination from "../components/Pagination";
@@ -70,36 +69,30 @@ export default function UidTransactions() {
   }
 
   return (
-    <div className="content">
-      <TopBar />
-      <div className="container">
-        <Sidebar />
-        <div className="main-content">
-          <h1>Transactions</h1>
-          {loading ? (
-            <p>Loading...</p>
-          ) : (
-            <>
-              <SearchBar
-                value={searchQuery}
-                onChange={handleSearch}
-                placeholder="Search by Name, Mobile, Aadhaar"
-              />
-              <StyledTable
-                headers={headers}
-                columns={columns}
-                data={currentEntries}
-                renderCell={renderCell}
-              />
-              <Pagination
-                currentPage={currentPage}
-                totalPages={Math.ceil(filteredEntries.length / entriesPerPage)}
-                onPageChange={paginate}
-              />
-            </>
-          )}
-        </div>
-      </div>
+    <div>
+      <h1>Transactions</h1>
+      {loading ? (
+        <p>Loading...</p>
+      ) : (
+        <>
+          <SearchBar
+            value={searchQuery}
+            onChange={handleSearch}
+            placeholder="Search by Name, Mobile, Aadhaar"
+          />
+          <StyledTable
+            headers={headers}
+            columns={columns}
+            data={currentEntries}
+            renderCell={renderCell}
+          />
+          <Pagination
+            currentPage={currentPage}
+            totalPages={Math.ceil(filteredEntries.length / entriesPerPage)}
+            onPageChange={paginate}
+          />
+        </>
+      )}
     </div>
   );
 }

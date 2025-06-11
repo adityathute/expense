@@ -1,3 +1,4 @@
+// components/BalanceCell.js
 // import "./../styles/balancecell.css";
 
 export default function BalanceCell({ value }) {

@@ -1,0 +1,21 @@
+/* ===========================
+   Layout CSS (Shell System)
+   =========================== */
+
+.app-shell {
+  margin: 0;
+  display: flex;
+  flex-direction: row;
+}
+
+.layout-body{
+  display: flex;
+  flex-basis: 100%;
+}
+
+.layout-main {
+  width: 100%;
+  padding: 20px;
+  margin-left: var(--sidebar-width);
+  margin-top: var(--navbar-height);
+}

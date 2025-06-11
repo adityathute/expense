@@ -1,8 +1,7 @@
+// services/page.js
 "use client";
 
 import { useEffect, useState } from "react";
-import Sidebar from "../components/Sidebar";
-import TopBar from "../components/TopBar";
 // import "../services/ServicePage.css";
 import StyledTable from "../components/StyledTable";
 import SearchBar from "../components/SearchBar";
@@ -164,124 +163,118 @@ export default function ServicesPage() {
   // if (error) return <p style={{ color: "red" }}>{error}</p>;
 
   return (
-    <div className="content">
-      <TopBar />
-      <div className="container">
-        <Sidebar />
-        <div className="main-content">
-          {successMessage && <div className="success-message">{successMessage}</div>}
+    <div>
+      {successMessage && <div className="success-message">{successMessage}</div>}
 
-          <HeaderWithNewButton
-            title="Services"
-            buttonLabel="Add Service"
-            onClick={() => {
-              resetForm();              
-              setShowForm(true);         
-              setShowLinksSection(false);
-            }}
-          />
+      <HeaderWithNewButton
+        title="Services"
+        buttonLabel="Add Service"
+        onClick={() => {
+          resetForm();
+          setShowForm(true);
+          setShowLinksSection(false);
+        }}
+      />
 
-          <SearchBar
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search service..."
-          />
+      <SearchBar
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        placeholder="Search service..."
+      />
 
-          <StyledTable
-            headers={[
-              "Service Name",
-              "Service Charge",
-              "Pages Required",
-              "Required Time (days)",
-            ]}
-            columns={[
-              "name",
-              "service_fee",
-              "pages_required",
-              "required_time_hours",
-            ]}
-            data={filteredServices}
-            emptyText="No services found."
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            renderCell={(row, column) => {
-              if (column === "service_fee") {
-                return <BalanceCell value={row.service_fee} />;
-              }
-              if (column === "required_time_hours") {
-                const hours = row.required_time_hours ?? 0;
-                const days = (hours / 24).toFixed(1);
-                return `${days} days`;
-              }
-              return row[column] ?? "-";
-            }}
-          />
+      <StyledTable
+        headers={[
+          "Service Name",
+          "Service Charge",
+          "Pages Required",
+          "Required Time (days)",
+        ]}
+        columns={[
+          "name",
+          "service_fee",
+          "pages_required",
+          "required_time_hours",
+        ]}
+        data={filteredServices}
+        emptyText="No services found."
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        renderCell={(row, column) => {
+          if (column === "service_fee") {
+            return <BalanceCell value={row.service_fee} />;
+          }
+          if (column === "required_time_hours") {
+            const hours = row.required_time_hours ?? 0;
+            const days = (hours / 24).toFixed(1);
+            return `${days} days`;
+          }
+          return row[column] ?? "-";
+        }}
+      />
 
-          {showForm && (
-            <form onSubmit={handleSubmit}>
-              <label>
-                Name:
-                <input type="text" name="name" value={newService.name} onChange={handleInputChange} required />
-              </label>
+      {showForm && (
+        <form onSubmit={handleSubmit}>
+          <label>
+            Name:
+            <input type="text" name="name" value={newService.name} onChange={handleInputChange} required />
+          </label>
 
-              <label>
-                Description:
-                <textarea name="description" value={newService.description} onChange={handleInputChange} />
-              </label>
+          <label>
+            Description:
+            <textarea name="description" value={newService.description} onChange={handleInputChange} />
+          </label>
 
-              <label>
-                Service Fee:
-                <input type="number" name="service_fee" value={newService.service_fee} onChange={handleInputChange} />
-              </label>
+          <label>
+            Service Fee:
+            <input type="number" name="service_fee" value={newService.service_fee} onChange={handleInputChange} />
+          </label>
 
-              <label>
-                Service Charge:
-                <input type="number" name="service_charge" value={newService.service_charge} onChange={handleInputChange} />
-              </label>
+          <label>
+            Service Charge:
+            <input type="number" name="service_charge" value={newService.service_charge} onChange={handleInputChange} />
+          </label>
 
-              <label>
-                Other Charge:
-                <input type="number" name="other_charge" value={newService.other_charge} onChange={handleInputChange} />
-              </label>
+          <label>
+            Other Charge:
+            <input type="number" name="other_charge" value={newService.other_charge} onChange={handleInputChange} />
+          </label>
 
-              <label>
-                Pages Required:
-                <input type="number" name="pages_required" value={newService.pages_required} onChange={handleInputChange} />
-              </label>
+          <label>
+            Pages Required:
+            <input type="number" name="pages_required" value={newService.pages_required} onChange={handleInputChange} />
+          </label>
 
-              <label>
-                Required Time (hours):
-                <input type="number" step="0.1" name="required_time_hours" value={newService.required_time_hours} onChange={handleInputChange} />
-              </label>
+          <label>
+            Required Time (hours):
+            <input type="number" step="0.1" name="required_time_hours" value={newService.required_time_hours} onChange={handleInputChange} />
+          </label>
 
 
 
-              <h4>Links</h4>
-              {newService.links.map((link, index) => (
-                <div key={index}>
-                  <input
-                    type="text"
-                    placeholder="Label"
-                    value={link.label}
-                    onChange={(e) => handleLinkChange(index, "label", e.target.value)}
-                  />
-                  <input
-                    type="url"
-                    placeholder="URL"
-                    value={link.url}
-                    onChange={(e) => handleLinkChange(index, "url", e.target.value)}
-                  />
-                  <button type="button" onClick={() => removeLink(index)}>Remove</button>
-                </div>
-              ))}
-              <button type="button" onClick={addLink}>Add Link</button>
+          <h4>Links</h4>
+          {newService.links.map((link, index) => (
+            <div key={index}>
+              <input
+                type="text"
+                placeholder="Label"
+                value={link.label}
+                onChange={(e) => handleLinkChange(index, "label", e.target.value)}
+              />
+              <input
+                type="url"
+                placeholder="URL"
+                value={link.url}
+                onChange={(e) => handleLinkChange(index, "url", e.target.value)}
+              />
+              <button type="button" onClick={() => removeLink(index)}>Remove</button>
+            </div>
+          ))}
+          <button type="button" onClick={addLink}>Add Link</button>
 
-              <button type="submit">{editingService ? "Update Service" : "Create Service"}</button>
-              <button type="button" onClick={resetForm}>Cancel</button>
-            </form>
-          )}
-        </div>
-      </div>
+          <button type="submit">{editingService ? "Update Service" : "Create Service"}</button>
+          <button type="button" onClick={resetForm}>Cancel</button>
+        </form>
+      )}
     </div>
   );
 }
