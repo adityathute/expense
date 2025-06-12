@@ -24,7 +24,8 @@
   overflow-y: auto;
   transition: transform 0.3s ease-in-out;
   z-index: 1050;
-  transform: translateX(0); /* default: visible */
+  transform: translateX(0);
+  /* default: visible */
 }
 
 .sidebar-blur-overlay {
@@ -64,13 +65,73 @@
   text-decoration: none;
   font-size: 1rem;
   padding: 0.4rem 1rem;
-  display: block;
-  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;  border-radius: 0.5rem;
   transition: background-color 0.2s ease;
 }
 
 .sidebar-nav-item a:hover {
   background-color: #333;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: #ddd;
+  text-decoration: none;
+  font-size: 1rem;
+  padding: 0.6rem 1rem;
+  border-radius: 0.6rem;
+  transition: background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease, transform 0.2s ease;
+  font-family: "San Francisco", "Segoe UI", sans-serif;
+  letter-spacing: 0.2px;
+
+  /* Animation */
+  opacity: 0;
+  animation: fadeInSlide 0.4s ease forwards;
+}
+
+
+/* Hover State */
+.sidebar-link:hover {
+  background-color: #2f2f31;
+  color: #fff;
+  box-shadow: inset 0 0 0 1px #3c3c3e;
+  transform: translateX(2px);
+}
+
+/* Active State */
+.sidebar-link.active {
+  color: #ffffff;
+  font-weight: 500;
+  background-color: #262628;
+  border-left: 4px solid #999;
+  padding-left: calc(1rem - 4px);
+  box-shadow: inset 0 0 6px rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.2rem;
+  transition: color 0.3s ease;
+}
+
+.sidebar-link:hover .sidebar-icon {
+  color: var(--sidebar-icon-hover, #fff);
+}
+@keyframes fadeInSlide {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 /* ========== Responsive ========== */

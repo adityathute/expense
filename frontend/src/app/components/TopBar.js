@@ -17,7 +17,9 @@ export default function TopBar({ isSidebarOpen, onToggleSidebar }) {
               <Menu size={28} className="toggle-icon open" />
             )}
           </button>
-          <span className="topbar-logo">Shivanya MS</span>
+          <Link href="/" className="topbar-logo">
+            Shivanya MS
+          </Link>
         </div>
         <div className="topbar-buttons">
           <Link href="/add-transactions">

@@ -45,9 +45,16 @@
 
 .topbar-logo {
   font-size: clamp(1.2rem, 2.5vw, 2rem);
-  font-weight: bold;
+  font-weight: 600;
   color: white;
   white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+}
+
+.topbar-logo:hover {
+  opacity: 0.8;
 }
 
 .topbar-buttons {
@@ -56,15 +63,19 @@
   flex-wrap: wrap;
   justify-content: flex-end;
 }
+
 .toggle-icon {
   transition: transform 0.3s ease, opacity 0.3s ease;
 }
+
 .toggle-icon.open {
   transform: rotate(0deg);
 }
+
 .toggle-icon.close {
   transform: rotate(180deg);
 }
+
 .topbar-btn {
   border: none;
   border-radius: 0.5rem;
