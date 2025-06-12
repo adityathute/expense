@@ -2,19 +2,29 @@
 "use client";
 
 import Link from "next/link";
+import { Menu, X } from "lucide-react";
 import "../styles/components/topbar.css";
 
-export default function TopBar() {
+export default function TopBar({ isSidebarOpen, onToggleSidebar }) {
   return (
-    <header className="topbar-wrapper">
-      <nav className="topbar-container">
-        <div className="topbar-brand">Shivanya Multiservices</div>
-        <div className="topbar-actions">
+    <header className="topbar-header">
+      <nav className="topbar-nav">
+        <div className="topbar-left">
+          <button className="topbar-toggle-btn" onClick={onToggleSidebar}>
+            {isSidebarOpen ? (
+              <X size={28} className="toggle-icon close" />
+            ) : (
+              <Menu size={28} className="toggle-icon open" />
+            )}
+          </button>
+          <span className="topbar-logo">Shivanya MS</span>
+        </div>
+        <div className="topbar-buttons">
           <Link href="/add-transactions">
-            <button className="btn btn-primary">Add Transaction</button>
+            <button className="topbar-btn primary">Add</button>
           </Link>
           <Link href="/login">
-            <button className="btn btn-dark">Login</button>
+            <button className="topbar-btn secondary">Login</button>
           </Link>
         </div>
       </nav>

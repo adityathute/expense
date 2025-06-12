@@ -1,90 +1,138 @@
-.topbar-wrapper {
+/* === Base === */
+.topbar-header {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  z-index: 1000;
+  z-index: 1200;
   background-color: #1d1d1f;
   box-shadow: var(--shadow-md);
 }
 
-.topbar-container {
+.topbar-nav {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: var(--space-3) var(--space-4);
-  height: var(--navbar-height);
+  align-items: center;
+  height: var(--navbar-height, 64px);
+  padding: 0.5rem 1rem;
   max-width: 1440px;
   margin: 0 auto;
 }
 
-.topbar-brand {
-  font-size: var(--fs-lg);
-  font-weight: 600;
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.topbar-toggle-btn {
+  background: none;
+  border: none;
   color: white;
-  user-select: none;
+  padding: 0.25rem;
+  display: none;
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.topbar-toggle-btn:focus,
+.topbar-toggle-btn:active {
+  outline: none;
+  background: none;
+  box-shadow: none;
+}
+
+.topbar-logo {
+  font-size: clamp(1.2rem, 2.5vw, 2rem);
+  font-weight: bold;
+  color: white;
   white-space: nowrap;
 }
 
-.topbar-actions {
+.topbar-buttons {
   display: flex;
-  gap: var(--space-3);
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
-
-.btn {
+.toggle-icon {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+.toggle-icon.open {
+  transform: rotate(0deg);
+}
+.toggle-icon.close {
+  transform: rotate(180deg);
+}
+.topbar-btn {
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: 0.5rem;
   cursor: pointer;
-  font-size: var(--fs-sm);
-  padding: var(--space-2) var(--space-4);
-  transition: background-color var(--transition-fast);
+  font-size: clamp(0.75rem, 1vw, 1rem);
+  padding: 0.5rem 1rem;
+  transition: background-color 0.2s ease-in-out;
+  white-space: nowrap;
 }
 
-.btn-primary {
-  background-color: var(--color-primary);
+.topbar-btn.primary {
+  background-color: var(--color-primary, #007bff);
   color: white;
 }
 
-.btn-primary:hover {
-  background-color: var(--color-primary-hover);
+.topbar-btn.primary:hover {
+  background-color: var(--color-primary-hover, #0056b3);
 }
 
-.btn-dark {
+.topbar-btn.secondary {
   background-color: #000;
   color: white;
 }
 
-.btn-dark:hover {
+.topbar-btn.secondary:hover {
   background-color: #333;
 }
 
-/* === Responsive Enhancements === */
+/* === Mobile Responsive === */
 @media (max-width: 768px) {
-  .topbar-container {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: var(--space-3);
-    gap: var(--space-2);
+  .topbar-nav {
+    gap: 0.75rem;
+    padding: 0.5rem;
   }
 
-  .topbar-actions {
+  .topbar-btn {
     width: 100%;
-    justify-content: flex-end;
-    flex-wrap: wrap;
+    text-align: center;
   }
 
-  .btn {
-    width: auto;
-    font-size: var(--fs-xs);
+  .topbar-toggle-btn {
+    display: block;
   }
 }
 
-@media (min-width: 1920px) {
-  .topbar-brand {
-    font-size: var(--fs-xl);
+/* === Tablet / Small Laptops === */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .topbar-nav {
+    padding: 1rem 1.5rem;
   }
 
-  .btn {
-    font-size: var(--fs-md);
+  .topbar-btn {
+    font-size: 0.875rem;
+  }
+}
+
+/* === Ultra-wide / TV Screens === */
+@media (min-width: 1920px) {
+  .topbar-nav {
+    padding: 2rem 4rem;
+  }
+
+  .topbar-logo {
+    font-size: 2.5rem;
+  }
+
+  .topbar-btn {
+    font-size: 1.25rem;
+    padding: 1rem 2rem;
   }
 }

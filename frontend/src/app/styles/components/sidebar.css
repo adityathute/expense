@@ -1,0 +1,101 @@
+/* styles/components/sidebar.css */
+.sidebar-toggle {
+  display: none;
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  background-color: transparent;
+  border: none;
+  font-size: 2rem;
+  z-index: 1100;
+  color: white;
+  cursor: pointer;
+}
+
+.sidebar-container {
+  position: fixed;
+  top: var(--navbar-height, 64px);
+  left: 0;
+  width: var(--sidebar-width, 240px);
+  height: calc(100vh - var(--navbar-height, 64px));
+  background-color: #151515;
+  padding: 1rem;
+  box-shadow: var(--shadow-md);
+  overflow-y: auto;
+  transition: transform 0.3s ease-in-out;
+  z-index: 1050;
+  transform: translateX(0); /* default: visible */
+}
+
+.sidebar-blur-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(6px);
+  z-index: 1040;
+  transition: opacity 0.3s ease;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sidebar-blur-overlay.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.sidebar-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar-nav-item {
+  margin-bottom: 0.2rem;
+}
+
+.sidebar-nav-item a {
+  color: #eee;
+  text-decoration: none;
+  font-size: 1rem;
+  padding: 0.4rem 1rem;
+  display: block;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s ease;
+}
+
+.sidebar-nav-item a:hover {
+  background-color: #333;
+}
+
+/* ========== Responsive ========== */
+
+/* Hide sidebar on small screens until toggled */
+@media (max-width: 768px) {
+  .sidebar-container {
+    position: fixed;
+    transform: translateX(-100%);
+    z-index: 1050;
+  }
+
+  .sidebar-container.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-toggle {
+    display: block;
+  }
+}
+
+/* Expand spacing and font size for TV / ultra-wide */
+@media (min-width: 1920px) {
+  .sidebar-nav-item a {
+    font-size: 1.25rem;
+    padding: 1rem 1.5rem;
+  }
+}
