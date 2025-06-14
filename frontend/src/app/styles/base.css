@@ -13,7 +13,7 @@ body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-size: 1rem;
   line-height: 1.6;
-  background-color: var(--color-bg);
+  background-color: var(--bg);
   color: var(--color-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -29,15 +29,22 @@ body {
   --fs-xxl: 2rem;
 
   --color-bg: #f9fafb;
-  --color-surface: #ffffff;
-  --color-text: #1f2937;
+  --color-text: #ffffff;
+  --color-surface: #1f2937;
   --color-muted: #6b7280;
   --color-border: #e5e7eb;
   --color-primary: #3b82f6;
   --color-primary-hover: #2563eb;
   --color-success: #10b981;
   --color-danger: #ef4444;
+  --bg: #2e2e38;
+  --bg-secondary: #3a3a49;
+  --glass: rgba(255, 255, 255, 0.03);
+  --text-main: #eaeaea;
+  --text-sub: #b5b5c3;
+  --primary: #3399ff;
 
+  --radius: 18px;
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;

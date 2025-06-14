@@ -1,5 +1,5 @@
 // components/SearchBar.js
-// import "./../styles/search.css";
+import "../styles/components/search.css";
 
 export default function SearchBar({ value, onChange, placeholder }) {
   return (
