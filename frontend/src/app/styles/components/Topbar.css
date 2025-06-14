@@ -15,7 +15,6 @@
   align-items: center;
   height: var(--navbar-height, 64px);
   padding: 0.5rem 1rem;
-  max-width: 1440px;
   margin: 0 auto;
 }
 
@@ -44,17 +43,56 @@
 }
 
 .topbar-logo {
-  font-size: clamp(1.2rem, 2.5vw, 2rem);
-  font-weight: 600;
-  color: white;
-  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  justify-content: center;
   text-decoration: none;
   cursor: pointer;
+}
+
+.topbar-logo-image {
+  display: flex;
+  align-items: center;
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.topbar-logo-text {
+  font-size: clamp(1.4rem, 2.8vw, 1.5rem);
+  font-weight: 700;
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+  background: linear-gradient(
+    90deg,
+    #ff007f,
+    #8a2be2,
+    #00bfff,
+    #00ffcc,
+    #7fff00,
+    #ffd700,
+    #ff4500
+  );
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
   transition: opacity 0.3s ease;
 }
 
-.topbar-logo:hover {
-  opacity: 0.8;
+@keyframes gradientShift {
+  0% {
+    background-position: 0% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.topbar-logo-text {
+  animation: gradientShift 6s linear infinite;
 }
 
 .topbar-buttons {
@@ -119,6 +157,11 @@
   .topbar-toggle-btn {
     display: block;
   }
+
+  .topbar-logo-img {
+    width: 32px;
+    height: 32px;
+  }
 }
 
 /* === Tablet / Small Laptops === */
@@ -135,15 +178,14 @@
 /* === Ultra-wide / TV Screens === */
 @media (min-width: 1920px) {
   .topbar-nav {
-    padding: 2rem 4rem;
+    padding: 1rem 1.5rem;
   }
 
   .topbar-logo {
-    font-size: 2.5rem;
+    font-size: 1.5rem;
   }
 
   .topbar-btn {
-    font-size: 1.25rem;
-    padding: 1rem 2rem;
+    font-size: 1rem;
   }
 }
