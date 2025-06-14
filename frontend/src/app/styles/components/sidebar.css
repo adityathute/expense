@@ -133,6 +133,38 @@
     transform: translateX(0);
   }
 }
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 48px;
+}
+
+.sidebar-footer-text {
+  font-size: 0.75rem;
+  color: #777;
+  opacity: 0.8;
+  font-style: italic;
+  font-family: "San Francisco", "Segoe UI", sans-serif;
+  letter-spacing: 0.5px;
+}
+.sidebar-footer-text {
+  animation: fadeInFooter 0.4s ease forwards;
+}
+
+@keyframes fadeInFooter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 0.8;
+    transform: translateY(0);
+  }
+}
 
 /* ========== Responsive ========== */
 
