@@ -4,6 +4,7 @@
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import "../styles/components/topbar.css";
+import Image from "next/image";
 
 export default function TopBar({ isSidebarOpen, onToggleSidebar }) {
   return (
@@ -18,7 +19,16 @@ export default function TopBar({ isSidebarOpen, onToggleSidebar }) {
             )}
           </button>
           <Link href="/" className="topbar-logo">
-            Shivanya MS
+            <div className="topbar-logo-image">
+              <Image
+                src="/assets/logo.png"
+                alt="Shivanya Logo"
+                width={48}
+                height={48}
+                style={{ objectFit: "contain" }}
+              />
+            </div>
+            <span className="topbar-logo-text">Shivanya</span>
           </Link>
         </div>
         <div className="topbar-buttons">

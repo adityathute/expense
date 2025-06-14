@@ -1,6 +1,7 @@
 // components/StyledTable.js
 // import "./../styles/table.css";
 import ActionButtons from "../components/ActionButtons";
+import "../styles/components/table.css";
 
 export default function StyledTable({
   headers = [],

@@ -1,0 +1,97 @@
+.shivanya-landing {
+  background-color: var(--bg);
+  color: var(--text-main);
+  font-family: 'Segoe UI', 'SF Pro Display', sans-serif;
+  padding: 40px 20px;
+  min-height: 100vh;
+  text-align: center;
+}
+
+.shivanya-hero {
+  margin-bottom: 60px;
+}
+
+.shivanya-title {
+  font-size: 3rem;
+  background: linear-gradient(90deg, #3399ff, #88ccff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 700;
+}
+
+.shivanya-subtitle {
+  font-size: 1.2rem;
+  color: var(--text-sub);
+  max-width: 600px;
+  margin: 12px auto 0;
+}
+
+.shivanya-btn {
+  display: inline-block;
+  margin-top: 30px;
+  padding: 12px 28px;
+  background-color: var(--primary);
+  color: #fff;
+  border-radius: 999px;
+  font-weight: 500;
+  text-decoration: none;
+  box-shadow: 0 4px 14px rgba(51, 153, 255, 0.3);
+  transition: all 0.3s ease;
+}
+.shivanya-btn:hover {
+  background-color: #2677cc;
+}
+
+.shivanya-section-title {
+  font-size: 2rem;
+  margin-bottom: 30px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.shivanya-grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.shivanya-card {
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  padding: 25px;
+  border-radius: var(--radius);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: context-menu;
+  user-select: none;
+}
+
+.shivanya-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(51, 153, 255, 0.2);
+}
+
+.shivanya-card h3 {
+  font-size: 1.3rem;
+  color: var(--primary);
+  margin-bottom: 10px;
+}
+
+.shivanya-card p {
+  color: var(--text-sub);
+  font-size: 0.95rem;
+}
+
+/* Responsive */
+@media (max-width: 500px) {
+  .shivanya-title {
+    font-size: 2.2rem;
+  }
+  .shivanya-subtitle {
+    font-size: 1rem;
+  }
+}
