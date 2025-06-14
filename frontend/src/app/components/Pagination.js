@@ -1,5 +1,5 @@
 // components/Pagination.js
-// import "./../styles/pagination.css";
+import "../styles/components/pagination.css";
 
 export default function Pagination({ currentPage, totalPages, onPageChange }) {
   const pageNumbers = [];

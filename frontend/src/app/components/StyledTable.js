@@ -1,5 +1,7 @@
 // components/StyledTable.js
 // import "./../styles/table.css";
+"use client";
+
 import ActionButtons from "../components/ActionButtons";
 import "../styles/components/table.css";
 
@@ -10,7 +12,7 @@ export default function StyledTable({
   emptyText = "No entries found.",
   onEdit,
   onDelete,
-  renderCell, // new optional function (row, column) => JSX
+  renderCell,
 }) {
   return (
     <table className="table">
@@ -24,15 +26,15 @@ export default function StyledTable({
       </thead>
       <tbody>
         {data.length ? (
-          data.map((row) => (
-            <tr key={row.id || JSON.stringify(row)}>
+          data.map((row, rowIndex) => (
+            <tr key={row.id || rowIndex}>
               {columns.map((col, i) => (
-                <td key={i}>
+                <td key={i} data-label={headers[i]}>
                   {renderCell ? renderCell(row, col) : row[col] ?? "-"}
                 </td>
               ))}
               {(onEdit || onDelete) && (
-                <td className="table-actions">
+                <td className="table-actions" data-label="Actions">
                   <ActionButtons row={row} onEdit={onEdit} onDelete={onDelete} />
                 </td>
               )}
@@ -40,7 +42,10 @@ export default function StyledTable({
           ))
         ) : (
           <tr>
-            <td colSpan={headers.length + (onEdit || onDelete ? 1 : 0)}>
+            <td
+              colSpan={headers.length + (onEdit || onDelete ? 1 : 0)}
+              className="table-empty-cell"
+            >
               {emptyText}
             </td>
           </tr>

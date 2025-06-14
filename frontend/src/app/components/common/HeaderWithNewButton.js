@@ -1,7 +1,7 @@
 // components/common/HeaderWithNewButton.js
 
 import React from "react";
-// import "../components.css";
+import "../components.css";
 
 const HeaderWithNewButton = ({ title, buttonLabel, onClick }) => {
   return (

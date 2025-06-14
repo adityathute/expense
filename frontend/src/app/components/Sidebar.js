@@ -57,7 +57,7 @@ export default function Sidebar({ isOpen, onClose, sidebarRef }) {
           })}
         </ul>
         <footer className="sidebar-footer">
-          <div className="sidebar-footer-text">Shivanya MS v1.0</div>
+          <div className="sidebar-footer-text">Shivanya v1.0</div>
         </footer>
       </nav>
     </aside>

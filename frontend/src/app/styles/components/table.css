@@ -1,65 +1,63 @@
 /* Table Container */
 .table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0 0.4rem;
-    font-size: 0.95rem;
-    background-color: transparent;
-    color: black;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 0.4rem;
+  font-size: 0.95rem;
+  background-color: transparent;
+  color: black;
 }
 
 /* Table Header */
 .table thead th {
-    padding: 0.75rem 1rem;
-    background-color: #e5e7eb;
-    /* color: #374151; */
-    text-align: center;
-    font-weight: 600;
-    border-radius: 0;
-    /* remove default rounding */
+  padding: 0.75rem 1rem;
+  background-color: #e5e7eb;
+  text-align: center;
+  font-weight: 600;
+  border-radius: 0;
 }
 
 /* Only round the first and last header cells */
 .table thead th:first-child {
-    border-top-left-radius: 0.5rem;
+  border-top-left-radius: 0.5rem;
 }
 
 .table thead th:last-child {
-    border-top-right-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
 }
 
 /* Table Body Rows */
 .table tbody tr {
-    background-color: #ffffff;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background-color: #ffffff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .table tbody tr:hover {
-    cursor: context-menu;
-    transform: scale(1.005);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+  transform: scale(1.005);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+  cursor: default;
 }
 
 /* Table Cells */
 .table td {
-    padding: 0.75rem 1rem;
-    /* color: #1f2937; */
-    text-align: center;
-    border-bottom: 1px solid #f3f4f6;
+  padding: 0.75rem 1rem;
+  text-align: center;
+  border-bottom: 1px solid #f3f4f6;
 }
 
 /* Rounded corners for first and last cells */
 .table tbody tr td:first-child {
-    border-top-left-radius: 0.5rem;
-    border-bottom-left-radius: 0.5rem;
+  border-top-left-radius: 0.5rem;
+  border-bottom-left-radius: 0.5rem;
 }
 
 .table tbody tr td:last-child {
-    border-top-right-radius: 0.5rem;
-    border-bottom-right-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
 }
 
+/* Empty Cell Styling */
 .table-empty-cell {
   text-align: center;
   font-style: italic;
@@ -67,37 +65,90 @@
   padding: 1em;
 }
 
-/* Responsive */
+/* Action Buttons Row */
+.action-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+/* Base Button Styling */
+.action-btn {
+  border: none;
+  background: transparent;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: gray;
+  transition: color 0.2s ease;
+}
+
+/* Icon Size */
+.action-btn svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  fill: currentColor;
+}
+
+/* Hover States */
+.action-btn--edit:hover {
+  color: #28a745;
+}
+
+.action-btn--delete:hover {
+  color: #dc3545;
+}
+
+/* Responsive Styles */
 @media (max-width: 768px) {
-    .table thead {
-        display: none;
-    }
+  .table {
+    border-spacing: 0;
+  }
 
-    .table,
-    .table tbody,
-    .table tr,
-    .table td {
-        display: block;
-        width: 100%;
-    }
+  .table thead {
+    display: none;
+  }
 
-    .table tr {
-        margin-bottom: 1rem;
-    }
+  .table,
+  .table tbody,
+  .table tr,
+  .table td {
+    display: block;
+    width: 100%;
+  }
 
-    .table td {
-        padding: 0.75rem 1rem;
-        text-align: right;
-        position: relative;
-    }
+  .table tr {
+    margin-bottom: 1.2rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
 
-    .table td::before {
-        content: attr(data-label);
-        position: absolute;
-        left: 1rem;
-        top: 0.75rem;
-        font-weight: 600;
-        color: #6b7280;
-        text-align: left;
-    }
+  .table td {
+    text-align: right;
+    padding: 0.75rem 1rem;
+    position: relative;
+    border: none;
+    border-bottom: 1px solid #f0f0f0;
+    background-color: #fff;
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 1rem;
+    top: 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    color: #6b7280;
+  }
+
+  /* Remove rounding on mobile for smoother stacking */
+  .table tr td:first-child,
+  .table tr td:last-child {
+    border-radius: 0;
+  }
 }

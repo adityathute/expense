@@ -219,37 +219,6 @@
   opacity: 0.9;
 }
 
-/* Toggle Switch Container */
-.main-switch-header{
-  display: flex;
-  flex-direction: row;
-  margin-top: 18px;
-}
-.switch-container {
-  margin-bottom: 18px;
-  display: flex;
-  align-items: center;
-}
-
-.switch-text {
-  margin-left: 10px;
-  font-weight: bold;
-  font-size: 15px;
-}
-
-/* Create Button */
-.create-btn {
-  font-size: 15px;
-  padding: 10px 16px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  cursor: pointer;
-  border-radius: 6px;
-  font-weight: 600;
-  margin-bottom: 20px;
-  margin-left: auto;
-}
 
 /* Animation */
 @keyframes fadeIn {
