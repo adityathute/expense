@@ -34,9 +34,12 @@ export default function StyledTable({
                 </td>
               ))}
               {(onEdit || onDelete) && (
-                <td className="table-actions" data-label="Actions">
-                  <ActionButtons row={row} onEdit={onEdit} onDelete={onDelete} />
+                <td data-label="Actions">
+                  <div className="table-actions">
+                    <ActionButtons row={row} onEdit={onEdit} onDelete={onDelete} />
+                  </div>
                 </td>
+
               )}
             </tr>
           ))
