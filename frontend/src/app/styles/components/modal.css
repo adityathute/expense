@@ -1,0 +1,120 @@
+/* === Blurred Backdrop === */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  z-index: 1300;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow-y: auto;
+  padding: 2rem;
+}
+
+/* === Modal Content === */
+.modal-content {
+  background: #1e1e1e;
+  color: #f1f5f9;
+  padding: 2rem;
+  border-radius: 1rem;
+  max-height: 90vh;
+  overflow-y: auto;
+  width: 100%;
+  max-width: 600px;
+  position: relative;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  z-index: 1310;
+  animation: modalFadeIn 0.3s ease;
+  transition: transform 0.3s ease;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
+}
+
+/* === Close Button === */
+.modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 1.5rem;
+  color: #ccc;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  z-index: 1311;
+  transition: color 0.2s ease;
+}
+
+.modal-close:hover {
+  color: #ffffff;
+}
+/* === Custom Scrollbar for Modal - Apple Style === */
+.modal-content::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+  background-color: rgba(150, 150, 150, 0.3); /* Soft gray */
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
+}
+
+.modal-content:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(180, 180, 180, 0.5); /* Slightly stronger gray on hover */
+}
+
+/* === Firefox Scrollbar (Apple style) === */
+.modal-content {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(150, 150, 150, 0.3) transparent;
+}
+
+/* Hide scrollbar when not scrolling */
+.modal-content {
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
+}
+
+/* === Animation === */
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* === Responsive === */
+@media (max-width: 768px) {
+  .modal-content {
+    padding: 1.5rem;
+    max-height: 85vh;
+    width: 95%;
+  }
+
+  .modal-close {
+    top: 0.75rem;
+    right: 0.75rem;
+  }
+}
+
+@media (max-height: 600px) {
+  .modal-content {
+    max-height: 85vh;
+  }
+}
+
+@media (min-width: 1920px) {
+  .modal-content {
+    font-size: 1.05rem;
+    max-width: 720px;
+  }
+}

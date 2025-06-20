@@ -6,6 +6,7 @@
   margin: 0;
   display: flex;
   flex-direction: column;
+  z-index: auto;      /* do not give high z-index here */
 }
 
 .layout-body {

@@ -1,0 +1,124 @@
+/* === Modal Form Styles (Dark Theme) === */
+.modalFormContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro", "Segoe UI", Roboto, sans-serif;
+}
+
+.modalFormLabel {
+  font-size: 0.95rem;
+  color: #e2e8f0;
+  margin-bottom: 0.25rem;
+}
+
+.modalFormInput,
+.modalFormTextarea {
+  background-color: #2a2a2e;
+  color: #f1f5f9;
+  padding: 0.75rem 1rem;
+  border: 1px solid #3f3f46;
+  border-radius: 0.6rem;
+  font-size: 0.95rem;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.modalFormInput:focus,
+.modalFormTextarea:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+}
+
+.modalFormTextarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.modalFormError {
+  color: #ef4444;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
+
+/* === Buttons === */
+.buttonSubmit {
+  background-color: #22c55e;
+  color: white;
+  padding: 0.75rem 1.2rem;
+  font-size: 0.95rem;
+  border: none;
+  border-radius: 0.6rem;
+  cursor: pointer;
+  transition: background-color 0.25s ease, transform 0.2s ease;
+}
+.buttonSubmit:hover {
+  background-color: #16a34a;
+  transform: translateY(-1px);
+}
+
+.buttonCancel {
+  background-color: #ef4444;
+  color: white;
+  padding: 0.75rem 1.2rem;
+  font-size: 0.95rem;
+  border: none;
+  border-radius: 0.6rem;
+  cursor: pointer;
+  transition: background-color 0.25s ease;
+}
+.buttonCancel:hover {
+  background-color: #dc2626;
+}
+
+.buttonAddLink {
+  background-color: #3b82f6;
+  color: white;
+  padding: 0.65rem 1.1rem;
+  font-size: 0.9rem;
+  border: none;
+  border-radius: 0.6rem;
+  cursor: pointer;
+  transition: background-color 0.25s ease;
+}
+.buttonAddLink:hover {
+  background-color: #2563eb;
+}
+.buttonRemoveLink {
+  background-color: #ef4444;
+  color: white;
+  padding: 0.65rem 1.1rem;
+  font-size: 0.9rem;
+  border: none;
+  border-radius: 0.6rem;
+  cursor: pointer;
+  transition: background-color 0.25s ease;
+  margin-bottom: 1rem;
+}
+.buttonRemoveLink:hover {
+  background-color: #dc2626;
+}
+/* === Remove default number input spinners === */
+.modalFormInput::-webkit-inner-spin-button,
+.modalFormInput::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* === Responsive === */
+@media (max-width: 768px) {
+  .modalFormInput,
+  .modalFormTextarea {
+    font-size: 0.9rem;
+    padding: 0.65rem 0.9rem;
+  }
+
+  .buttonSubmit,
+  .buttonCancel,
+  .buttonAddLink {
+    font-size: 0.9rem;
+    padding: 0.65rem 1rem;
+  }
+}

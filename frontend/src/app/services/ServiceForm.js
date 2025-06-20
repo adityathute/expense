@@ -1,7 +1,7 @@
-// services/ServiceForm.js
 "use client";
 
 import React, { useEffect } from "react";
+import styles from "../styles/components/modalForm.module.css";
 
 export default function ServiceForm({
   newService,
@@ -14,9 +14,9 @@ export default function ServiceForm({
   removeLink,
   editingService,
   resetForm,
-  formErrors,
+  formErrors = {},
   showLinksSection,
-  setShowLinksSection
+  setShowLinksSection,
 }) {
   useEffect(() => {
     if (editingService && newService.links.length > 0) {
@@ -25,71 +25,116 @@ export default function ServiceForm({
   }, [editingService, newService.links.length, setShowLinksSection]);
 
   return (
-    <form onSubmit={handleSubmit}>
-      <label>
-        Name:
-        <input type="text" name="name" value={newService.name} onChange={handleInputChange} required />
-        {formErrors.name && <div className="error-text">{formErrors.name}</div>}
-      </label>
+    <form className={styles.modalformWrapper} onSubmit={handleSubmit}>
+      {/* === Name === */}
+      <div className={styles.modalFormGroup}>
+        <input
+          type="text"
+          name="name"
+          value={newService.name}
+          onChange={handleInputChange}
+          placeholder="Full Name"
+          required
+          className={styles.modalFormInput}
+          spellCheck={false}
+        />
+        {formErrors.name && (
+          <div className={styles.modalformError}>{formErrors.name}</div>
+        )}
+      </div>
 
-      <label>
-        Description:
-        <textarea value={description ?? ""} onChange={(e) => setDescription(e.target.value)} />
-      </label>
+      {/* === Description === */}
+      <div>
+        <textarea
+          value={description ?? ""}
+          onChange={(e) => setDescription(e.target.value)}
+          className={styles.modalFormTextarea}
+          placeholder="Description"
+          spellCheck={false}
+        />
+      </div>
 
-      <label>
-        Service Fee:
-        <input type="number" name="service_fee" value={newService.service_fee} onChange={handleInputChange} />
-      </label>
+      {/* === Numeric Inputs === */}
+      {[
+        { name: "service_fee", placeholder: "Service Fee" },
+        { name: "service_charge", placeholder: "Service Charge" },
+        { name: "other_charge", placeholder: "Other Charge" },
+        { name: "pages_required", placeholder: "Pages Required" },
+        {
+          name: "required_time_hours",
+          step: "0.1",
+          placeholder: "Required Time (hours)",
+        },
+      ].map(({ name, step = "1", placeholder }) => (
+        <div key={name}>
+          <input
+            type="number"
+            name={name}
+            value={newService[name] === 0 ? "" : newService[name]}
+            step={step}
+            onChange={handleInputChange}
+            placeholder={placeholder}
+            className={styles.modalFormInput}
+            spellCheck={false}
+          />
+        </div>
+      ))}
 
-      <label>
-        Service Charge:
-        <input type="number" name="service_charge" value={newService.service_charge} onChange={handleInputChange} />
-      </label>
-
-      <label>
-        Other Charge:
-        <input type="number" name="other_charge" value={newService.other_charge} onChange={handleInputChange} />
-      </label>
-
-      <label>
-        Pages Required:
-        <input type="number" name="pages_required" value={newService.pages_required} onChange={handleInputChange} />
-      </label>
-
-      <label>
-        Required Time (hours):
-        <input type="number" step="0.1" name="required_time_hours" value={newService.required_time_hours} onChange={handleInputChange} />
-      </label>
-
-      {/* Links Section */}
+      {/* === Links Section === */}
       {showLinksSection && newService.links.length > 0 && (
-        <>
-          <h4>Links</h4>
+        <div>
           {newService.links.map((link, index) => (
-            <div key={index}>
+            <div key={index} className={styles.modalformWrapper}>
               <input
                 type="text"
                 placeholder="Label"
                 value={link.label}
                 onChange={(e) => handleLinkChange(index, "label", e.target.value)}
+                className={styles.modalFormInput}
+                spellCheck={false}
               />
               <input
                 type="url"
                 placeholder="URL"
                 value={link.url}
                 onChange={(e) => handleLinkChange(index, "url", e.target.value)}
+                className={styles.modalFormInput}
+                spellCheck={false}
               />
-              <button type="button" onClick={() => removeLink(index)}>Remove</button>
+              <button
+                type="button"
+                className={styles.buttonRemoveLink}
+                onClick={() => removeLink(index)}
+              >
+                Remove Link
+              </button>
             </div>
           ))}
-        </>
+        </div>
       )}
 
-      <button type="button" onClick={addLink}>Add Link</button>
+      {/* === Link Add Button === */}
+      <button
+        type="button"
+        className={styles.buttonAddLink}
+        onClick={addLink}
+      >
+        Add Link
+      </button>
 
-      <button type="submit">{editingService ? "Update Service" : "Create Service"}</button>
-      <button type="button" onClick={resetForm}>Cancel</button>
+      {/* === Action Buttons === */}
+      <div style={{ display: "flex", gap: "1rem", marginTop: "1.5rem" }}>
+        <button type="submit" className={styles.buttonSubmit}>
+          {editingService ? "Update Service" : "Create Service"}
+        </button>
+        <button
+          type="button"
+          onClick={resetForm}
+          className={styles.buttonCancel}
+        >
+          Cancel
+        </button>
+      </div>
     </form>
   );
 }

@@ -9,6 +9,8 @@ import BalanceCell from "../components/BalanceCell";
 import HeaderWithNewButton from "../components/common/HeaderWithNewButton";
 import React from 'react';
 import Loader from "../components/Loader";
+import Modal from "../components/Modal";
+import ServiceForm from "./ServiceForm";
 
 export default function ServicesPage() {
   const [services, setServices] = useState([]);
@@ -212,69 +214,24 @@ export default function ServicesPage() {
         }}
       />
 
-      {showForm && (
-        <form onSubmit={handleSubmit}>
-          <label>
-            Name:
-            <input type="text" name="name" value={newService.name} onChange={handleInputChange} required />
-          </label>
+      <Modal isOpen={showForm} onClose={resetForm}>
+        <ServiceForm
+          newService={newService}
+          description={newService.description}
+          setDescription={(desc) => setNewService(prev => ({ ...prev, description: desc }))}
+          handleInputChange={handleInputChange}
+          handleSubmit={handleSubmit}
+          handleLinkChange={handleLinkChange}
+          addLink={addLink}
+          removeLink={removeLink}
+          editingService={editingService}
+          resetForm={resetForm}
+          formErrors={{}} // optional, can implement later
+          showLinksSection={showLinksSection}
+          setShowLinksSection={setShowLinksSection}
+        />
+      </Modal>
 
-          <label>
-            Description:
-            <textarea name="description" value={newService.description} onChange={handleInputChange} />
-          </label>
-
-          <label>
-            Service Fee:
-            <input type="number" name="service_fee" value={newService.service_fee} onChange={handleInputChange} />
-          </label>
-
-          <label>
-            Service Charge:
-            <input type="number" name="service_charge" value={newService.service_charge} onChange={handleInputChange} />
-          </label>
-
-          <label>
-            Other Charge:
-            <input type="number" name="other_charge" value={newService.other_charge} onChange={handleInputChange} />
-          </label>
-
-          <label>
-            Pages Required:
-            <input type="number" name="pages_required" value={newService.pages_required} onChange={handleInputChange} />
-          </label>
-
-          <label>
-            Required Time (hours):
-            <input type="number" step="0.1" name="required_time_hours" value={newService.required_time_hours} onChange={handleInputChange} />
-          </label>
-
-
-
-          <h4>Links</h4>
-          {newService.links.map((link, index) => (
-            <div key={index}>
-              <input
-                type="text"
-                placeholder="Label"
-                value={link.label}
-                onChange={(e) => handleLinkChange(index, "label", e.target.value)}
-              />
-              <input
-                type="url"
-                placeholder="URL"
-                value={link.url}
-                onChange={(e) => handleLinkChange(index, "url", e.target.value)}
-              />
-              <button type="button" onClick={() => removeLink(index)}>Remove</button>
-            </div>
-          ))}
-          <button type="button" onClick={addLink}>Add Link</button>
-
-          <button type="submit">{editingService ? "Update Service" : "Create Service"}</button>
-          <button type="button" onClick={resetForm}>Cancel</button>
-        </form>
-      )}
     </div>
   );
 }
