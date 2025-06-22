@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import styles from "../styles/components/modalForm.module.css";
+import { DeleteIcon } from "../components/Icons";
 
 export default function ServiceForm({
   newService,
@@ -13,11 +14,22 @@ export default function ServiceForm({
   addLink,
   removeLink,
   editingService,
-  resetForm,
   formErrors = {},
   showLinksSection,
   setShowLinksSection,
 }) {
+  const nameInputRef = useRef(null);
+
+  useEffect(() => {
+    const isMobile = window.innerWidth <= 768; // or use a more specific check
+    if (!isMobile) {
+      const timer = setTimeout(() => {
+        nameInputRef.current?.focus();
+      }, 400); // delay to match modal animation
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
   useEffect(() => {
     if (editingService && newService.links.length > 0) {
       setShowLinksSection(true);
@@ -32,6 +44,8 @@ export default function ServiceForm({
           type="text"
           name="name"
           value={newService.name}
+          ref={nameInputRef}
+
           onChange={handleInputChange}
           placeholder="Full Name"
           required
@@ -84,13 +98,13 @@ export default function ServiceForm({
       {showLinksSection && newService.links.length > 0 && (
         <div>
           {newService.links.map((link, index) => (
-            <div key={index} className={styles.modalformWrapper}>
+            <div key={index} className={styles.linkRow}>
               <input
                 type="text"
                 placeholder="Label"
                 value={link.label}
                 onChange={(e) => handleLinkChange(index, "label", e.target.value)}
-                className={styles.modalFormInput}
+                className={`${styles.modalFormInput} ${styles.linkLabelInput}`}
                 spellCheck={false}
               />
               <input
@@ -98,17 +112,19 @@ export default function ServiceForm({
                 placeholder="URL"
                 value={link.url}
                 onChange={(e) => handleLinkChange(index, "url", e.target.value)}
-                className={styles.modalFormInput}
+                className={`${styles.modalFormInput} ${styles.linkUrlInput}`}
                 spellCheck={false}
               />
               <button
                 type="button"
-                className={styles.buttonRemoveLink}
+                className={styles.removeButton}
                 onClick={() => removeLink(index)}
+                aria-label="Remove Link"
               >
-                Remove Link
+                <DeleteIcon className={styles.icon} />
               </button>
             </div>
+
           ))}
         </div>
       )}
@@ -123,18 +139,19 @@ export default function ServiceForm({
       </button>
 
       {/* === Action Buttons === */}
-      <div style={{ display: "flex", gap: "1rem", marginTop: "1.5rem" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center", // <-- centers horizontally
+          gap: "1rem",
+          marginTop: "1rem",
+        }}
+      >
         <button type="submit" className={styles.buttonSubmit}>
           {editingService ? "Update Service" : "Create Service"}
         </button>
-        <button
-          type="button"
-          onClick={resetForm}
-          className={styles.buttonCancel}
-        >
-          Cancel
-        </button>
       </div>
+
     </form>
   );
 }

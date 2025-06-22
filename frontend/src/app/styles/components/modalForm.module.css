@@ -6,23 +6,18 @@
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro", "Segoe UI", Roboto, sans-serif;
 }
 
-.modalFormLabel {
-  font-size: 0.95rem;
-  color: #e2e8f0;
-  margin-bottom: 0.25rem;
-}
-
 .modalFormInput,
 .modalFormTextarea {
   background-color: #2a2a2e;
   color: #f1f5f9;
-  padding: 0.75rem 1rem;
+  padding: 0.50rem 0.80rem;
   border: 1px solid #3f3f46;
   border-radius: 0.6rem;
-  font-size: 0.95rem;
+  font-size: 0.90rem;
   transition: border-color 0.25s ease, box-shadow 0.25s ease;
   width: 100%;
-  margin-bottom: 1rem;
+  caret-color: #ffffff;
+  margin-bottom: 0.80rem;
 }
 
 .modalFormInput:focus,
@@ -32,9 +27,22 @@
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
 }
 
+.modalFormInput:-webkit-autofill,
+.modalFormInput:-webkit-autofill:hover,
+.modalFormInput:-webkit-autofill:focus,
+.modalFormTextarea:-webkit-autofill {
+  background-color: #2a2a2e !important;
+  color: #f1f5f9 !important;
+  -webkit-box-shadow: 0 0 0px 1000px #2a2a2e inset;
+  box-shadow: 0 0 0px 1000px #2a2a2e inset;
+  -webkit-text-fill-color: #f1f5f9 !important;
+  transition: background-color 5000s ease-in-out 0s;
+  caret-color: #ffffff !important;
+}
+
 .modalFormTextarea {
   resize: vertical;
-  min-height: 100px;
+  min-height: 50px;
 }
 
 .modalFormError {
@@ -43,63 +51,106 @@
   margin-top: 0.25rem;
 }
 
-/* === Buttons === */
-.buttonSubmit {
-  background-color: #22c55e;
-  color: white;
-  padding: 0.75rem 1.2rem;
-  font-size: 0.95rem;
+/* === Base Button Styles === */
+.buttonSubmit,
+.buttonCancel,
+.buttonAddLink {
+  padding: 0.45rem 0.9rem;
+  font-size: 0.85rem;
   border: none;
-  border-radius: 0.6rem;
+  outline: none;
+  border-radius: 0.5rem;
   cursor: pointer;
   transition: background-color 0.25s ease, transform 0.2s ease;
+  font-weight: 500;
+  color: #f8fafc;
+  /* Soft white */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
+
+/* === Submit Button (Green) === */
+.buttonSubmit {
+  background-color: #15803d;
+  /* Emerald-700 */
+}
+
 .buttonSubmit:hover {
   background-color: #16a34a;
-  transform: translateY(-1px);
+  /* Emerald-600 */
 }
 
+/* === Cancel Button (Red) === */
 .buttonCancel {
-  background-color: #ef4444;
-  color: white;
-  padding: 0.75rem 1.2rem;
-  font-size: 0.95rem;
-  border: none;
-  border-radius: 0.6rem;
-  cursor: pointer;
-  transition: background-color 0.25s ease;
+  background-color: #b91c1c;
+  /* Red-700 */
 }
+
 .buttonCancel:hover {
   background-color: #dc2626;
+  /* Red-600 */
 }
 
+/* === Add Link Button (Blue) === */
 .buttonAddLink {
-  background-color: #3b82f6;
-  color: white;
-  padding: 0.65rem 1.1rem;
-  font-size: 0.9rem;
-  border: none;
-  border-radius: 0.6rem;
-  cursor: pointer;
-  transition: background-color 0.25s ease;
+  background-color: #1d4ed8;
+  /* Blue-700 */
 }
+
 .buttonAddLink:hover {
   background-color: #2563eb;
+  /* Blue-600 */
 }
-.buttonRemoveLink {
-  background-color: #ef4444;
-  color: white;
-  padding: 0.65rem 1.1rem;
-  font-size: 0.9rem;
-  border: none;
+
+/* === Remove Link Button (Destructive Red) === */
+.linkRow {
+  display: flex;
+  align-items: stretch;
+  /* stretch children to match height */
+  gap: 0.5rem;
+  flex-wrap: nowrap;
+}
+
+.linkLabelInput,
+.linkUrlInput {
+  flex: 1;
+  min-width: 100px;
+  background-color: #2a2a2e;
+  color: #f1f5f9;
+  padding: 0.50rem 0.80rem;
+  border: 1px solid #3f3f46;
   border-radius: 0.6rem;
+  font-size: 0.90rem;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  width: 100%;
+  caret-color: #ffffff;
+  margin-bottom: 0.80rem;
+}
+
+.removeButton {
+  background: none;
+  border: none;
+  padding: 0 0.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  transition: background-color 0.25s ease;
-  margin-bottom: 1rem;
+  color: gray;
+  height: 100%;
+  min-height: 2.4rem;
+  aspect-ratio: 1 / 1;
+  /* keep it square */
 }
-.buttonRemoveLink:hover {
-  background-color: #dc2626;
+
+.removeButton:hover {
+  color: #ef4444;
 }
+
+.icon {
+  width: 1.2rem;
+  height: 1.2rem;
+  fill: currentColor;
+}
+
 /* === Remove default number input spinners === */
 .modalFormInput::-webkit-inner-spin-button,
 .modalFormInput::-webkit-outer-spin-button {
@@ -109,6 +160,7 @@
 
 /* === Responsive === */
 @media (max-width: 768px) {
+
   .modalFormInput,
   .modalFormTextarea {
     font-size: 0.9rem;

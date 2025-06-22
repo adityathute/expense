@@ -3,7 +3,11 @@
 import { motion, AnimatePresence } from "framer-motion";
 import "../styles/components/modal.css";
 
-export default function Modal({ isOpen, onClose, children }) {
+export default function Modal({ isOpen, onClose, onReset, children, title = "Add Service" }) {
+  const handleClose = () => {
+    if (onReset) onReset(); // call resetForm
+    onClose();
+  };
   return (
     <AnimatePresence>
       {isOpen && (
@@ -20,10 +24,27 @@ export default function Modal({ isOpen, onClose, children }) {
             exit={{ scale: 0.95, opacity: 0 }}
             transition={{ duration: 0.2 }}
           >
-            <button className="modal-close" onClick={onClose}>
-              &times;
-            </button>
-            {children}
+            <div className="modal-header">
+              <h2 className="modal-title">{title}</h2>
+              <motion.button
+                className="modal-close"
+                onClick={handleClose}
+                whileHover={{
+                  rotate: 90,
+                  color: "#ef4444", // Tailwind Red-500
+                }}
+                whileTap={{
+                  scale: 0.95,
+                }}
+                transition={{ type: "spring", stiffness: 260, damping: 20 }}
+              >
+                &times;
+              </motion.button>
+            </div>
+
+            <div className="modal-body">
+              {children}
+            </div>
           </motion.div>
         </motion.div>
       )}

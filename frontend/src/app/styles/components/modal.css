@@ -1,3 +1,28 @@
+/* === Modal Header === */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.85rem 1.50rem;
+  border-bottom: 1px solid #2f2f2f;
+  position: relative;
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #f1f5f9;
+  margin: 0;
+}
+
+/* === Modal Body with Matching Padding === */
+.modal-body {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
 /* === Blurred Backdrop === */
 .modal-backdrop {
   position: fixed;
@@ -16,8 +41,6 @@
 .modal-content {
   background: #1e1e1e;
   color: #f1f5f9;
-  padding: 2rem;
-  border-radius: 1rem;
   max-height: 90vh;
   overflow-y: auto;
   width: 100%;
@@ -29,25 +52,27 @@
   transition: transform 0.3s ease;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE/Edge */
+  border-radius: 8px;
 }
 
-/* === Close Button === */
+/* === Close Button (already defined) === */
 .modal-close {
   position: absolute;
-  top: 1rem;
   right: 1rem;
-  font-size: 1.5rem;
-  color: #ccc;
+  font-size: 1.8rem;
+  color: #a3a3a3; /* soft gray */
   background: transparent;
   border: none;
   cursor: pointer;
-  z-index: 1311;
+  padding: 0.25rem;
+  line-height: 1;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: color 0.2s ease;
 }
 
-.modal-close:hover {
-  color: #ffffff;
-}
 /* === Custom Scrollbar for Modal - Apple Style === */
 .modal-content::-webkit-scrollbar {
   width: 6px;
@@ -59,25 +84,13 @@
 }
 
 .modal-content::-webkit-scrollbar-thumb {
-  background-color: rgba(150, 150, 150, 0.3); /* Soft gray */
+  background-color: rgba(150, 150, 150, 0.3);
   border-radius: 8px;
   transition: background-color 0.3s ease;
 }
 
 .modal-content:hover::-webkit-scrollbar-thumb {
-  background-color: rgba(180, 180, 180, 0.5); /* Slightly stronger gray on hover */
-}
-
-/* === Firefox Scrollbar (Apple style) === */
-.modal-content {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(150, 150, 150, 0.3) transparent;
-}
-
-/* Hide scrollbar when not scrolling */
-.modal-content {
-  scrollbar-gutter: stable;
-  overscroll-behavior: contain;
+  background-color: rgba(180, 180, 180, 0.5);
 }
 
 /* === Animation === */
@@ -95,9 +108,8 @@
 /* === Responsive === */
 @media (max-width: 768px) {
   .modal-content {
-    padding: 1.5rem;
     max-height: 85vh;
-    width: 95%;
+    width: 100%;
   }
 
   .modal-close {
@@ -114,7 +126,6 @@
 
 @media (min-width: 1920px) {
   .modal-content {
-    font-size: 1.05rem;
     max-width: 720px;
   }
 }
