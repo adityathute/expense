@@ -59,11 +59,14 @@ class ServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Service
         fields = [
-            'id', 'name', 'description', 'service_fee', 'service_charge', 'other_charge',
-            'pages_required', 'required_time_hours', 'is_active',
-            'links'
+            'id', 'name', 'description',
+            'service_fee', 'service_charge', 'other_charge',
+            'pages_required', 'required_time_hours',
+            'is_active', 'links',
+            'created_at', 'updated_at',  # ✅
         ]
-
+        read_only_fields = ['created_at', 'updated_at']  # ✅
+        
     def validate_links(self, value):
         # Filter out links with both label and url empty
         return [
