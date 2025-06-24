@@ -53,6 +53,8 @@
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE/Edge */
   border-radius: 8px;
+  border: 1px solid #3f3f46;
+  box-shadow: 0 0 0 3px rgba(81, 82, 102, 0.25);
 }
 
 /* === Close Button (already defined) === */
