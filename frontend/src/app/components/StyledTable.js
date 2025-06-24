@@ -1,5 +1,5 @@
 // components/StyledTable.js
-// import "./../styles/table.css";
+
 "use client";
 
 import ActionButtons from "../components/ActionButtons";
@@ -29,7 +29,7 @@ export default function StyledTable({
           data.map((row, rowIndex) => (
             <tr key={row.id || rowIndex}>
               {columns.map((col, i) => (
-                <td key={i} data-label={headers[i]}>
+                <td key={i} data-label={headers[i]} className={col === "name" ? "service-name-cell" : ""}>
                   {renderCell ? renderCell(row, col) : row[col] ?? "-"}
                 </td>
               ))}

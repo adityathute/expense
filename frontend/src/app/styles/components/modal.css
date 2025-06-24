@@ -98,7 +98,7 @@
 .serviceDetailsContainer {
   padding: 1.5rem;
   color: #f1f5f9;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro", "Segoe UI", Roboto, sans-serif;
+  /* font-family: -apple-system, BlinkMacSystemFont, "SF Pro", "Segoe UI", Roboto, sans-serif; */
   font-size: 0.95rem;
   line-height: 1.6;
 }

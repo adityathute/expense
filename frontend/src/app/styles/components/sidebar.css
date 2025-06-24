@@ -84,7 +84,7 @@
   padding: 0.6rem 1rem;
   border-radius: 0.6rem;
   transition: background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease, transform 0.2s ease;
-  font-family: "San Francisco", "Segoe UI", sans-serif;
+  /* font-family: "San Francisco", "Segoe UI", sans-serif; */
   letter-spacing: 0.2px;
 
   /* Animation */
@@ -148,7 +148,7 @@
   color: #777;
   opacity: 0.8;
   font-style: italic;
-  font-family: "San Francisco", "Segoe UI", sans-serif;
+  /* font-family: "San Francisco", "Segoe UI", sans-serif; */
   letter-spacing: 0.5px;
 }
 .sidebar-footer-text {

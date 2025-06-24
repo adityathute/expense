@@ -257,7 +257,7 @@ export default function ServicesPage() {
         }}
       />
 
-      <Modal isOpen={showForm} onClose={resetForm}>
+      <Modal  isOpen={showForm} onClose={resetForm} title={editingService ? "Update Service" : "Add Service"}>
         <ServiceForm
           newService={newService}
           description={newService.description}
@@ -276,58 +276,58 @@ export default function ServicesPage() {
       </Modal>
       <Modal isOpen={showDetailsModal} onClose={() => setShowDetailsModal(false)}>
         {selectedService && (
-<div className="serviceDetailsContainer">
-  <h2 className="serviceDetailsTitle">{selectedService.name}</h2>
+          <div className="serviceDetailsContainer">
+            <h2 className="serviceDetailsTitle">{selectedService.name}</h2>
 
-  <div>
-    <p className="serviceDetailsItem"><strong>Description:</strong><br />{selectedService.description || "—"}</p>
-    <p className="serviceDetailsItem"><strong>Service Fee:</strong> ₹{selectedService.service_fee ?? "0.00"}</p>
-    <p className="serviceDetailsItem"><strong>Service Charge:</strong> ₹{selectedService.service_charge ?? "0.00"}</p>
-    <p className="serviceDetailsItem"><strong>Other Charge:</strong> ₹{selectedService.other_charge ?? "0.00"}</p>
-    <p className="serviceDetailsItem"><strong>Pages Required:</strong> {selectedService.pages_required}</p>
-    <p className="serviceDetailsItem"><strong>Estimated Time:</strong>
-      {selectedService.estimated_time_seconds
-        ? ` ${Math.round(selectedService.estimated_time_seconds / 60)} minutes`
-        : " —"}
-    </p>
-    <p className="serviceDetailsItem"><strong>Required Time:</strong>
-      {selectedService.required_time_hours
-        ? ` ${(selectedService.required_time_hours / 24).toFixed(1)} days`
-        : " —"}
-    </p>
-    <p className="serviceDetailsItem"><strong>Status:</strong>
-      <span className={`serviceDetailsStatus ${selectedService.is_active ? "text-green-400" : "text-red-400"}`}>
-        {selectedService.is_active ? "Active ✅" : "Inactive ❌"}
-      </span>
-    </p>
-    <p className="serviceDetailsItem"><strong>Deleted:</strong>
-      <span className={`serviceDetailsStatus ${selectedService.is_deleted ? "text-red-400" : "text-green-400"}`}>
-        {selectedService.is_deleted ? "Yes" : "No"}
-      </span>
-    </p>
-    <p className="serviceDetailsItem"><strong>Created At:</strong> {formatDate(selectedService.created_at)}</p>
-    <p className="serviceDetailsItem"><strong>Updated At:</strong> {formatDate(selectedService.updated_at)}</p>
-  </div>
+            <div>
+              <p className="serviceDetailsItem"><strong>Description:</strong><br />{selectedService.description || "—"}</p>
+              <p className="serviceDetailsItem"><strong>Service Fee:</strong> ₹{selectedService.service_fee ?? "0.00"}</p>
+              <p className="serviceDetailsItem"><strong>Service Charge:</strong> ₹{selectedService.service_charge ?? "0.00"}</p>
+              <p className="serviceDetailsItem"><strong>Other Charge:</strong> ₹{selectedService.other_charge ?? "0.00"}</p>
+              <p className="serviceDetailsItem"><strong>Pages Required:</strong> {selectedService.pages_required}</p>
+              <p className="serviceDetailsItem"><strong>Estimated Time:</strong>
+                {selectedService.estimated_time_seconds
+                  ? ` ${Math.round(selectedService.estimated_time_seconds / 60)} minutes`
+                  : " —"}
+              </p>
+              <p className="serviceDetailsItem"><strong>Required Time:</strong>
+                {selectedService.required_time_hours
+                  ? ` ${(selectedService.required_time_hours / 24).toFixed(1)} days`
+                  : " —"}
+              </p>
+              <p className="serviceDetailsItem"><strong>Status:</strong>
+                <span className={`serviceDetailsStatus ${selectedService.is_active ? "text-green-400" : "text-red-400"}`}>
+                  {selectedService.is_active ? "Active ✅" : "Inactive ❌"}
+                </span>
+              </p>
+              <p className="serviceDetailsItem"><strong>Deleted:</strong>
+                <span className={`serviceDetailsStatus ${selectedService.is_deleted ? "text-red-400" : "text-green-400"}`}>
+                  {selectedService.is_deleted ? "Yes" : "No"}
+                </span>
+              </p>
+              <p className="serviceDetailsItem"><strong>Created At:</strong> {formatDate(selectedService.created_at)}</p>
+              <p className="serviceDetailsItem"><strong>Updated At:</strong> {formatDate(selectedService.updated_at)}</p>
+            </div>
 
-  {selectedService.links && selectedService.links.length > 0 && (
-    <div className="serviceDetailsLinks">
-      <span className="serviceDetailsLinksTitle">Related Links:</span>
-      <ul className="serviceDetailsLinkList">
-        {selectedService.links.map((link, idx) => (
-          <li key={idx}>
-            <a
-              href={link.url}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {link.label || link.url}
-            </a>
-          </li>
-        ))}
-      </ul>
-    </div>
-  )}
-</div>
+            {selectedService.links && selectedService.links.length > 0 && (
+              <div className="serviceDetailsLinks">
+                <span className="serviceDetailsLinksTitle">Related Links:</span>
+                <ul className="serviceDetailsLinkList">
+                  {selectedService.links.map((link, idx) => (
+                    <li key={idx}>
+                      <a
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {link.label || link.url}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
 
         )}
       </Modal>

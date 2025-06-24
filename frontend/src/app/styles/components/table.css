@@ -3,7 +3,7 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 0.88rem;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro", "Segoe UI", Roboto, sans-serif;
+  /* font-family: -apple-system, BlinkMacSystemFont, "SF Pro", "Segoe UI", Roboto, sans-serif; */
   background-color: #1e1e1e;
   color: #f1f5f9;
   border: 1px solid #2c2c2c;
@@ -164,4 +164,13 @@
   .table td:last-child {
     border-bottom: none;
   }
+}
+.service-name-cell button {
+  font-weight: 600;
+  color: #38bdf8; /* A nice sky blue for highlight */
+  background: transparent;
+  outline: none;
+  border: none;
+  cursor: pointer;
+  font-size: .8rem;
 }
