@@ -94,6 +94,77 @@
 .modal-content:hover::-webkit-scrollbar-thumb {
   background-color: rgba(180, 180, 180, 0.5);
 }
+/* === Service Detail Content === */
+.serviceDetailsContainer {
+  padding: 1.5rem;
+  color: #f1f5f9;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro", "Segoe UI", Roboto, sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.serviceDetailsTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  border-bottom: 1px solid #2f2f2f;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1.2rem;
+}
+
+.serviceDetailsItem {
+  margin-bottom: 0.6rem;
+}
+
+.serviceDetailsItem strong {
+  font-weight: 600;
+  color: #d1d5db;
+}
+
+.serviceDetailsStatus {
+  font-weight: 600;
+  display: inline-block;
+  margin-left: 0.25rem;
+}
+
+.serviceDetailsLinks {
+  margin-top: 1.5rem;
+}
+
+.serviceDetailsLinksTitle {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.serviceDetailsLinkList {
+  list-style: disc;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.serviceDetailsLinkList a {
+  color: #60a5fa;
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.serviceDetailsLinkList a:hover {
+  color: #93c5fd;
+}
+
+/* === Responsive Padding === */
+@media (max-width: 768px) {
+  .serviceDetailsContainer {
+    padding: 1rem;
+    font-size: 0.925rem;
+  }
+
+  .serviceDetailsTitle {
+    font-size: 1.3rem;
+  }
+}
 
 /* === Animation === */
 @keyframes modalFadeIn {

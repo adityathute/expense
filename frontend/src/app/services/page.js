@@ -11,6 +11,7 @@ import React from 'react';
 import Loader from "../components/Loader";
 import Modal from "../components/Modal";
 import ServiceForm from "./ServiceForm";
+import { parseISO, format } from "date-fns";
 
 export default function ServicesPage() {
   const [services, setServices] = useState([]);
@@ -21,6 +22,8 @@ export default function ServicesPage() {
   const [showForm, setShowForm] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [showLinksSection, setShowLinksSection] = useState(false);
+  const [selectedService, setSelectedService] = useState(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   const [newService, setNewService] = useState({
     name: "",
@@ -37,6 +40,32 @@ export default function ServicesPage() {
   useEffect(() => {
     fetchServices();
   }, []);
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "—";
+
+    try {
+      const cleaned = dateString.includes(".")
+        ? dateString.split(".")[0]
+        : dateString;
+
+      const isoString = cleaned.replace(" ", "T");
+      const date = new Date(isoString);
+
+      if (isNaN(date.getTime())) return "—";
+
+      return date.toLocaleString("en-IN", {
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      });
+    } catch {
+      return "—";
+    }
+  };
 
   const fetchServices = () => {
     fetch("http://127.0.0.1:8001/api/services/")
@@ -202,6 +231,20 @@ export default function ServicesPage() {
         onEdit={handleEdit}
         onDelete={handleDelete}
         renderCell={(row, column) => {
+          if (column === "name") {
+            return (
+              <button
+                onClick={() => {
+                  setSelectedService(row);
+                  setShowDetailsModal(true);
+                }}
+                className="text-blue-400 hover:underline"
+              >
+                {row.name}
+              </button>
+            );
+          }
+
           if (column === "service_fee") {
             return <BalanceCell value={row.service_fee} />;
           }
@@ -230,6 +273,63 @@ export default function ServicesPage() {
           showLinksSection={showLinksSection}
           setShowLinksSection={setShowLinksSection}
         />
+      </Modal>
+      <Modal isOpen={showDetailsModal} onClose={() => setShowDetailsModal(false)}>
+        {selectedService && (
+<div className="serviceDetailsContainer">
+  <h2 className="serviceDetailsTitle">{selectedService.name}</h2>
+
+  <div>
+    <p className="serviceDetailsItem"><strong>Description:</strong><br />{selectedService.description || "—"}</p>
+    <p className="serviceDetailsItem"><strong>Service Fee:</strong> ₹{selectedService.service_fee ?? "0.00"}</p>
+    <p className="serviceDetailsItem"><strong>Service Charge:</strong> ₹{selectedService.service_charge ?? "0.00"}</p>
+    <p className="serviceDetailsItem"><strong>Other Charge:</strong> ₹{selectedService.other_charge ?? "0.00"}</p>
+    <p className="serviceDetailsItem"><strong>Pages Required:</strong> {selectedService.pages_required}</p>
+    <p className="serviceDetailsItem"><strong>Estimated Time:</strong>
+      {selectedService.estimated_time_seconds
+        ? ` ${Math.round(selectedService.estimated_time_seconds / 60)} minutes`
+        : " —"}
+    </p>
+    <p className="serviceDetailsItem"><strong>Required Time:</strong>
+      {selectedService.required_time_hours
+        ? ` ${(selectedService.required_time_hours / 24).toFixed(1)} days`
+        : " —"}
+    </p>
+    <p className="serviceDetailsItem"><strong>Status:</strong>
+      <span className={`serviceDetailsStatus ${selectedService.is_active ? "text-green-400" : "text-red-400"}`}>
+        {selectedService.is_active ? "Active ✅" : "Inactive ❌"}
+      </span>
+    </p>
+    <p className="serviceDetailsItem"><strong>Deleted:</strong>
+      <span className={`serviceDetailsStatus ${selectedService.is_deleted ? "text-red-400" : "text-green-400"}`}>
+        {selectedService.is_deleted ? "Yes" : "No"}
+      </span>
+    </p>
+    <p className="serviceDetailsItem"><strong>Created At:</strong> {formatDate(selectedService.created_at)}</p>
+    <p className="serviceDetailsItem"><strong>Updated At:</strong> {formatDate(selectedService.updated_at)}</p>
+  </div>
+
+  {selectedService.links && selectedService.links.length > 0 && (
+    <div className="serviceDetailsLinks">
+      <span className="serviceDetailsLinksTitle">Related Links:</span>
+      <ul className="serviceDetailsLinkList">
+        {selectedService.links.map((link, idx) => (
+          <li key={idx}>
+            <a
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {link.label || link.url}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )}
+</div>
+
+        )}
       </Modal>
 
     </div>
