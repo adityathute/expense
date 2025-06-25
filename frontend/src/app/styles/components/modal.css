@@ -6,6 +6,7 @@
   padding: 0.85rem 1.50rem;
   border-bottom: 1px solid #2f2f2f;
   position: relative;
+  user-select: none;
 }
 
 .modal-title {
@@ -96,11 +97,11 @@
 }
 /* === Service Detail Content === */
 .serviceDetailsContainer {
-  padding: 1.5rem;
+  padding: 0rem 0.5rem;
   color: #f1f5f9;
-  /* font-family: -apple-system, BlinkMacSystemFont, "SF Pro", "Segoe UI", Roboto, sans-serif; */
   font-size: 0.95rem;
   line-height: 1.6;
+  user-select: none;
 }
 
 .serviceDetailsTitle {
@@ -111,8 +112,28 @@
   margin-bottom: 1.2rem;
 }
 
+.service-details-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.service-fee {
+  color: #4ade80; /* Tailwind's green-400 */
+  font-weight: 600;
+  margin: 0;
+}
+
+.required-time {
+  color: #d1d5db; /* Tailwind's gray-300 */
+  font-size: 0.9rem; /* Tailwind's text-sm */
+  margin: 0;
+  text-align: right;
+}
+
 .serviceDetailsItem {
-  margin-bottom: 0.6rem;
+  margin-top: 0.90rem;
 }
 
 .serviceDetailsItem strong {
@@ -127,31 +148,63 @@
 }
 
 .serviceDetailsLinks {
-  margin-top: 1.5rem;
-}
-
-.serviceDetailsLinksTitle {
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  display: block;
+  margin-top: 0.90rem;
+  background-color: #1e1e1e;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid #333;
+  color: #f1f5f9;
 }
 
 .serviceDetailsLinkList {
-  list-style: disc;
-  padding-left: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.serviceDetailsLinkList li:not(:last-child) {
+  margin-bottom: 0.5rem;
 }
 
 .serviceDetailsLinkList a {
-  color: #60a5fa;
-  text-decoration: underline;
-  transition: color 0.2s ease;
+  color: #38bdf8; /* sky-400 */
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
 }
 
 .serviceDetailsLinkList a:hover {
-  color: #93c5fd;
+  color: #7dd3fc; /* lighter sky */
+  text-decoration: underline;
+}
+
+.service-details-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.service-edit-btn,
+.service-delete-btn {
+  padding: 0.45rem 0.9rem;
+  font-size: 0.85rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid #555;
+  background-color: transparent;
+  color: #f8fafc;
+  transition: all 0.2s ease;
+}
+
+.service-edit-btn:hover {
+  color: #16a34a;
+  border-color: #16a34a;
+}
+
+.service-delete-btn:hover {
+  color: #dc2626;
+  border-color: #dc2626;
 }
 
 /* === Responsive Padding === */

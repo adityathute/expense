@@ -1,5 +1,5 @@
 // components/Icon.js
-// import "./../styles/icons.css";
+import "../styles/components/icons.css";
 
 export function EditIcon({ className = "icon" }) {
   return (

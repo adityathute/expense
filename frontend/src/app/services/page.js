@@ -12,6 +12,7 @@ import Loader from "../components/Loader";
 import Modal from "../components/Modal";
 import ServiceForm from "./ServiceForm";
 import { parseISO, format } from "date-fns";
+import { ActiveIcon, InactiveIcon } from "../components/StatusIcons";
 
 export default function ServicesPage() {
   const [services, setServices] = useState([]);
@@ -217,19 +218,15 @@ export default function ServicesPage() {
         headers={[
           "Service Name",
           "Service Charge",
-          "Pages Required",
           "Required Time (days)",
         ]}
         columns={[
           "name",
           "service_fee",
-          "pages_required",
           "required_time_hours",
         ]}
         data={filteredServices}
         emptyText="No services found."
-        onEdit={handleEdit}
-        onDelete={handleDelete}
         renderCell={(row, column) => {
           if (column === "name") {
             return (
@@ -248,16 +245,18 @@ export default function ServicesPage() {
           if (column === "service_fee") {
             return <BalanceCell value={row.service_fee} />;
           }
+
           if (column === "required_time_hours") {
             const hours = row.required_time_hours ?? 0;
             const days = (hours / 24).toFixed(1);
             return `${days} days`;
           }
+
           return row[column] ?? "-";
         }}
       />
 
-      <Modal  isOpen={showForm} onClose={resetForm} title={editingService ? "Update Service" : "Add Service"}>
+      <Modal isOpen={showForm} onClose={resetForm} title={editingService ? "Update Service" : "Add Service"}>
         <ServiceForm
           newService={newService}
           description={newService.description}
@@ -274,52 +273,42 @@ export default function ServicesPage() {
           setShowLinksSection={setShowLinksSection}
         />
       </Modal>
-      <Modal isOpen={showDetailsModal} onClose={() => setShowDetailsModal(false)}>
-        {selectedService && (
-          <div className="serviceDetailsContainer">
-            <h2 className="serviceDetailsTitle">{selectedService.name}</h2>
+      <Modal
+        isOpen={showDetailsModal}
+        onClose={() => setShowDetailsModal(false)}
+        title={
+          selectedService && (
+            <span className="flex items-center gap-2">
+              {selectedService.name}
+              {selectedService.is_active ? (
+                <ActiveIcon className="icon icon-green" />
 
-            <div>
-              <p className="serviceDetailsItem"><strong>Description:</strong><br />{selectedService.description || "—"}</p>
-              <p className="serviceDetailsItem"><strong>Service Fee:</strong> ₹{selectedService.service_fee ?? "0.00"}</p>
-              <p className="serviceDetailsItem"><strong>Service Charge:</strong> ₹{selectedService.service_charge ?? "0.00"}</p>
-              <p className="serviceDetailsItem"><strong>Other Charge:</strong> ₹{selectedService.other_charge ?? "0.00"}</p>
-              <p className="serviceDetailsItem"><strong>Pages Required:</strong> {selectedService.pages_required}</p>
-              <p className="serviceDetailsItem"><strong>Estimated Time:</strong>
-                {selectedService.estimated_time_seconds
-                  ? ` ${Math.round(selectedService.estimated_time_seconds / 60)} minutes`
-                  : " —"}
+              ) : (
+                <InactiveIcon className="icon icon-red" />
+              )}
+            </span>
+          )
+        }  >
+        {selectedService && (
+          <div className="serviceDetailsContainer space-y-4">
+            <div className="service-details-row">
+              <p className="service-fee">
+                ₹&nbsp;{selectedService.service_fee ?? "0.00"}
               </p>
-              <p className="serviceDetailsItem"><strong>Required Time:</strong>
+              <p className="required-time">
                 {selectedService.required_time_hours
-                  ? ` ${(selectedService.required_time_hours / 24).toFixed(1)} days`
-                  : " —"}
+                  ? `${(selectedService.required_time_hours / 24).toFixed(1)} days`
+                  : "—"}
               </p>
-              <p className="serviceDetailsItem"><strong>Status:</strong>
-                <span className={`serviceDetailsStatus ${selectedService.is_active ? "text-green-400" : "text-red-400"}`}>
-                  {selectedService.is_active ? "Active ✅" : "Inactive ❌"}
-                </span>
-              </p>
-              <p className="serviceDetailsItem"><strong>Deleted:</strong>
-                <span className={`serviceDetailsStatus ${selectedService.is_deleted ? "text-red-400" : "text-green-400"}`}>
-                  {selectedService.is_deleted ? "Yes" : "No"}
-                </span>
-              </p>
-              <p className="serviceDetailsItem"><strong>Created At:</strong> {formatDate(selectedService.created_at)}</p>
-              <p className="serviceDetailsItem"><strong>Updated At:</strong> {formatDate(selectedService.updated_at)}</p>
             </div>
 
+            {/* Related links */}
             {selectedService.links && selectedService.links.length > 0 && (
               <div className="serviceDetailsLinks">
-                <span className="serviceDetailsLinksTitle">Related Links:</span>
                 <ul className="serviceDetailsLinkList">
                   {selectedService.links.map((link, idx) => (
                     <li key={idx}>
-                      <a
-                        href={link.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
+                      <a href={link.url} target="_blank" rel="noopener noreferrer">
                         {link.label || link.url}
                       </a>
                     </li>
@@ -327,10 +316,43 @@ export default function ServicesPage() {
                 </ul>
               </div>
             )}
-          </div>
 
+            {/* Description */}
+            <p className="serviceDetailsItem">
+              {selectedService.description || "—"}
+            </p>
+
+            {/* 👉 Action Buttons (Edit & Delete) */}
+            <div className="service-details-actions">
+              <button
+                className="service-edit-btn"
+                onClick={() => {
+                  handleEdit(selectedService);
+                  setShowDetailsModal(false);
+                }}
+              >
+                ✎ Edit Service
+              </button>
+
+              <button
+                className="service-delete-btn"
+                onClick={() => {
+                  if (confirm("Are you sure you want to delete this service?")) {
+                    handleDelete(selectedService.id);
+                    setShowDetailsModal(false);
+                  }
+                }}
+              >
+                🗑 Delete
+              </button>
+            </div>
+
+          </div>
         )}
+
+
       </Modal>
+
 
     </div>
   );

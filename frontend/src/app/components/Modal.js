@@ -31,7 +31,7 @@ export default function Modal({ isOpen, onClose, onReset, children, title = "Add
                 onClick={handleClose}
                 whileHover={{
                   rotate: 90,
-                  color: "#ef4444", // Tailwind Red-500
+                  color: "#ef4444",
                 }}
                 whileTap={{
                   scale: 0.95,

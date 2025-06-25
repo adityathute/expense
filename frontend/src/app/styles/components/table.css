@@ -40,7 +40,8 @@
 .table td {
   padding: 0.65rem 1rem;
   text-align: center;
-  vertical-align: middle; /* <-- Key addition */
+  vertical-align: middle;
+  /* <-- Key addition */
   color: #e5e7eb;
 }
 
@@ -165,12 +166,14 @@
     border-bottom: none;
   }
 }
+
 .service-name-cell button {
   font-weight: 600;
-  color: #38bdf8; /* A nice sky blue for highlight */
+  color: #38bdf8;
+  /* A nice sky blue for highlight */
   background: transparent;
   outline: none;
   border: none;
   cursor: pointer;
-  font-size: .8rem;
+  font-size: .9rem;
 }
