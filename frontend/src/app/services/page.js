@@ -34,6 +34,8 @@ export default function ServicesPage() {
   const totalPages = Math.ceil(filteredServices.length / entriesPerPage);
   const startIndex = (currentPage - 1) * entriesPerPage;
   const paginatedServices = filteredServices.slice(startIndex, startIndex + entriesPerPage);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [serviceToDelete, setServiceToDelete] = useState(null);
 
   const [newService, setNewService] = useState({
     name: "",
@@ -349,19 +351,50 @@ export default function ServicesPage() {
               <button
                 className="service-delete-btn"
                 onClick={() => {
-                  if (confirm("Are you sure you want to delete this service?")) {
-                    handleDelete(selectedService.id);
-                    setShowDetailsModal(false);
-                  }
+                  setServiceToDelete(selectedService);
+                  setShowDeleteModal(true);
+                  setShowDetailsModal(false); // close details modal
                 }}
               >
                 🗑 Delete
               </button>
+
             </div>
 
           </div>
         )}
       </Modal>
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        title="Delete Service"
+      >
+        <div style={{ padding: "1rem" }}>
+          <p style={{ marginBottom: "2rem", color: "#f87171" }}>
+            Are you sure you want to delete <strong>{serviceToDelete?.name}</strong>?
+          </p>
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: "1rem" }}>
+            <button
+              className="service-cancel-btn-delete"
+              onClick={() => setShowDeleteModal(false)}
+            >
+              Cancel
+            </button>
+
+            <button
+              className="service-delete-btn"
+              onClick={() => {
+                handleDelete(serviceToDelete.id);
+                setShowDeleteModal(false);
+              }}
+            >
+              🗑 Yes, Delete
+            </button>
+
+          </div>
+        </div>
+      </Modal>
+
     </div>
   );
 }
