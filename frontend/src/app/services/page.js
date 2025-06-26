@@ -13,6 +13,7 @@ import Modal from "../components/Modal";
 import ServiceForm from "./ServiceForm";
 import { parseISO, format } from "date-fns";
 import { ActiveIcon, InactiveIcon } from "../components/StatusIcons";
+import Pagination from "../components/Pagination";
 
 export default function ServicesPage() {
   const [services, setServices] = useState([]);
@@ -25,6 +26,14 @@ export default function ServicesPage() {
   const [showLinksSection, setShowLinksSection] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const filteredServices = services.filter((service) =>
+    service.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  const [currentPage, setCurrentPage] = useState(1);
+  const entriesPerPage = 30;
+  const totalPages = Math.ceil(filteredServices.length / entriesPerPage);
+  const startIndex = (currentPage - 1) * entriesPerPage;
+  const paginatedServices = filteredServices.slice(startIndex, startIndex + entriesPerPage);
 
   const [newService, setNewService] = useState({
     name: "",
@@ -187,10 +196,6 @@ export default function ServicesPage() {
     setShowLinksSection(false); // <- reset it here too
   };
 
-  const filteredServices = services.filter((service) =>
-    service.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   if (loading) return <Loader />;
   // if (error) return <p style={{ color: "red" }}>{error}</p>;
 
@@ -210,51 +215,58 @@ export default function ServicesPage() {
 
       <SearchBar
         value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
+        onChange={(e) => {
+          setSearchTerm(e.target.value);
+          setCurrentPage(1);
+        }}
         placeholder="Search service..."
       />
 
-      <StyledTable
-        headers={[
-          "Service Name",
-          "Service Charge",
-          "Required Time (days)",
-        ]}
-        columns={[
-          "name",
-          "service_fee",
-          "required_time_hours",
-        ]}
-        data={filteredServices}
-        emptyText="No services found."
-        renderCell={(row, column) => {
-          if (column === "name") {
-            return (
-              <button
-                onClick={() => {
-                  setSelectedService(row);
-                  setShowDetailsModal(true);
-                }}
-                className="text-blue-400 hover:underline"
-              >
-                {row.name}
-              </button>
-            );
-          }
+      {filteredServices.length > 0 ? (
+        <>
+          <StyledTable
+            headers={["Service Name", "Service Charge", "Required Time (days)"]}
+            columns={["name", "service_fee", "required_time_hours"]}
+            data={paginatedServices}
+            renderCell={(row, column) => {
+              if (column === "name") {
+                return (
+                  <button
+                    onClick={() => {
+                      setSelectedService(row);
+                      setShowDetailsModal(true);
+                    }}
+                    className="text-blue-400 hover:underline"
+                  >
+                    {row.name}
+                  </button>
+                );
+              }
+              if (column === "service_fee") {
+                return <BalanceCell value={row.service_fee} />;
+              }
+              if (column === "required_time_hours") {
+                const hours = row.required_time_hours ?? 0;
+                const days = (hours / 24).toFixed(1);
+                return `${days} days`;
+              }
+              return row[column] ?? "-";
+            }}
+          />
 
-          if (column === "service_fee") {
-            return <BalanceCell value={row.service_fee} />;
-          }
-
-          if (column === "required_time_hours") {
-            const hours = row.required_time_hours ?? 0;
-            const days = (hours / 24).toFixed(1);
-            return `${days} days`;
-          }
-
-          return row[column] ?? "-";
-        }}
-      />
+          {filteredServices.length > entriesPerPage && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          )}
+        </>
+      ) : (
+        <div style={{ padding: "1rem", textAlign: "center", color: "#888" }}>
+          No services found.
+        </div>
+      )}
 
       <Modal isOpen={showForm} onClose={resetForm} title={editingService ? "Update Service" : "Add Service"}>
         <ServiceForm
@@ -349,11 +361,7 @@ export default function ServicesPage() {
 
           </div>
         )}
-
-
       </Modal>
-
-
     </div>
   );
 }

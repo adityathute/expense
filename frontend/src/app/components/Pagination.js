@@ -1,37 +1,45 @@
 // components/Pagination.js
 import "../styles/components/pagination.css";
+import { motion } from "framer-motion";
 
-export default function Pagination({ currentPage, totalPages, onPageChange }) {
-  const pageNumbers = [];
-  for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
+const Pagination = ({ currentPage, totalPages, onPageChange }) => {
+  const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
 
   return (
     <div className="pagination">
-      <button
-        onClick={() => onPageChange(currentPage - 1)}
+      <motion.button
+        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: 1.05 }}
+        className="arrow-btn"
         disabled={currentPage === 1}
-        className="page-btn"
+        onClick={() => onPageChange(currentPage - 1)}
       >
-        &laquo;
-      </button>
+        ◀
+      </motion.button>
 
-      {pageNumbers.map((number) => (
-        <button
-          key={number}
-          onClick={() => onPageChange(number)}
-          className={`page-btn ${currentPage === number ? "active" : ""}`}
+      {pages.map((page) => (
+        <motion.button
+          key={page}
+          whileTap={{ scale: 0.9 }}
+          whileHover={{ scale: 1.05 }}
+          className={`page-btn ${currentPage === page ? "active" : ""}`}
+          onClick={() => onPageChange(page)}
         >
-          {number}
-        </button>
+          {page}
+        </motion.button>
       ))}
 
-      <button
-        onClick={() => onPageChange(currentPage + 1)}
+      <motion.button
+        whileTap={{ scale: 0.9 }}
+        whileHover={{ scale: 1.05 }}
+        className="arrow-btn"
         disabled={currentPage === totalPages}
-        className="page-btn"
+        onClick={() => onPageChange(currentPage + 1)}
       >
-        &raquo;
-      </button>
+        ▶
+      </motion.button>
     </div>
   );
-}
+};
+
+export default Pagination;
