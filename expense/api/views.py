@@ -1,7 +1,7 @@
 from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 from rest_framework import generics, status, viewsets
-from .models import Category, Service, User, Account, Document, ServiceDocumentRequirement
+from .models import Category, Service, User, Account, Document, ServiceDocumentRequirement, DocumentCategory
 from .serializers import CategorySerializer, UserSerializer, ServiceSerializer, AccountSerializer, DocumentSerializer, ServiceDocumentRequirementSerializer
 from rest_framework.generics import DestroyAPIView
 from rest_framework.permissions import AllowAny
@@ -78,6 +78,48 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = UserSerializer
     
 # --------- SERVICE RELATED VIEWS --------- #
+
+@api_view(["POST"])
+def create_document(request):
+    """
+    Creates a new document if it doesn't already exist.
+    Expected JSON:
+    {
+        "name": "Aadhar Card",
+        "categories": ["Identity Proof"],
+        "additional_details": "12-digit UID card"
+    }
+    """
+    name = request.data.get("name")
+    categories = request.data.get("categories", [])  # list of strings
+    additional_details = request.data.get("additional_details", "")
+
+    if not name:
+        return Response({"error": "Document name is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Check if document already exists
+    if Document.objects.filter(name__iexact=name.strip()).exists():
+        return Response({"error": "Document already exists"}, status=status.HTTP_409_CONFLICT)
+
+    # Create document
+    document = Document.objects.create(
+        name=name.strip(),
+        additional_details=additional_details.strip() if additional_details else ""
+    )
+
+    # Add categories
+    for category_name in categories:
+        category_obj, _ = DocumentCategory.objects.get_or_create(name=category_name.strip())
+        document.document_categories.add(category_obj)
+
+    return Response({
+        "id": document.id,
+        "name": document.name,
+        "additional_details": document.additional_details,
+        "categories": [cat.name for cat in document.document_categories.all()],
+        "created_at": document.created_at,
+    }, status=status.HTTP_201_CREATED)
+
 class DocumentViewSet(viewsets.ModelViewSet):
     serializer_class = DocumentSerializer
 

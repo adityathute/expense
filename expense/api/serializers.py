@@ -54,36 +54,23 @@ class DocumentCategorySerializer(serializers.ModelSerializer):
         fields = ['id', 'name']
 
 class DocumentSerializer(serializers.ModelSerializer):
-    document_categories = DocumentCategorySerializer(many=True, required=False)
+    categories = serializers.ListField(child=serializers.CharField(), write_only=True)
+    category_names = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Document
-        exclude = ['is_deleted']
+        fields = ["id", "name", "additional_details", "categories", "category_names", "created_at"]
+
+    def get_category_names(self, obj):
+        return [cat.name for cat in obj.document_categories.all()]
 
     def create(self, validated_data):
-        categories_data = validated_data.pop('document_categories', [])
+        category_names = validated_data.pop("categories", [])
         document = Document.objects.create(**validated_data)
-
-        for category in categories_data:
-            category_obj, _ = DocumentCategory.objects.get_or_create(name=category['name'])
-            document.document_categories.add(category_obj)
-
+        for cat_name in category_names:
+            cat, _ = DocumentCategory.objects.get_or_create(name=cat_name.strip())
+            document.document_categories.add(cat)
         return document
-
-    def update(self, instance, validated_data):
-        categories_data = validated_data.pop('document_categories', [])
-
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
-
-        if categories_data:
-            instance.document_categories.clear()
-            for category in categories_data:
-                category_obj, _ = DocumentCategory.objects.get_or_create(name=category['name'])
-                instance.document_categories.add(category_obj)
-
-        return instance
 
 class ServiceLinkSerializer(serializers.ModelSerializer):
     class Meta:

@@ -30,6 +30,7 @@ export default function ServicesPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState(null);
   const [returnToDetails, setReturnToDetails] = useState(false);
+const [documents, setDocuments] = useState([]);
 
   const filteredServices = services.filter((service) =>
     service.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -47,6 +48,7 @@ export default function ServicesPage() {
     pages_required: "",
     required_time_hours: "",
     links: [],
+    required_documents: [],
   });
 
   useEffect(() => {
@@ -161,6 +163,7 @@ export default function ServicesPage() {
       required_time_hours: 0,
       is_active: true,
       links: [],
+      required_documents: [], // ✅ add this
     });
     setEditingService(null);
     setShowForm(false);
@@ -259,6 +262,7 @@ export default function ServicesPage() {
           formErrors={{}}
           showLinksSection={showLinksSection}
           setShowLinksSection={setShowLinksSection}
+          documents={documents}
         />
       </Modal>
 

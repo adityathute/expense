@@ -18,6 +18,7 @@ urlpatterns = [
     # Users
     path('api/users/', views.UserListCreateView.as_view(), name='user-list-create'),
     path('api/users/<int:pk>/', views.UserDetailView.as_view(), name='user-detail'),
+    path('api/documents/create/', views.create_document, name='create_document'),
 
     # Accounts
     path('api/accounts/', views.AccountListView.as_view(), name='account-list'),

@@ -93,7 +93,6 @@ class Category(models.Model):
         ordering = ["core_category", "name"]
 
 # ---------------------- SERVICE RELATED MODELS ---------------------- #
-
 class DocumentCategory(models.Model):
     name = models.CharField(max_length=50, unique=True)
 
@@ -122,7 +121,6 @@ class Service(models.Model):
 
     def __str__(self):
         return self.name
-
 
 class ServiceDocumentRequirement(models.Model):
     service = models.ForeignKey(Service, on_delete=models.CASCADE)
