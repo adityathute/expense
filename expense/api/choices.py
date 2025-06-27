@@ -42,10 +42,9 @@ ID_TYPES = [
     ("Other", "Other"),
 ]
 
-REQUIREMENT_TYPES = [
-    ('Document', 'Document'),
-    ('Info', 'Information'),
-    ('Verification', 'Verification'),
+DOCUMENT_TYPE_CHOICES = [
+    ("Original", "Original"),
+    ("Xerox", "Xerox"),
 ]
 
 ENTRY_TYPE_CHOICES = [

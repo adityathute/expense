@@ -5,6 +5,7 @@ from . import views
 router = DefaultRouter()
 router.register(r'accounts', views.AccountViewSet, basename='account')
 router.register(r'services', views.ServiceViewSet, basename='service')  # Register ServiceViewSet
+router.register(r'documents', views.DocumentViewSet, basename='document')
 
 urlpatterns = [
     path('api/', include(router.urls)),

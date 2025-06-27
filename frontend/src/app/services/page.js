@@ -12,8 +12,9 @@ import Loader from "../components/Loader";
 import Modal from "../components/Modal";
 import ServiceForm from "./ServiceForm";
 import { parseISO, format } from "date-fns";
-import { ActiveIcon, InactiveIcon } from "../components/StatusIcons";
 import Pagination from "../components/Pagination";
+import DeleteServiceModal from "./DeleteServiceModal";
+import ServiceDetailsModal from "./ServiceDetailsModal";
 
 export default function ServicesPage() {
   const [services, setServices] = useState([]);
@@ -36,17 +37,18 @@ export default function ServicesPage() {
   const paginatedServices = filteredServices.slice(startIndex, startIndex + entriesPerPage);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState(null);
+  const [returnToDetails, setReturnToDetails] = useState(false);
 
   const [newService, setNewService] = useState({
     name: "",
     description: "",
-    service_fee: 0,
-    service_charge: 0,
-    other_charge: 0,
-    pages_required: 0,
-    required_time_hours: 0,
-    is_active: true,
-    links: [{ label: "", url: "" }],
+    service_fee: "",
+    service_charge: "",
+    other_charge: "",
+    pages_required: "",
+    required_time_hours: "",
+    required_documents: [],
+    links: [],
   });
 
   useEffect(() => {
@@ -104,31 +106,49 @@ export default function ServicesPage() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
     const method = editingService ? "PUT" : "POST";
     const url = editingService
       ? `http://127.0.0.1:8001/api/services/${editingService}/`
       : "http://127.0.0.1:8001/api/services/";
 
+    const { required_documents, ...servicePayload } = newService;
+
+    console.log("Sending service payload:", servicePayload);
+
     fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newService),
+      body: JSON.stringify(servicePayload),
     })
       .then((res) => {
-        if (!res.ok) {
-          return res.json().then(err => Promise.reject(err));
-        }
+        if (!res.ok) return res.json().then((err) => Promise.reject(err));
         return res.json();
       })
-      .then((data) => {
+      .then((savedService) => {
+        if (required_documents?.length > 0) {
+          const docsWithService = required_documents.map((doc) => ({
+            ...doc,
+            service: savedService.id,
+          }));
+
+          return fetch("http://127.0.0.1:8001/api/documents/bulk/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(docsWithService),
+          });
+        }
+      })
+
+      .then(() => {
         fetchServices();
         resetForm();
         setSuccessMessage(editingService ? "Service updated!" : "Service added!");
-        setTimeout(() => setSuccessMessage("", 3000));
+        setTimeout(() => setSuccessMessage(""), 3000);
       })
       .catch((err) => {
-        const errorMessage = err.detail || err.message || "Error saving service.";
-        alert(errorMessage);
+        console.error("Server error response:", err);
+        alert("Error: " + JSON.stringify(err));
       });
   };
 
@@ -137,14 +157,13 @@ export default function ServicesPage() {
     setNewService({
       ...service,
       links: service.links ?? [],
+      required_documents: service.required_documents ?? [], // ✅ ADD THIS
     });
     setShowForm(true);
     setShowLinksSection(service.links && service.links.length > 0); // shows only if links exist
   };
 
-
   const handleDelete = (id) => {
-    if (!confirm("Are you sure you want to delete this service?")) return;
     fetch(`http://127.0.0.1:8001/api/services/${id}/`, {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
@@ -175,7 +194,6 @@ export default function ServicesPage() {
     }));
   };
 
-
   const removeLink = (index) => {
     const updatedLinks = [...newService.links];
     updatedLinks.splice(index, 1);
@@ -192,10 +210,49 @@ export default function ServicesPage() {
       required_time_hours: 0,
       is_active: true,
       links: [],
+      required_documents: [], // ✅ add this
     });
+    {
+      Array.isArray(newService.required_documents) &&
+        newService.required_documents.map((doc, index) => (
+          <div key={index}>{/* ... */}</div>
+        ))
+    }
     setEditingService(null);
     setShowForm(false);
-    setShowLinksSection(false); // <- reset it here too
+    setShowLinksSection(false);
+
+    if (returnToDetails) {
+      setShowDetailsModal(true);  // Return to service details
+      setReturnToDetails(false);  // Reset flag
+    }
+  };
+  const handleDocumentChange = (index, field, value) => {
+    const updated = [...newService.required_documents];
+    updated[index][field] = value;
+    setNewService((prev) => ({ ...prev, required_documents: updated }));
+  };
+
+  const addRequiredDocument = () => {
+    console.log("Adding document...");
+    setNewService((prev) => ({
+      ...prev,
+      required_documents: [
+        ...prev.required_documents,
+        {
+          name: "",
+          document_type: "Original",
+          is_mandatory: true,
+          additional_details: "",
+        },
+      ],
+    }));
+  };
+
+  const removeRequiredDocument = (index) => {
+    const updated = [...newService.required_documents];
+    updated.splice(index, 1);
+    setNewService((prev) => ({ ...prev, required_documents: updated }));
   };
 
   if (loading) return <Loader />;
@@ -273,6 +330,7 @@ export default function ServicesPage() {
       <Modal isOpen={showForm} onClose={resetForm} title={editingService ? "Update Service" : "Add Service"}>
         <ServiceForm
           newService={newService}
+          setNewService={setNewService} // ✅ ADD THIS
           description={newService.description}
           setDescription={(desc) => setNewService(prev => ({ ...prev, description: desc }))}
           handleInputChange={handleInputChange}
@@ -282,119 +340,52 @@ export default function ServicesPage() {
           removeLink={removeLink}
           editingService={editingService}
           resetForm={resetForm}
-          formErrors={{}} // optional, can implement later
+          formErrors={{}}
           showLinksSection={showLinksSection}
           setShowLinksSection={setShowLinksSection}
+          addRequiredDocument={addRequiredDocument}
+          removeRequiredDocument={removeRequiredDocument}
+          handleDocumentChange={handleDocumentChange}
         />
+
       </Modal>
-      <Modal
+
+      <ServiceDetailsModal
         isOpen={showDetailsModal}
         onClose={() => setShowDetailsModal(false)}
-        title={
-          selectedService && (
-            <span className="flex items-center gap-2">
-              {selectedService.name}
-              {selectedService.is_active ? (
-                <ActiveIcon className="icon icon-green" />
+        service={selectedService}
+        onEdit={(service) => {
+          handleEdit(service);
+          setReturnToDetails(true);
+        }}
+        onDelete={(service) => {
+          setServiceToDelete(service);
+          setShowDeleteModal(true);
+          setReturnToDetails(true);
+        }}
+      />
 
-              ) : (
-                <InactiveIcon className="icon icon-red" />
-              )}
-            </span>
-          )
-        }  >
-        {selectedService && (
-          <div className="serviceDetailsContainer space-y-4">
-            <div className="service-details-row">
-              <p className="service-fee">
-                ₹&nbsp;{selectedService.service_fee ?? "0.00"}
-              </p>
-              <p className="required-time">
-                {selectedService.required_time_hours
-                  ? `${(selectedService.required_time_hours / 24).toFixed(1)} days`
-                  : "—"}
-              </p>
-            </div>
-
-            {/* Related links */}
-            {selectedService.links && selectedService.links.length > 0 && (
-              <div className="serviceDetailsLinks">
-                <ul className="serviceDetailsLinkList">
-                  {selectedService.links.map((link, idx) => (
-                    <li key={idx}>
-                      <a href={link.url} target="_blank" rel="noopener noreferrer">
-                        {link.label || link.url}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Description */}
-            <p className="serviceDetailsItem">
-              {selectedService.description || "—"}
-            </p>
-
-            {/* 👉 Action Buttons (Edit & Delete) */}
-            <div className="service-details-actions">
-              <button
-                className="service-edit-btn"
-                onClick={() => {
-                  handleEdit(selectedService);
-                  setShowDetailsModal(false);
-                }}
-              >
-                ✎ Edit Service
-              </button>
-
-              <button
-                className="service-delete-btn"
-                onClick={() => {
-                  setServiceToDelete(selectedService);
-                  setShowDeleteModal(true);
-                  setShowDetailsModal(false); // close details modal
-                }}
-              >
-                🗑 Delete
-              </button>
-
-            </div>
-
-          </div>
-        )}
-      </Modal>
-      <Modal
+      <DeleteServiceModal
         isOpen={showDeleteModal}
-        onClose={() => setShowDeleteModal(false)}
-        title="Delete Service"
-      >
-        <div style={{ padding: "1rem" }}>
-          <p style={{ marginBottom: "2rem", color: "#f87171" }}>
-            Are you sure you want to delete <strong>{serviceToDelete?.name}</strong>?
-          </p>
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: "1rem" }}>
-            <button
-              className="service-cancel-btn-delete"
-              onClick={() => setShowDeleteModal(false)}
-            >
-              Cancel
-            </button>
-
-            <button
-              className="service-delete-btn"
-              onClick={() => {
-                handleDelete(serviceToDelete.id);
-                setShowDeleteModal(false);
-              }}
-            >
-              🗑 Yes, Delete
-            </button>
-
-          </div>
-        </div>
-      </Modal>
-
+        onClose={() => {
+          setShowDeleteModal(false);
+          // If user cancelled deletion, we might want to reopen details
+          if (returnToDetails) {
+            setShowDetailsModal(true);
+            setReturnToDetails(false); // ✅ Reset it after showing
+          }
+        }}
+        onDelete={(id) => {
+          handleDelete(id);                  // Delete the service
+          setShowDeleteModal(false);        // Close the delete modal
+          setReturnToDetails(false);        // ✅ Prevent reopening Details modal
+        }}
+        service={serviceToDelete}
+        returnToDetails={returnToDetails}
+        onRestoreDetails={() => {
+          // Optional: you can remove this since we're not restoring after delete
+        }}
+      />
     </div>
   );
 }

@@ -1,8 +1,8 @@
 from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 from rest_framework import generics, status, viewsets
-from .models import Category, Service, User, Account
-from .serializers import CategorySerializer, UserSerializer, ServiceSerializer, AccountSerializer
+from .models import Category, Service, User, Account, Document
+from .serializers import CategorySerializer, UserSerializer, ServiceSerializer, AccountSerializer, DocumentSerializer
 from rest_framework.generics import DestroyAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
@@ -78,6 +78,32 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = UserSerializer
     
 # --------- SERVICE RELATED VIEWS --------- #
+class DocumentViewSet(viewsets.ModelViewSet):
+    serializer_class = DocumentSerializer
+
+    def get_queryset(self):
+        service_id = self.request.query_params.get('service_id')
+        qs = Document.objects.filter(is_deleted=False)
+        if service_id:
+            qs = qs.filter(service_id=service_id)
+        return qs.order_by('-created_at')
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.is_deleted = True
+        instance.save()
+        return Response({"message": "Document deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=False, methods=['post'], url_path='bulk')
+    def bulk_create(self, request):
+        serializer = self.get_serializer(data=request.data, many=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_bulk_create(serializer)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def perform_bulk_create(self, serializer):
+        serializer.save()
+        
 class ServiceListCreateView(generics.ListCreateAPIView):
     queryset = Service.objects.all()
     serializer_class = ServiceSerializer

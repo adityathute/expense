@@ -2,7 +2,7 @@ from django.db import models
 from django.conf import settings
 from decouple import config
 from django.core.exceptions import ValidationError
-from .choices import CATEGORY_TYPES, CORE_CATEGORIES, GENDER_CHOICES, ID_TYPES, REQUIREMENT_TYPES, ENTRY_TYPE_CHOICES, UID_TYPE_CHOICES,  UPDATE_TYPE_CHOICES, ENTRY_TYPE_CHOICES, STATUS_CHOICES, UID_TYPE_CHOICES, UPDATE_TYPE_CHOICES, PAYMENT_TYPE_CHOICES, ACCOUNT_TYPE_CHOICES, CATEGORY_CHOICES
+from .choices import CATEGORY_TYPES, CORE_CATEGORIES, GENDER_CHOICES, ID_TYPES, DOCUMENT_TYPE_CHOICES, ENTRY_TYPE_CHOICES, UID_TYPE_CHOICES,  UPDATE_TYPE_CHOICES, ENTRY_TYPE_CHOICES, STATUS_CHOICES, UID_TYPE_CHOICES, UPDATE_TYPE_CHOICES, PAYMENT_TYPE_CHOICES, ACCOUNT_TYPE_CHOICES, CATEGORY_CHOICES
 
 # ---------------------- USER RELATED MODELS ---------------------- #
 
@@ -94,7 +94,6 @@ class Category(models.Model):
 
 
 # ---------------------- SERVICE RELATED MODELS ---------------------- #
-
 class Service(models.Model):
     name = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True, null=True)
@@ -120,18 +119,18 @@ class ServiceLink(models.Model):
     def __str__(self):
         return f"{self.label} - {self.service.name}"
 
-class ServiceRequirement(models.Model):
-    service = models.ForeignKey(Service, on_delete=models.CASCADE) 
-    requirement_name = models.CharField(max_length=255)
-    requirement_type = models.CharField(max_length=50, choices=REQUIREMENT_TYPES, default='Document')
-    is_mandatory = models.BooleanField(default=True)
-    additional_details = models.TextField(blank=True, null=True)
-    is_deleted = models.BooleanField(default=False, verbose_name="Is Deleted")
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+class Document(models.Model):
+    service = models.ForeignKey("Service", on_delete=models.CASCADE, related_name="required_documents", verbose_name="Service")
+    name = models.CharField("Document Name", max_length=255)
+    document_type = models.CharField("Document Type", max_length=10, choices=DOCUMENT_TYPE_CHOICES )
+    is_mandatory = models.BooleanField("Is Mandatory", default=True)
+    additional_details = models.TextField("Additional Details", blank=True, null=True)
+    is_deleted = models.BooleanField("Is Deleted", default=False)
+    created_at = models.DateTimeField("Created At", auto_now_add=True)
+    updated_at = models.DateTimeField("Updated At", auto_now=True)
 
     def __str__(self):
-        return f"{self.service.name} - {self.requirement_name}"
+        return f"{self.name} ({self.document_type})"
 
 # ---------------------- ACCOUNTS RELATED MODELS ---------------------- #
 
