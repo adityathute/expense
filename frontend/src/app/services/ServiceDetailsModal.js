@@ -57,22 +57,6 @@ export default function ServiceDetailsModal({
           {service.description || "—"}
         </p>
 
-        {service.required_documents?.length > 0 && (
-          <div className="serviceDetailsDocuments">
-            <h3 className="font-semibold text-lg">Required Documents</h3>
-            <ul className="list-disc list-inside space-y-1 pl-4">
-              {service.required_documents.map((doc, idx) => (
-                <li key={idx}>
-                  <span className="font-medium">{doc.name}</span>
-                  {doc.is_mandatory ? " (Mandatory)" : " (Optional)"}
-                  {doc.document_type && ` — ${doc.document_type}`}
-                  {doc.additional_details && ` — ${doc.additional_details}`}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
         <div className="service-details-actions">
           <button
             className="service-edit-btn"

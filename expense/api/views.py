@@ -1,8 +1,8 @@
 from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 from rest_framework import generics, status, viewsets
-from .models import Category, Service, User, Account, Document
-from .serializers import CategorySerializer, UserSerializer, ServiceSerializer, AccountSerializer, DocumentSerializer
+from .models import Category, Service, User, Account, Document, ServiceDocumentRequirement
+from .serializers import CategorySerializer, UserSerializer, ServiceSerializer, AccountSerializer, DocumentSerializer, ServiceDocumentRequirementSerializer
 from rest_framework.generics import DestroyAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
@@ -82,10 +82,10 @@ class DocumentViewSet(viewsets.ModelViewSet):
     serializer_class = DocumentSerializer
 
     def get_queryset(self):
-        service_id = self.request.query_params.get('service_id')
         qs = Document.objects.filter(is_deleted=False)
+        service_id = self.request.query_params.get('service_id')
         if service_id:
-            qs = qs.filter(service_id=service_id)
+            qs = qs.filter(servicedocumentrequirement__service_id=service_id)
         return qs.order_by('-created_at')
 
     def destroy(self, request, *args, **kwargs):
@@ -98,11 +98,19 @@ class DocumentViewSet(viewsets.ModelViewSet):
     def bulk_create(self, request):
         serializer = self.get_serializer(data=request.data, many=True)
         serializer.is_valid(raise_exception=True)
-        self.perform_bulk_create(serializer)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    def perform_bulk_create(self, serializer):
         serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+class ServiceDocumentRequirementViewSet(viewsets.ModelViewSet):
+    queryset = ServiceDocumentRequirement.objects.all()
+    serializer_class = ServiceDocumentRequirementSerializer
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        service_id = self.request.query_params.get('service_id')
+        if service_id:
+            qs = qs.filter(service_id=service_id)
+        return qs
         
 class ServiceListCreateView(generics.ListCreateAPIView):
     queryset = Service.objects.all()
@@ -124,10 +132,22 @@ class ServiceViewSet(viewsets.ModelViewSet):
     serializer_class = ServiceSerializer
 
     def perform_create(self, serializer):
-        serializer.save()
+        service = serializer.save()
+        self._handle_documents(service, self.request.data.get('required_documents'))
 
     def perform_update(self, serializer):
-        serializer.save()
+        service = serializer.save()
+        self._handle_documents(service, self.request.data.get('required_documents'))
+
+    def _handle_documents(self, service, documents_data):
+        if documents_data is not None:
+            # Clear existing relations
+            ServiceDocumentRequirement.objects.filter(service=service).delete()
+            for doc_id in documents_data:
+                ServiceDocumentRequirement.objects.create(
+                    service=service,
+                    document_id=doc_id
+                )
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()

@@ -2,7 +2,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-// import "../services/ServicePage.css";
 import StyledTable from "../components/StyledTable";
 import SearchBar from "../components/SearchBar";
 import BalanceCell from "../components/BalanceCell";
@@ -11,7 +10,6 @@ import React from 'react';
 import Loader from "../components/Loader";
 import Modal from "../components/Modal";
 import ServiceForm from "./ServiceForm";
-import { parseISO, format } from "date-fns";
 import Pagination from "../components/Pagination";
 import DeleteServiceModal from "./DeleteServiceModal";
 import ServiceDetailsModal from "./ServiceDetailsModal";
@@ -27,17 +25,18 @@ export default function ServicesPage() {
   const [showLinksSection, setShowLinksSection] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const filteredServices = services.filter((service) =>
-    service.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
   const [currentPage, setCurrentPage] = useState(1);
   const entriesPerPage = 30;
-  const totalPages = Math.ceil(filteredServices.length / entriesPerPage);
-  const startIndex = (currentPage - 1) * entriesPerPage;
-  const paginatedServices = filteredServices.slice(startIndex, startIndex + entriesPerPage);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState(null);
   const [returnToDetails, setReturnToDetails] = useState(false);
+
+  const filteredServices = services.filter((service) =>
+    service.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  const totalPages = Math.ceil(filteredServices.length / entriesPerPage);
+  const startIndex = (currentPage - 1) * entriesPerPage;
+  const paginatedServices = filteredServices.slice(startIndex, startIndex + entriesPerPage);
 
   const [newService, setNewService] = useState({
     name: "",
@@ -47,39 +46,12 @@ export default function ServicesPage() {
     other_charge: "",
     pages_required: "",
     required_time_hours: "",
-    required_documents: [],
     links: [],
   });
 
   useEffect(() => {
     fetchServices();
   }, []);
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "—";
-
-    try {
-      const cleaned = dateString.includes(".")
-        ? dateString.split(".")[0]
-        : dateString;
-
-      const isoString = cleaned.replace(" ", "T");
-      const date = new Date(isoString);
-
-      if (isNaN(date.getTime())) return "—";
-
-      return date.toLocaleString("en-IN", {
-        year: "numeric",
-        month: "short",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      });
-    } catch {
-      return "—";
-    }
-  };
 
   const fetchServices = () => {
     fetch("http://127.0.0.1:8001/api/services/")
@@ -112,34 +84,15 @@ export default function ServicesPage() {
       ? `http://127.0.0.1:8001/api/services/${editingService}/`
       : "http://127.0.0.1:8001/api/services/";
 
-    const { required_documents, ...servicePayload } = newService;
-
-    console.log("Sending service payload:", servicePayload);
-
     fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(servicePayload),
+      body: JSON.stringify(newService),
     })
       .then((res) => {
         if (!res.ok) return res.json().then((err) => Promise.reject(err));
         return res.json();
       })
-      .then((savedService) => {
-        if (required_documents?.length > 0) {
-          const docsWithService = required_documents.map((doc) => ({
-            ...doc,
-            service: savedService.id,
-          }));
-
-          return fetch("http://127.0.0.1:8001/api/documents/bulk/", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(docsWithService),
-          });
-        }
-      })
-
       .then(() => {
         fetchServices();
         resetForm();
@@ -157,10 +110,9 @@ export default function ServicesPage() {
     setNewService({
       ...service,
       links: service.links ?? [],
-      required_documents: service.required_documents ?? [], // ✅ ADD THIS
     });
     setShowForm(true);
-    setShowLinksSection(service.links && service.links.length > 0); // shows only if links exist
+    setShowLinksSection(service.links && service.links.length > 0);
   };
 
   const handleDelete = (id) => {
@@ -169,9 +121,7 @@ export default function ServicesPage() {
       headers: { "Content-Type": "application/json" },
     })
       .then((res) => {
-        if (!res.ok) {
-          return res.json().then(err => Promise.reject(err));
-        }
+        if (!res.ok) return res.json().then(err => Promise.reject(err));
         fetchServices();
       })
       .catch((err) => {
@@ -199,6 +149,7 @@ export default function ServicesPage() {
     updatedLinks.splice(index, 1);
     setNewService((prev) => ({ ...prev, links: updatedLinks }));
   };
+
   const resetForm = () => {
     setNewService({
       name: "",
@@ -210,53 +161,18 @@ export default function ServicesPage() {
       required_time_hours: 0,
       is_active: true,
       links: [],
-      required_documents: [], // ✅ add this
     });
-    {
-      Array.isArray(newService.required_documents) &&
-        newService.required_documents.map((doc, index) => (
-          <div key={index}>{/* ... */}</div>
-        ))
-    }
     setEditingService(null);
     setShowForm(false);
     setShowLinksSection(false);
 
     if (returnToDetails) {
-      setShowDetailsModal(true);  // Return to service details
-      setReturnToDetails(false);  // Reset flag
+      setShowDetailsModal(true);
+      setReturnToDetails(false);
     }
-  };
-  const handleDocumentChange = (index, field, value) => {
-    const updated = [...newService.required_documents];
-    updated[index][field] = value;
-    setNewService((prev) => ({ ...prev, required_documents: updated }));
-  };
-
-  const addRequiredDocument = () => {
-    console.log("Adding document...");
-    setNewService((prev) => ({
-      ...prev,
-      required_documents: [
-        ...prev.required_documents,
-        {
-          name: "",
-          document_type: "Original",
-          is_mandatory: true,
-          additional_details: "",
-        },
-      ],
-    }));
-  };
-
-  const removeRequiredDocument = (index) => {
-    const updated = [...newService.required_documents];
-    updated.splice(index, 1);
-    setNewService((prev) => ({ ...prev, required_documents: updated }));
   };
 
   if (loading) return <Loader />;
-  // if (error) return <p style={{ color: "red" }}>{error}</p>;
 
   return (
     <div>
@@ -330,7 +246,7 @@ export default function ServicesPage() {
       <Modal isOpen={showForm} onClose={resetForm} title={editingService ? "Update Service" : "Add Service"}>
         <ServiceForm
           newService={newService}
-          setNewService={setNewService} // ✅ ADD THIS
+          setNewService={setNewService}
           description={newService.description}
           setDescription={(desc) => setNewService(prev => ({ ...prev, description: desc }))}
           handleInputChange={handleInputChange}
@@ -343,11 +259,7 @@ export default function ServicesPage() {
           formErrors={{}}
           showLinksSection={showLinksSection}
           setShowLinksSection={setShowLinksSection}
-          addRequiredDocument={addRequiredDocument}
-          removeRequiredDocument={removeRequiredDocument}
-          handleDocumentChange={handleDocumentChange}
         />
-
       </Modal>
 
       <ServiceDetailsModal
@@ -369,22 +281,18 @@ export default function ServicesPage() {
         isOpen={showDeleteModal}
         onClose={() => {
           setShowDeleteModal(false);
-          // If user cancelled deletion, we might want to reopen details
           if (returnToDetails) {
             setShowDetailsModal(true);
-            setReturnToDetails(false); // ✅ Reset it after showing
+            setReturnToDetails(false);
           }
         }}
         onDelete={(id) => {
-          handleDelete(id);                  // Delete the service
-          setShowDeleteModal(false);        // Close the delete modal
-          setReturnToDetails(false);        // ✅ Prevent reopening Details modal
+          handleDelete(id);
+          setShowDeleteModal(false);
+          setReturnToDetails(false);
         }}
         service={serviceToDelete}
         returnToDetails={returnToDetails}
-        onRestoreDetails={() => {
-          // Optional: you can remove this since we're not restoring after delete
-        }}
       />
     </div>
   );

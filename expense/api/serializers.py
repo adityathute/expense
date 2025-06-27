@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Category, Service, ServiceLink, User, UserID, Account, Document
+from .models import Category, Service, ServiceLink, User, UserID, Account, Document, DocumentCategory, DocumentCategory, Document, Service, ServiceLink, ServiceDocumentRequirement
 
 # ---------------------- CATEGORY RELATED SERIALIZER ---------------------- #
 
@@ -45,40 +45,66 @@ class UserSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({"mobile_number": "This number is already used by another user."})
 
         return super().update(instance, validated_data)
+    
+# ---------------------- SERVICE RELATED SERIALIZER ---------------------- #
 
-# ---------- SERVICE RELATED SERIALIZERS ----------
+class DocumentCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DocumentCategory
+        fields = ['id', 'name']
 
 class DocumentSerializer(serializers.ModelSerializer):
+    document_categories = DocumentCategorySerializer(many=True, required=False)
+
     class Meta:
         model = Document
         exclude = ['is_deleted']
 
-    def validate(self, data):
-        service = data.get('service')
-        name = data.get('name')
+    def create(self, validated_data):
+        categories_data = validated_data.pop('document_categories', [])
+        document = Document.objects.create(**validated_data)
 
-        if self.instance:
-            existing = Document.objects.filter(
-                service=service, name__iexact=name, is_deleted=False
-            ).exclude(pk=self.instance.pk)
-        else:
-            existing = Document.objects.filter(
-                service=service, name__iexact=name, is_deleted=False
-            )
+        for category in categories_data:
+            category_obj, _ = DocumentCategory.objects.get_or_create(name=category['name'])
+            document.document_categories.add(category_obj)
 
-        if service and name and existing.exists():
-            raise serializers.ValidationError("This document already exists for this service.")
-        return data
+        return document
+
+    def update(self, instance, validated_data):
+        categories_data = validated_data.pop('document_categories', [])
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        if categories_data:
+            instance.document_categories.clear()
+            for category in categories_data:
+                category_obj, _ = DocumentCategory.objects.get_or_create(name=category['name'])
+                instance.document_categories.add(category_obj)
+
+        return instance
 
 class ServiceLinkSerializer(serializers.ModelSerializer):
     class Meta:
         model = ServiceLink
         fields = ['label', 'url']
 
+class ServiceDocumentRequirementSerializer(serializers.ModelSerializer):
+    document = DocumentSerializer(read_only=True)
+    document_id = serializers.PrimaryKeyRelatedField(queryset=Document.objects.all(), source='document', write_only=True)
+
+    class Meta:
+        model = ServiceDocumentRequirement
+        fields = ['id', 'service', 'document', 'document_id']
+
 
 class ServiceSerializer(serializers.ModelSerializer):
     links = ServiceLinkSerializer(many=True, required=False)
-    required_documents = DocumentSerializer(many=True, required=False)
+    required_documents = serializers.PrimaryKeyRelatedField(
+        queryset=Document.objects.all(), many=True, write_only=True, required=False
+    )
+    documents = DocumentSerializer(many=True, read_only=True, source='get_required_documents')
 
     class Meta:
         model = Service
@@ -86,62 +112,65 @@ class ServiceSerializer(serializers.ModelSerializer):
             'id', 'name', 'description',
             'service_fee', 'service_charge', 'other_charge',
             'pages_required', 'required_time_hours',
-            'is_active', 'links',
-            'required_documents',
-            'created_at', 'updated_at',
+            'is_active', 'links', 'required_documents', 'documents',
+            'created_at', 'updated_at'
         ]
         read_only_fields = ['created_at', 'updated_at']
 
-    def validate_links(self, value):
-        # Remove empty links (no label and no URL)
-        return [
-            link for link in value
-            if link.get('label') or link.get('url')
-        ]
-
     def create(self, validated_data):
         links_data = validated_data.pop('links', [])
-        documents_data = validated_data.pop('required_documents', [])
+        requirements_data = validated_data.pop('servicedocumentrequirement_set', [])
+
         service = Service.objects.create(**validated_data)
 
         for link in links_data:
             ServiceLink.objects.create(service=service, **link)
 
-        for doc in documents_data:
-            Document.objects.create(service=service, **doc)
+        for requirement in requirements_data:
+            document_data = requirement.pop('document')
+            categories_data = document_data.pop('document_categories', [])
+            document = Document.objects.create(**document_data)
+            for category in categories_data:
+                cat_obj, _ = DocumentCategory.objects.get_or_create(name=category['name'])
+                document.document_categories.add(cat_obj)
+
+            ServiceDocumentRequirement.objects.create(
+                service=service,
+                document=document,
+                **requirement
+            )
 
         return service
 
     def update(self, instance, validated_data):
         links_data = validated_data.pop('links', [])
-        documents_data = validated_data.pop('required_documents', [])
+        requirements_data = validated_data.pop('servicedocumentrequirement_set', [])
 
-        # Update core fields
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
 
-        # Clear and recreate links
+        # Update links
         ServiceLink.objects.filter(service=instance).delete()
         for link in links_data:
             ServiceLink.objects.create(service=instance, **link)
 
-        # Clear and recreate documents
-        existing_docs = {doc.name.lower(): doc for doc in instance.required_documents.all()}
-        new_docs = {doc['name'].lower(): doc for doc in documents_data}
+        # Update document requirements
+        ServiceDocumentRequirement.objects.filter(service=instance).delete()
+        for requirement in requirements_data:
+            document_data = requirement.pop('document')
+            categories_data = document_data.pop('document_categories', [])
 
-        # Delete removed documents
-        for name in set(existing_docs) - set(new_docs):
-            existing_docs[name].delete()
+            document = Document.objects.create(**document_data)
+            for category in categories_data:
+                cat_obj, _ = DocumentCategory.objects.get_or_create(name=category['name'])
+                document.document_categories.add(cat_obj)
 
-        # Update existing or add new
-        for name, doc_data in new_docs.items():
-            if name in existing_docs:
-                for attr, val in doc_data.items():
-                    setattr(existing_docs[name], attr, val)
-                existing_docs[name].save()
-            else:
-                Document.objects.create(service=instance, **doc_data)
+            ServiceDocumentRequirement.objects.create(
+                service=instance,
+                document=document,
+                **requirement
+            )
 
         return instance
 

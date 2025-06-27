@@ -92,8 +92,14 @@ class Category(models.Model):
     class Meta:
         ordering = ["core_category", "name"]
 
-
 # ---------------------- SERVICE RELATED MODELS ---------------------- #
+
+class DocumentCategory(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.name
+
 class Service(models.Model):
     name = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True, null=True)
@@ -108,29 +114,57 @@ class Service(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def __str__(self):
-        return f"{self.name}"
-
-class ServiceLink(models.Model):
-    service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='links')
-    label = models.CharField(max_length=100)  # e.g., Apply Online, Track Status
-    url = models.URLField()
+    required_documents = models.ManyToManyField(
+        "Document",
+        through="ServiceDocumentRequirement",
+        related_name="services"
+    )
 
     def __str__(self):
-        return f"{self.label} - {self.service.name}"
+        return self.name
+
+
+class ServiceDocumentRequirement(models.Model):
+    service = models.ForeignKey(Service, on_delete=models.CASCADE)
+    document = models.ForeignKey("Document", on_delete=models.CASCADE)
+
+    is_mandatory = models.BooleanField(default=False)
+    
+    REQUIREMENT_TYPE_CHOICES = [
+        ('original', 'Original'),
+        ('xerox', 'Xerox'),
+        ('both', 'Both'),
+    ]
+    requirement_type = models.CharField(
+        max_length=10,
+        choices=REQUIREMENT_TYPE_CHOICES,
+        default='xerox'
+    )
+
+    class Meta:
+        unique_together = ('service', 'document')  # One doc per service
+
+    def __str__(self):
+        return f"{self.document.name} for {self.service.name} [{self.get_requirement_type_display()}]"
 
 class Document(models.Model):
-    service = models.ForeignKey("Service", on_delete=models.CASCADE, related_name="required_documents", verbose_name="Service")
     name = models.CharField("Document Name", max_length=255)
-    document_type = models.CharField("Document Type", max_length=10, choices=DOCUMENT_TYPE_CHOICES )
-    is_mandatory = models.BooleanField("Is Mandatory", default=True)
+    document_categories = models.ManyToManyField("DocumentCategory", blank=True)
     additional_details = models.TextField("Additional Details", blank=True, null=True)
     is_deleted = models.BooleanField("Is Deleted", default=False)
     created_at = models.DateTimeField("Created At", auto_now_add=True)
     updated_at = models.DateTimeField("Updated At", auto_now=True)
 
     def __str__(self):
-        return f"{self.name} ({self.document_type})"
+        return self.name
+
+class ServiceLink(models.Model):
+    service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='links')
+    label = models.CharField(max_length=100)
+    url = models.URLField()
+
+    def __str__(self):
+        return f"{self.label} - {self.service.name}"
 
 # ---------------------- ACCOUNTS RELATED MODELS ---------------------- #
 

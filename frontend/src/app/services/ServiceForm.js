@@ -6,7 +6,6 @@ import { DeleteIcon } from "../components/Icons";
 
 export default function ServiceForm({
   newService,
-  setNewService,
   description,
   setDescription,
   handleInputChange,
@@ -17,10 +16,6 @@ export default function ServiceForm({
   editingService,
   formErrors = {},
   showLinksSection,
-  setShowLinksSection,
-  handleDocumentChange,
-  addRequiredDocument,
-  removeRequiredDocument,
 }) {
   const nameInputRef = useRef(null);
 
@@ -139,66 +134,6 @@ export default function ServiceForm({
         onClick={addLink}
       >
         Add Link
-      </button>
-
-      {/* === Required Documents Section === */}
-      <h4 className={styles.sectionTitle}>Required Documents</h4>
-      {(newService?.required_documents || []).map((doc, index) => (
-        <div key={index} className={styles.documentRow}>
-          <input
-            type="text"
-            placeholder="Document Name"
-            value={safeValue(doc.name)}
-            onChange={(e) =>
-              handleDocumentChange(index, "name", e.target.value)
-            }
-            className={styles.modalFormInput}
-          />
-          <select
-            value={safeValue(doc.document_type)}
-            onChange={(e) =>
-              handleDocumentChange(index, "document_type", e.target.value)
-            }
-            className={styles.modalFormInput}
-          >
-            <option value="Original">Original</option>
-            <option value="Xerox">Xerox</option>
-          </select>
-          <label className={styles.checkboxLabel}>
-            <input
-              type="checkbox"
-              checked={doc.is_mandatory ?? false}
-              onChange={(e) =>
-                handleDocumentChange(index, "is_mandatory", e.target.checked)
-              }
-            />
-            Mandatory
-          </label>
-          <textarea
-            placeholder="Additional Details (optional)"
-            value={safeValue(doc.additional_details)}
-            onChange={(e) =>
-              handleDocumentChange(index, "additional_details", e.target.value)
-            }
-            className={styles.modalFormTextarea}
-          />
-          <button
-            type="button"
-            className={styles.removeButton}
-            onClick={() => removeRequiredDocument(index)}
-          >
-            <DeleteIcon className={styles.icon} />
-          </button>
-        </div>
-      ))}
-
-      {/* === Add Document Button === */}
-      <button
-        type="button"
-        className={styles.buttonAddLink}
-        onClick={addRequiredDocument}
-      >
-        Add Document
       </button>
 
       {/* === Submit Button === */}
