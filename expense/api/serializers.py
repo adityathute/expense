@@ -106,17 +106,26 @@ class ServiceSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         links_data = validated_data.pop('links', [])
+        required_documents_data = validated_data.pop('required_documents', [])
         requirements_data = validated_data.pop('servicedocumentrequirement_set', [])
 
+        # Create the service without many-to-many field
         service = Service.objects.create(**validated_data)
 
+        # Add links
         for link in links_data:
             ServiceLink.objects.create(service=service, **link)
 
+        # Set required documents (ManyToMany)
+        if required_documents_data:
+            service.required_documents.set(required_documents_data)
+
+        # Add document requirements
         for requirement in requirements_data:
             document_data = requirement.pop('document')
             categories_data = document_data.pop('document_categories', [])
             document = Document.objects.create(**document_data)
+
             for category in categories_data:
                 cat_obj, _ = DocumentCategory.objects.get_or_create(name=category['name'])
                 document.document_categories.add(cat_obj)
