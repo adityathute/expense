@@ -168,8 +168,6 @@ export default function ServiceForm({
       {/* === Required Documents Selection === */}
       {!editingService && (
         <div className={styles.modalFormGroup}>
-          <label className={styles.modalFormLabel}>Required Documents</label>
-
           {/* Selected Document Tags */}
           <div className={styles.selectedDocContainer}>
             {(newService.required_documents || []).map((docId) => {

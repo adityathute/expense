@@ -30,7 +30,7 @@ export default function ServicesPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState(null);
   const [returnToDetails, setReturnToDetails] = useState(false);
-const [documents, setDocuments] = useState([]);
+  const [documents, setDocuments] = useState([]);
 
   const filteredServices = services.filter((service) =>
     service.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -61,6 +61,14 @@ const [documents, setDocuments] = useState([]);
       .then((data) => {
         setServices(data);
         setLoading(false);
+
+        // ✅ Refresh selectedService if returnToDetails is true
+        if (returnToDetails && selectedService) {
+          const updatedService = data.find(s => s.id === selectedService.id);
+          if (updatedService) {
+            setSelectedService(updatedService);
+          }
+        }
       })
       .catch(() => {
         setError("Error fetching services.");
