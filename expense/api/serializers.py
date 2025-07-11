@@ -77,6 +77,23 @@ class ServiceLinkSerializer(serializers.ModelSerializer):
         model = ServiceLink
         fields = ['label', 'url']
 
+class NestedDocumentSerializer(serializers.ModelSerializer):
+    category_names = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Document
+        fields = ['id', 'name', 'additional_details', 'category_names']
+
+    def get_category_names(self, obj):
+        return [cat.name for cat in obj.document_categories.all()]
+
+class DocumentRequirementReadSerializer(serializers.ModelSerializer):
+    document = NestedDocumentSerializer()
+
+    class Meta:
+        model = ServiceDocumentRequirement
+        fields = ['id', 'document']
+
 class ServiceDocumentRequirementSerializer(serializers.ModelSerializer):
     document = DocumentSerializer(read_only=True)
     document_id = serializers.PrimaryKeyRelatedField(queryset=Document.objects.all(), source='document', write_only=True)
@@ -89,9 +106,11 @@ class ServiceDocumentRequirementSerializer(serializers.ModelSerializer):
 class ServiceSerializer(serializers.ModelSerializer):
     links = ServiceLinkSerializer(many=True, required=False)
     required_documents = serializers.PrimaryKeyRelatedField(
-        queryset=Document.objects.all(), many=True, write_only=True, required=False
+        queryset=Document.objects.all(), many=True, required=False
     )
-    documents = DocumentSerializer(many=True, read_only=True, source='get_required_documents')
+    requirements = DocumentRequirementReadSerializer(
+        many=True, read_only=True, source='servicedocumentrequirement_set'
+    )
 
     class Meta:
         model = Service
@@ -99,7 +118,7 @@ class ServiceSerializer(serializers.ModelSerializer):
             'id', 'name', 'description',
             'service_fee', 'service_charge', 'other_charge',
             'pages_required', 'required_time_hours',
-            'is_active', 'links', 'required_documents', 'documents',
+            'is_active', 'links', 'required_documents', 'requirements',
             'created_at', 'updated_at'
         ]
         read_only_fields = ['created_at', 'updated_at']
@@ -141,7 +160,9 @@ class ServiceSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         links_data = validated_data.pop('links', [])
         requirements_data = validated_data.pop('servicedocumentrequirement_set', [])
+        required_documents_data = validated_data.pop('required_documents', [])
 
+        # Update basic fields
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
@@ -151,7 +172,10 @@ class ServiceSerializer(serializers.ModelSerializer):
         for link in links_data:
             ServiceLink.objects.create(service=instance, **link)
 
-        # Update document requirements
+        # Update required_documents (ManyToMany)
+        instance.required_documents.set(required_documents_data)
+
+        # Update document requirements (if needed)
         ServiceDocumentRequirement.objects.filter(service=instance).delete()
         for requirement in requirements_data:
             document_data = requirement.pop('document')
@@ -169,6 +193,7 @@ class ServiceSerializer(serializers.ModelSerializer):
             )
 
         return instance
+
 
 # ---------------------- ACCOUNTS RELATED SERIALIZER ---------------------- #
 

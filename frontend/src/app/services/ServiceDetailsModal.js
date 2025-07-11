@@ -53,6 +53,29 @@ export default function ServiceDetailsModal({
           </div>
         )}
 
+        {service.requirements?.length > 0 && (
+          <div className="serviceDetailsDocuments">
+            <h4 className="serviceDetailsLabel">Documents:</h4>
+            <ul className="serviceDetailsDocList">
+              {service.requirements.map((req) => (
+                <li key={req.id} className="serviceDetailsDocItem">
+                  <strong>{req.document.name}</strong>
+                  {/* {req.document.category_names?.length > 0 && (
+                    <div className="serviceDetailsCategories">
+                      {req.document.category_names.join(", ")}
+                    </div>
+                  )} */}
+                  {req.document.additional_details && (
+                    <div className="serviceDetailsDescription">
+                      Note: {req.document.additional_details}
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <p className="serviceDetailsItem">
           {service.description || "—"}
         </p>
