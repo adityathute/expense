@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Category, Service, ServiceLink, User, UserID, Account, Document, DocumentCategory, DocumentCategory, Document, Service, ServiceLink, ServiceDocumentRequirement
+from .models import Category, Service, ServiceLink, User, UserID, Account, Document, DocumentCategory, DocumentCategory, Document, Service, ServiceLink, ServiceDocumentRequirement, SupportingDocument
 
 # ---------------------- CATEGORY RELATED SERIALIZER ---------------------- #
 
@@ -102,6 +102,11 @@ class ServiceDocumentRequirementSerializer(serializers.ModelSerializer):
         model = ServiceDocumentRequirement
         fields = ['id', 'service', 'document', 'document_id']
 
+class SupportingDocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SupportingDocument
+        fields = ['id', 'service', 'name', 'file', 'uploaded_at']
+        read_only_fields = ['uploaded_at']
 
 class ServiceSerializer(serializers.ModelSerializer):
     links = ServiceLinkSerializer(many=True, required=False)
@@ -111,6 +116,7 @@ class ServiceSerializer(serializers.ModelSerializer):
     requirements = DocumentRequirementReadSerializer(
         many=True, read_only=True, source='servicedocumentrequirement_set'
     )
+    supporting_documents = SupportingDocumentSerializer(many=True, read_only=True)
 
     class Meta:
         model = Service
@@ -119,6 +125,7 @@ class ServiceSerializer(serializers.ModelSerializer):
             'service_fee', 'service_charge', 'other_charge',
             'pages_required', 'required_time_hours',
             'is_active', 'links', 'required_documents', 'requirements',
+            'supporting_documents',
             'created_at', 'updated_at'
         ]
         read_only_fields = ['created_at', 'updated_at']
@@ -193,7 +200,6 @@ class ServiceSerializer(serializers.ModelSerializer):
             )
 
         return instance
-
 
 # ---------------------- ACCOUNTS RELATED SERIALIZER ---------------------- #
 

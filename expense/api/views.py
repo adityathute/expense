@@ -1,8 +1,8 @@
 from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 from rest_framework import generics, status, viewsets
-from .models import Category, Service, User, Account, Document, ServiceDocumentRequirement, DocumentCategory
-from .serializers import CategorySerializer, UserSerializer, ServiceSerializer, AccountSerializer, DocumentSerializer, ServiceDocumentRequirementSerializer
+from .models import Category, Service, User, Account, Document, ServiceDocumentRequirement, DocumentCategory, SupportingDocument
+from .serializers import CategorySerializer, UserSerializer, ServiceSerializer, AccountSerializer, DocumentSerializer, ServiceDocumentRequirementSerializer, SupportingDocumentSerializer
 from rest_framework.generics import DestroyAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
@@ -195,6 +195,17 @@ class ServiceViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         self.perform_destroy(instance)
         return Response({"message": "Service deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+
+class SupportingDocumentViewSet(viewsets.ModelViewSet):
+    queryset = SupportingDocument.objects.all()
+    serializer_class = SupportingDocumentSerializer
+
+def get_queryset(self):
+    queryset = SupportingDocument.objects.all()
+    service_id = self.request.query_params.get("service")
+    if service_id:
+        queryset = queryset.filter(service_id=service_id)
+    return queryset
 
 # ---------------------- ACCOUNTS RELATED VIEWS ---------------------- #
 

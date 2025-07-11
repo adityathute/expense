@@ -51,8 +51,10 @@
   z-index: 1310;
   animation: modalFadeIn 0.3s ease;
   transition: transform 0.3s ease;
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE/Edge */
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE/Edge */
   border-radius: 8px;
   border: 1px solid #3f3f46;
   box-shadow: 0 0 0 3px rgba(81, 82, 102, 0.25);
@@ -63,7 +65,8 @@
   position: absolute;
   right: 1rem;
   font-size: 1.8rem;
-  color: #a3a3a3; /* soft gray */
+  color: #a3a3a3;
+  /* soft gray */
   background: transparent;
   border: none;
   cursor: pointer;
@@ -95,6 +98,7 @@
 .modal-content:hover::-webkit-scrollbar-thumb {
   background-color: rgba(180, 180, 180, 0.5);
 }
+
 /* === Service Detail Content === */
 .serviceDetailsContainer {
   padding: 0rem 0.5rem;
@@ -120,14 +124,17 @@
 }
 
 .service-fee {
-  color: #4ade80; /* Tailwind's green-400 */
+  color: #4ade80;
+  /* Tailwind's green-400 */
   font-weight: 600;
   margin: 0;
 }
 
 .required-time {
-  color: #d1d5db; /* Tailwind's gray-300 */
-  font-size: 0.9rem; /* Tailwind's text-sm */
+  color: #d1d5db;
+  /* Tailwind's gray-300 */
+  font-size: 0.9rem;
+  /* Tailwind's text-sm */
   margin: 0;
   text-align: right;
 }
@@ -167,14 +174,16 @@
 }
 
 .serviceDetailsLinkList a {
-  color: #38bdf8; /* sky-400 */
+  color: #38bdf8;
+  /* sky-400 */
   text-decoration: none;
   font-weight: 500;
   transition: color 0.3s ease;
 }
 
 .serviceDetailsLinkList a:hover {
-  color: #7dd3fc; /* lighter sky */
+  color: #7dd3fc;
+  /* lighter sky */
   text-decoration: underline;
 }
 
@@ -198,7 +207,7 @@
   transition: all 0.2s ease;
 }
 
-.service-cancel-btn-delete:hover{
+.service-cancel-btn-delete:hover {
   color: rgb(197, 197, 197);
   border-color: gray;
 }
@@ -230,7 +239,8 @@
   font-size: 0.95rem;
   margin-bottom: 0.6rem;
   font-weight: 600;
-  color: #00e676; /* cyber green */
+  color: #00e676;
+  /* cyber green */
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -256,10 +266,22 @@
 
 .serviceDetailsDocItem strong {
   font-weight: 600;
-  color: #40a9ff; /* tech blue */
+  color: #40a9ff;
+  /* tech blue */
   font-size: 0.94rem;
   display: inline-block;
   margin-bottom: 0.25rem;
+}
+
+.serviceDetailsDocItem a {
+  text-decoration: none;
+  font-weight: 600;
+  color: #008cff;
+  font-size: 0.94rem
+}
+
+.serviceDetailsDocItem a:hover {
+  color: #e66800;
 }
 
 .serviceDetailsCategories {
@@ -288,6 +310,7 @@
   .serviceDetailsDocuments {
     padding: 0.8rem;
   }
+
   .serviceDetailsDocItem {
     padding: 0.6rem 0.75rem;
   }
@@ -312,6 +335,7 @@
     opacity: 0;
     transform: scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: scale(1);

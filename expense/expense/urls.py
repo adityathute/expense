@@ -20,6 +20,8 @@ from django.urls import path, include, re_path
 import requests
 from . import views
 from django.http import HttpResponse
+from django.conf import settings
+from django.conf.urls.static import static
 
 # Function to proxy Next.js frontend requests
 def proxy_nextjs(request, path=""):
@@ -36,5 +38,5 @@ urlpatterns = [
     path('', include('api.urls')),
     path('', views.index, name='index'),
     # re_path(r"^(?!api/).*", proxy_nextjs),  # Proxy all non-API routes to Next.js
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

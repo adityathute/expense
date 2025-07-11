@@ -164,6 +164,15 @@ class ServiceLink(models.Model):
     def __str__(self):
         return f"{self.label} - {self.service.name}"
 
+class SupportingDocument(models.Model):
+    service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='supporting_documents')
+    name = models.CharField(max_length=255)  # e.g., "Self Declaration"
+    file = models.FileField(upload_to='supporting_documents/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name} for {self.service.name}"
+
 # ---------------------- ACCOUNTS RELATED MODELS ---------------------- #
 
 class ActiveAccountManager(models.Manager):

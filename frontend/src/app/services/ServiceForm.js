@@ -19,6 +19,8 @@ export default function ServiceForm({
   showLinksSection,
 }) {
   const nameInputRef = useRef(null);
+  const fileInputRef = useRef(null);
+
   const [documents, setDocuments] = useState([]);
   const [newDocSelectValue, setNewDocSelectValue] = useState("");
   const [showNewDocForm, setShowNewDocForm] = useState(false);
@@ -28,6 +30,7 @@ export default function ServiceForm({
     additional_details: "",
   });
   const [docSubmitting, setDocSubmitting] = useState(false);
+  const [supportingDocs, setSupportingDocs] = useState([]);
 
   const safeValue = (val) =>
     val === 0 || val === "" || val === false ? "" : val ?? "";
@@ -45,13 +48,42 @@ export default function ServiceForm({
     }
   };
 
+  const handleSupportingDocsUpload = async (files) => {
+    const uploaded = [];
+
+    for (const file of files) {
+      const name = prompt(`Enter name for: ${file.name}`);
+      if (!name) continue;
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("name", name);
+      formData.append("service", editingService?.id || newService?.id);
+
+      try {
+        const res = await fetch("http://localhost:8001/api/supporting-documents/", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!res.ok) throw new Error("Upload failed");
+
+        const data = await res.json();
+        uploaded.push(data);
+      } catch (err) {
+        console.error("Upload failed:", err);
+      }
+    }
+
+    setSupportingDocs((prev) => [...prev, ...uploaded]);
+  };
+
   useEffect(() => {
     fetchDocuments();
   }, []);
 
   useEffect(() => {
     setNewDocSelectValue("");
-    console.log("Current required documents:", newService.required_documents);
 
   }, [newService]);
 
@@ -64,6 +96,21 @@ export default function ServiceForm({
       return () => clearTimeout(timer);
     }
   }, []);
+
+  useEffect(() => {
+    if (!editingService?.id) return;
+    const fetchExistingSupportingDocs = async () => {
+      try {
+        const res = await fetch(`http://127.0.0.1:8001/api/supporting-documents/?service=${editingService.id}`);
+        if (!res.ok) throw new Error("Failed to fetch supporting documents");
+        const data = await res.json();
+        setSupportingDocs(data);
+      } catch (err) {
+        console.error("Error fetching existing supporting documents:", err);
+      }
+    };
+    fetchExistingSupportingDocs();
+  }, [editingService?.id]);
 
   const handleNewDocSubmit = async () => {
     if (!newDocData.name.trim()) return;
@@ -317,6 +364,62 @@ export default function ServiceForm({
           >
             {docSubmitting ? "Saving..." : "Save Document"}
           </button>
+        </div>
+      )}
+      {editingService && (
+        <input
+          type="file"
+          multiple
+          ref={fileInputRef}
+          onChange={(e) => {
+            const files = Array.from(e.target.files);
+            if (files.length > 0) {
+              handleSupportingDocsUpload(files).then(() => {
+                // Reset file input after upload
+                if (fileInputRef.current) {
+                  fileInputRef.current.value = "";
+                }
+              });
+            }
+          }}
+          className={styles.inputFileModern}
+        />
+      )}
+
+      {supportingDocs.length > 0 && (
+        <div className={styles.modalFormGroup}>
+          <h4 className={styles.modalFormLabel}>Supporting Documents:</h4>
+          <ul className={styles.uploadedDocList}>
+            {supportingDocs.map((doc, idx) => (
+              <li key={idx} className={styles.supportingDocItem}>
+                <span>
+                  <strong>{doc.name}</strong>{" "}
+                  {doc.file && (
+                    <a
+                      href={doc.file}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.viewFileLink}
+                    >
+                      (View File)
+                    </a>
+                  )}
+                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSupportingDocs((prev) =>
+                      prev.filter((_, index) => index !== idx)
+                    )
+                  }
+                  className={styles.removeButton}
+                  aria-label="Remove Supporting Document"
+                >
+                  <DeleteIcon className={styles.icon} />
+                </button>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 

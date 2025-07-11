@@ -1,9 +1,10 @@
-// services/ServiceDetailsModal.js
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Modal from "../components/Modal";
 import { ActiveIcon, InactiveIcon } from "../components/StatusIcons";
+import styles from "../styles/components/modalForm.module.css";
+import { DeleteIcon } from "../components/Icons";
 
 export default function ServiceDetailsModal({
   isOpen,
@@ -12,6 +13,48 @@ export default function ServiceDetailsModal({
   onEdit,
   onDelete,
 }) {
+  const [supportingDocs, setSupportingDocs] = useState([]);
+  const handleDeleteSupportingDoc = async (docId) => {
+    if (!window.confirm("Are you sure you want to delete this document?")) return;
+
+    try {
+      const res = await fetch(`http://localhost:8001/api/supporting-documents/${docId}/`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) throw new Error("Failed to delete document");
+
+      // Remove from local state
+      setSupportingDocs((prev) => prev.filter((doc) => doc.id !== docId));
+    } catch (error) {
+      console.error("Delete failed:", error);
+      alert("Failed to delete document.");
+    }
+  };
+const [docToDelete, setDocToDelete] = useState(null);
+const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchSupportingDocs = async () => {
+      if (!service?.id) return;
+
+      try {
+        const res = await fetch(
+          `http://localhost:8001/api/supporting-documents/?service=${service.id}`
+        );
+        if (!res.ok) throw new Error("Failed to fetch supporting documents");
+
+        const data = await res.json();
+        setSupportingDocs(data);
+      } catch (err) {
+        console.error("Error fetching supporting documents:", err);
+        setSupportingDocs([]); // fallback
+      }
+    };
+
+    fetchSupportingDocs();
+  }, [service]);
+
   if (!service) return null;
 
   return (
@@ -30,6 +73,7 @@ export default function ServiceDetailsModal({
       }
     >
       <div className="serviceDetailsContainer space-y-4">
+        {/* === Basic Details === */}
         <div className="service-details-row">
           <p className="service-fee">₹&nbsp;{service.service_fee ?? "0.00"}</p>
           <p className="required-time">
@@ -39,6 +83,7 @@ export default function ServiceDetailsModal({
           </p>
         </div>
 
+        {/* === Links === */}
         {service.links?.length > 0 && (
           <div className="serviceDetailsLinks">
             <ul className="serviceDetailsLinkList">
@@ -53,18 +98,14 @@ export default function ServiceDetailsModal({
           </div>
         )}
 
+        {/* === Required Documents === */}
         {service.requirements?.length > 0 && (
           <div className="serviceDetailsDocuments">
-            <h4 className="serviceDetailsLabel">Documents:</h4>
+            <h4 className="serviceDetailsLabel">Required Documents:</h4>
             <ul className="serviceDetailsDocList">
               {service.requirements.map((req) => (
                 <li key={req.id} className="serviceDetailsDocItem">
                   <strong>{req.document.name}</strong>
-                  {/* {req.document.category_names?.length > 0 && (
-                    <div className="serviceDetailsCategories">
-                      {req.document.category_names.join(", ")}
-                    </div>
-                  )} */}
                   {req.document.additional_details && (
                     <div className="serviceDetailsDescription">
                       Note: {req.document.additional_details}
@@ -76,10 +117,44 @@ export default function ServiceDetailsModal({
           </div>
         )}
 
-        <p className="serviceDetailsItem">
-          {service.description || "—"}
-        </p>
+        {/* === Supporting Documents === */}
+        {supportingDocs.length > 0 && (
+          <div className="serviceDetailsDocuments">
+            <h4 className="serviceDetailsLabel">Supporting Documents:</h4>
+            <ul className="serviceDetailsDocList flex flex-wrap gap-4">
+              {supportingDocs.map((doc) => (
+                <li key={doc.id} className="serviceDetailsDocItem flex justify-between items-center">
+                  <div className="">
+                    <strong>{doc.name}</strong>
+                    {doc.file && (
+                      <a
+                        href={doc.file}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 underline ml-2"
+                      >
+                        (View File)
+                      </a>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    className={styles.removeButton}
+                    onClick={() => handleDeleteSupportingDoc(doc.id)}
+                    aria-label="Remove Link"
+                  >
+                    <DeleteIcon className={styles.icon} />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
+        {/* === Description === */}
+        <p className="serviceDetailsItem">{service.description || "—"}</p>
+
+        {/* === Actions === */}
         <div className="service-details-actions">
           <button
             className="service-edit-btn"
