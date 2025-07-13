@@ -124,7 +124,7 @@ export default function Categories() {
 
   async function handleDeleteCategory() {
     try {
-      await fetch(`http://127.0.0.1:8001/api/categories/${categoryToDelete}/`, { method: "DELETE" });
+      await fetch(`http://127.0.0.1:8001/api/categories/${categoryToDelete}/`, {method: "DELETE",});
       fetchCategories();
       setShowDeleteModal(false);
       setCategoryToDelete(null);
@@ -331,9 +331,11 @@ export default function Categories() {
             headers={["Name", "Description", "Core Category", "Parent"]}
             columns={["name", "description", "core_category", "parentPath"]}
             data={filteredCategories.map(cat => ({
-              ...cat,
+              id: cat.id, // ✅ Explicitly include ID
+              name: cat.name,
+              description: cat.description || "-",
+              core_category: cat.core_category,
               parentPath: getParentPath(categories, cat).replace("Category: ", ""),
-              description: cat.description || "-"
             }))}
             emptyText="No categories found."
             onEdit={handleEditCategory}

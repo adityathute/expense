@@ -19,7 +19,7 @@ export default function ActionButtons({ row, onEdit, onDelete }) {
         <button
           type="button"
           className="action-btn action-btn--delete"
-          onClick={() => onDelete(row.id)}
+          onClick={() => onDelete(row)}
           aria-label={`Delete ${row.name || ""}`}
         >
           <DeleteIcon />
