@@ -31,8 +31,8 @@ export default function ServiceDetailsModal({
       alert("Failed to delete document.");
     }
   };
-const [docToDelete, setDocToDelete] = useState(null);
-const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [docToDelete, setDocToDelete] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchSupportingDocs = async () => {
@@ -123,28 +123,19 @@ const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
             <h4 className="serviceDetailsLabel">Supporting Documents:</h4>
             <ul className="serviceDetailsDocList flex flex-wrap gap-4">
               {supportingDocs.map((doc) => (
-                <li key={doc.id} className="serviceDetailsDocItem flex justify-between items-center">
-                  <div className="">
+                <li key={doc.id} className="serviceDetailsDocItem">
+                  {doc.file ? (
+                    <a
+                      href={doc.file}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500 underline"
+                    >
+                      {doc.name}
+                    </a>
+                  ) : (
                     <strong>{doc.name}</strong>
-                    {doc.file && (
-                      <a
-                        href={doc.file}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-500 underline ml-2"
-                      >
-                        (View File)
-                      </a>
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    className={styles.removeButton}
-                    onClick={() => handleDeleteSupportingDoc(doc.id)}
-                    aria-label="Remove Link"
-                  >
-                    <DeleteIcon className={styles.icon} />
-                  </button>
+                  )}
                 </li>
               ))}
             </ul>

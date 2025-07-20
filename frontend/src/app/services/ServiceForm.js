@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import styles from "../styles/components/modalForm.module.css";
 import { DeleteIcon } from "../components/Icons";
+import SupportingDocumentsSection from "./SupportingDocumentsSection";
 
 export default function ServiceForm({
   newService,
@@ -20,6 +21,9 @@ export default function ServiceForm({
 }) {
   const nameInputRef = useRef(null);
   const fileInputRef = useRef(null);
+  const [docToDelete, setDocToDelete] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const serviceId = editingService?.id || newService?.id;
 
   const [documents, setDocuments] = useState([]);
   const [newDocSelectValue, setNewDocSelectValue] = useState("");
@@ -61,7 +65,7 @@ export default function ServiceForm({
       formData.append("service", editingService?.id || newService?.id);
 
       try {
-        const res = await fetch("http://localhost:8001/api/supporting-documents/", {
+        const res = await fetch("http://127.0.1:8001/api/supporting-documents/", {
           method: "POST",
           body: formData,
         });
@@ -75,9 +79,46 @@ export default function ServiceForm({
       }
     }
 
-    setSupportingDocs((prev) => [...prev, ...uploaded]);
+    // ✅ Fetch fresh list
+    const fetchUpdatedSupportingDocs = async () => {
+      const serviceId = editingService?.id || newService?.id;
+      if (!serviceId) return;
+
+      try {
+        const res = await fetch(`http://127.0.0.1:8001/api/supporting-documents/?service=${serviceId}`);
+        if (!res.ok) throw new Error("Failed to fetch supporting documents");
+
+        const data = await res.json();
+        setSupportingDocs(data);
+      } catch (err) {
+        console.error("Error fetching updated supporting documents:", err);
+      }
+    };
+
+    await fetchUpdatedSupportingDocs();
   };
 
+  const handleDeleteSupportingDoc = async () => {
+    if (!docToDelete) return;
+
+    try {
+      await fetch(`http://127.0.0.1:8001/api/supporting-documents/${docToDelete.id}/`, {
+        method: "DELETE",
+      });
+
+      // Remove from local state
+      setSupportingDocs((prevDocs) =>
+        prevDocs.filter((doc) => doc.id !== docToDelete.id)
+      );
+
+      // ✅ Just close the delete modal
+      setShowDeleteModal(false);
+      setDocToDelete(null);
+    } catch (error) {
+      console.error("Delete failed", error);
+      alert("Failed to delete document.");
+    }
+  };
   useEffect(() => {
     fetchDocuments();
   }, []);
@@ -98,17 +139,20 @@ export default function ServiceForm({
   }, []);
 
   useEffect(() => {
-    if (!editingService?.id) return;
+    if (!serviceId) return;
+
     const fetchExistingSupportingDocs = async () => {
       try {
-        const res = await fetch(`http://127.0.0.1:8001/api/supporting-documents/?service=${editingService.id}`);
+        const res = await fetch(`http://127.0.0.1:8001/api/supporting-documents/?service=${serviceId}`);
         if (!res.ok) throw new Error("Failed to fetch supporting documents");
+
         const data = await res.json();
         setSupportingDocs(data);
       } catch (err) {
         console.error("Error fetching existing supporting documents:", err);
       }
     };
+
     fetchExistingSupportingDocs();
   }, [editingService?.id]);
 
@@ -131,7 +175,6 @@ export default function ServiceForm({
       });
 
       const result = await res.json();
-      console.log("Document creation result:", result);
 
       if (!res.ok || !result.id) {
         console.error("Full error response:", result);
@@ -366,62 +409,16 @@ export default function ServiceForm({
           </button>
         </div>
       )}
-      {editingService && (
-        <input
-          type="file"
-          multiple
-          ref={fileInputRef}
-          onChange={(e) => {
-            const files = Array.from(e.target.files);
-            if (files.length > 0) {
-              handleSupportingDocsUpload(files).then(() => {
-                // Reset file input after upload
-                if (fileInputRef.current) {
-                  fileInputRef.current.value = "";
-                }
-              });
-            }
-          }}
-          className={styles.inputFileModern}
-        />
-      )}
-
-      {supportingDocs.length > 0 && (
-        <div className={styles.modalFormGroup}>
-          <h4 className={styles.modalFormLabel}>Supporting Documents:</h4>
-          <ul className={styles.uploadedDocList}>
-            {supportingDocs.map((doc, idx) => (
-              <li key={idx} className={styles.supportingDocItem}>
-                <span>
-                  <strong>{doc.name}</strong>{" "}
-                  {doc.file && (
-                    <a
-                      href={doc.file}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={styles.viewFileLink}
-                    >
-                      (View File)
-                    </a>
-                  )}
-                </span>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setSupportingDocs((prev) =>
-                      prev.filter((_, index) => index !== idx)
-                    )
-                  }
-                  className={styles.removeButton}
-                  aria-label="Remove Supporting Document"
-                >
-                  <DeleteIcon className={styles.icon} />
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      <SupportingDocumentsSection
+        editingService={editingService}
+        supportingDocs={supportingDocs}
+        setSupportingDocs={setSupportingDocs}
+        setDocToDelete={setDocToDelete}
+        showDeleteModal={showDeleteModal}
+        setShowDeleteModal={setShowDeleteModal}
+        handleDeleteSupportingDoc={handleDeleteSupportingDoc}
+        handleSupportingDocsUpload={handleSupportingDocsUpload}
+      />
 
       {/* === Submit Button === */}
       <div

@@ -19,7 +19,8 @@ export default function ServicesPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState(null);
-  const [editingService, setEditingService] = useState(null);
+  const [editingServiceId, setEditingServiceId] = useState(null);
+  const [editingService, setEditingService] = useState(null); // full object
   const [showForm, setShowForm] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [showLinksSection, setShowLinksSection] = useState(false);
@@ -91,7 +92,7 @@ export default function ServicesPage() {
 
     const method = editingService ? "PUT" : "POST";
     const url = editingService
-      ? `http://127.0.0.1:8001/api/services/${editingService}/`
+      ? `http://127.0.0.1:8001/api/services/${editingService.id}/`
       : "http://127.0.0.1:8001/api/services/";
 
     fetch(url, {
@@ -116,7 +117,8 @@ export default function ServicesPage() {
   };
 
   const handleEdit = (service) => {
-    setEditingService(service.id);
+    setEditingServiceId(service);
+    setEditingService(service);
     setNewService({
       ...service,
       links: service.links ?? [],

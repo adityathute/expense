@@ -284,14 +284,6 @@
   cursor: context-menu;
 }
 
-.uploadedDocList li::before {
-  content: "📄";
-  margin-right: 0.75rem;
-  font-size: 0.85rem;
-  color: #50fa7b;
-  /* cyber green tone */
-}
-
 .modalFormGroup h4 {
   color: #ffffff;
   font-size: 1.1rem;
@@ -323,6 +315,18 @@
   margin-left: 6px;
   text-decoration: underline;
   font-size: 0.9rem;
+}
+
+.docLink {
+  color: #3b82f6; /* Tailwind's text-blue-500 */
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.docLink:hover {
+  text-decoration: underline;
+  color: #2563eb; /* Slightly darker blue (Tailwind's text-blue-600) */
 }
 
 /* === Responsive === */
