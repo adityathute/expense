@@ -3,6 +3,9 @@ from django.conf import settings
 from decouple import config
 from django.core.exceptions import ValidationError
 from .choices import CATEGORY_TYPES, CORE_CATEGORIES, GENDER_CHOICES, ID_TYPES, DOCUMENT_TYPE_CHOICES, ENTRY_TYPE_CHOICES, UID_TYPE_CHOICES,  UPDATE_TYPE_CHOICES, ENTRY_TYPE_CHOICES, STATUS_CHOICES, UID_TYPE_CHOICES, UPDATE_TYPE_CHOICES, PAYMENT_TYPE_CHOICES, ACCOUNT_TYPE_CHOICES, CATEGORY_CHOICES
+import os
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 
 # ---------------------- USER RELATED MODELS ---------------------- #
 
@@ -172,6 +175,13 @@ class SupportingDocument(models.Model):
 
     def __str__(self):
         return f"{self.name} for {self.service.name}"
+
+@receiver(post_delete, sender=SupportingDocument)
+def delete_supporting_document_file(sender, instance, **kwargs):
+    """Deletes file from filesystem when corresponding `SupportingDocument` object is deleted."""
+    if instance.file:
+        if os.path.isfile(instance.file.path):
+            os.remove(instance.file.path)
 
 # ---------------------- ACCOUNTS RELATED MODELS ---------------------- #
 

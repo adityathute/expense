@@ -185,10 +185,11 @@ export default function ServiceForm({
 
       setNewService((prev) => ({
         ...prev,
-        required_documents: (service.required_documents || []).map((doc) =>
+        required_documents: (prev.required_documents || []).map((doc) =>
           typeof doc === "object" ? doc.id : doc
         ),
       }));
+
 
       setNewDocData({ name: "", categories: "", additional_details: "" });
       setShowNewDocForm(false);
