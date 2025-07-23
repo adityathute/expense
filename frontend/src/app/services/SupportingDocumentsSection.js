@@ -18,6 +18,13 @@ export default function SupportingDocumentsSection({
 }) {
     const fileInputRef = useRef(null);
 
+    const handleDeleteClick = (doc) => {
+        console.log("🧪 Clicked Delete, doc:", doc);
+        setDocToDelete(doc); // useEffect will now handle modal
+    };
+
+
+
     return (
         <>
             {editingService && (
@@ -44,7 +51,6 @@ export default function SupportingDocumentsSection({
                         {supportingDocs.map((doc, idx) => (
                             <li key={idx} className={styles.supportingDocItem}>
                                 <span>
-                                    {/* Document Name as Link */}
                                     {doc.file ? (
                                         <a
                                             href={doc.file}
@@ -60,11 +66,7 @@ export default function SupportingDocumentsSection({
                                 </span>
                                 <button
                                     type="button"
-                                    onClick={() => {
-                                        console.log("Document to delete:", doc); // ADD THIS
-                                        setDocToDelete(doc);
-                                        setTimeout(() => setShowDeleteModal(true), 0);
-                                    }}
+                                    onClick={() => handleDeleteClick(doc)}
                                     className={styles.removeButton}
                                     aria-label="Remove Supporting Document"
                                 >
@@ -75,15 +77,21 @@ export default function SupportingDocumentsSection({
                     </ul>
                 </div>
             )}
-            {showDeleteModal && (
+
+            {/* ✅ Only render modal when both flags are true */}
+            {showDeleteModal && docToDelete && (
                 <DeleteSupportingDocModal
                     isOpen={showDeleteModal}
                     onClose={() => setShowDeleteModal(false)}
-                    onConfirm={handleDeleteSupportingDoc}
                     doc={docToDelete}
+                    onConfirm={async () => {
+                        console.log("🧪 Parent onConfirm called");
+                        await handleDeleteSupportingDoc(docToDelete.id); // pass explicitly
+                        setShowDeleteModal(false);
+                        setDocToDelete(null); // clear after delete
+                    }}
                 />
             )}
-
         </>
     );
 }

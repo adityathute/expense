@@ -63,15 +63,19 @@ export default function ServicesPage() {
         setServices(data);
         setLoading(false);
 
-        // ✅ Refresh selectedService if returnToDetails is true
+        // Fix: Keep modal editing open
+        if (editingService) {
+          const updated = data.find((s) => s.id === editingService.id);
+          if (updated) setEditingService(updated);
+        }
+
         if (returnToDetails && selectedService) {
-          const updatedService = data.find(s => s.id === selectedService.id);
-          if (updatedService) {
-            setSelectedService(updatedService);
-          }
+          const updated = data.find((s) => s.id === selectedService.id);
+          if (updated) setSelectedService(updated);
         }
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error("Fetch error:", err);
         setError("Error fetching services.");
         setLoading(false);
       });
@@ -273,6 +277,7 @@ export default function ServicesPage() {
           showLinksSection={showLinksSection}
           setShowLinksSection={setShowLinksSection}
           documents={documents}
+          onUpdate={fetchServices}
         />
       </Modal>
 

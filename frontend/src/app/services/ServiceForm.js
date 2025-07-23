@@ -112,8 +112,8 @@ export default function ServiceForm({
       );
 
       // ✅ Just close the delete modal
-      setShowDeleteModal(false);
       setDocToDelete(null);
+      setShowDeleteModal(false); // ✅ ONLY close delete modal
     } catch (error) {
       console.error("Delete failed", error);
       alert("Failed to delete document.");

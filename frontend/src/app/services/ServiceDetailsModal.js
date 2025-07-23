@@ -3,8 +3,6 @@
 import React, { useEffect, useState } from "react";
 import Modal from "../components/Modal";
 import { ActiveIcon, InactiveIcon } from "../components/StatusIcons";
-import styles from "../styles/components/modalForm.module.css";
-import { DeleteIcon } from "../components/Icons";
 
 export default function ServiceDetailsModal({
   isOpen,
@@ -14,25 +12,6 @@ export default function ServiceDetailsModal({
   onDelete,
 }) {
   const [supportingDocs, setSupportingDocs] = useState([]);
-  const handleDeleteSupportingDoc = async (docId) => {
-    if (!window.confirm("Are you sure you want to delete this document?")) return;
-
-    try {
-      const res = await fetch(`http://localhost:8001/api/supporting-documents/${docId}/`, {
-        method: "DELETE",
-      });
-
-      if (!res.ok) throw new Error("Failed to delete document");
-
-      // Remove from local state
-      setSupportingDocs((prev) => prev.filter((doc) => doc.id !== docId));
-    } catch (error) {
-      console.error("Delete failed:", error);
-      alert("Failed to delete document.");
-    }
-  };
-  const [docToDelete, setDocToDelete] = useState(null);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchSupportingDocs = async () => {
