@@ -46,7 +46,7 @@ export default function SupportingDocumentsSection({
 
             {supportingDocs.length > 0 && (
                 <div className={styles.modalFormGroup}>
-                    <h4 className={styles.modalFormLabel}>Supporting Documents:</h4>
+                    {/* <h4 className={styles.modalFormLabel}>Supporting Documents:</h4> */}
                     <ul className={styles.uploadedDocList}>
                         {supportingDocs.map((doc, idx) => (
                             <li key={idx} className={styles.supportingDocItem}>

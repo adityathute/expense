@@ -94,14 +94,20 @@ class DocumentRequirementReadSerializer(serializers.ModelSerializer):
         model = ServiceDocumentRequirement
         fields = ['id', 'document', 'requirement_type']  # <- MUST include it here
 
-
 class ServiceDocumentRequirementSerializer(serializers.ModelSerializer):
     document = DocumentSerializer(read_only=True)
-    document_id = serializers.PrimaryKeyRelatedField(queryset=Document.objects.all(), source='document', write_only=True)
+    document_id = serializers.PrimaryKeyRelatedField(
+        queryset=Document.objects.all(), source='document', write_only=True
+    )
+    service = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = ServiceDocumentRequirement
-        fields = ['id', 'service', 'document', 'document_id']
+        fields = [
+            'id', 'service',
+            'document', 'document_id',
+            'requirement_type', 'is_mandatory',
+        ]
 
 class SupportingDocumentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -114,6 +120,9 @@ class ServiceSerializer(serializers.ModelSerializer):
     required_documents = serializers.PrimaryKeyRelatedField(
         queryset=Document.objects.all(), many=True, required=False
     )
+    servicedocumentrequirement_set = ServiceDocumentRequirementSerializer(
+    many=True, write_only=True, required=False
+    )
     requirements = DocumentRequirementReadSerializer(
         many=True, read_only=True, source='servicedocumentrequirement_set'
     )
@@ -125,7 +134,9 @@ class ServiceSerializer(serializers.ModelSerializer):
             'id', 'name', 'description',
             'service_fee', 'service_charge', 'other_charge',
             'pages_required', 'required_time_hours',
-            'is_active', 'links', 'required_documents', 'requirements',
+            'is_active', 'links', 'required_documents',
+            'servicedocumentrequirement_set',
+            'requirements',
             'supporting_documents',
             'created_at', 'updated_at'
         ]
@@ -183,21 +194,12 @@ class ServiceSerializer(serializers.ModelSerializer):
         # Update required_documents (ManyToMany)
         instance.required_documents.set(required_documents_data)
 
-        # Update document requirements (if needed)
+        # Update document requirements
         ServiceDocumentRequirement.objects.filter(service=instance).delete()
-        for requirement in requirements_data:
-            document_data = requirement.pop('document')
-            categories_data = document_data.pop('document_categories', [])
-
-            document = Document.objects.create(**document_data)
-            for category in categories_data:
-                cat_obj, _ = DocumentCategory.objects.get_or_create(name=category['name'])
-                document.document_categories.add(cat_obj)
-
+        for req_data in requirements_data:
             ServiceDocumentRequirement.objects.create(
                 service=instance,
-                document=document,
-                **requirement
+                **req_data
             )
 
         return instance

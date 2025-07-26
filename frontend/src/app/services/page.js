@@ -1,4 +1,3 @@
-// services/page.js
 "use client";
 
 import { useEffect, useState } from "react";
@@ -6,7 +5,7 @@ import StyledTable from "../components/StyledTable";
 import SearchBar from "../components/SearchBar";
 import BalanceCell from "../components/BalanceCell";
 import HeaderWithNewButton from "../components/common/HeaderWithNewButton";
-import React from 'react';
+import React from "react";
 import Loader from "../components/Loader";
 import Modal from "../components/Modal";
 import ServiceForm from "./ServiceForm";
@@ -20,7 +19,7 @@ export default function ServicesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState(null);
   const [editingServiceId, setEditingServiceId] = useState(null);
-  const [editingService, setEditingService] = useState(null); // full object
+  const [editingService, setEditingService] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [showLinksSection, setShowLinksSection] = useState(false);
@@ -63,7 +62,6 @@ export default function ServicesPage() {
         setServices(data);
         setLoading(false);
 
-        // Fix: Keep modal editing open
         if (editingService) {
           const updated = data.find((s) => s.id === editingService.id);
           if (updated) setEditingService(updated);
@@ -91,18 +89,38 @@ export default function ServicesPage() {
     }));
   };
 
+  function transformServiceForSubmit(service) {
+    const servicedocumentrequirement_set = (service.required_documents || []).map((docItem) => ({
+      document_id: docItem.document,
+      requirement_type: docItem.requirement_type || "original",
+      is_mandatory: docItem.is_mandatory ?? true,
+    }));
+
+    const payload = {
+      ...service,
+      servicedocumentrequirement_set,
+    };
+
+    delete payload.required_documents; // ✅ FIXED
+
+    return payload;
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    const transformedService = transformServiceForSubmit(newService);
 
     const method = editingService ? "PUT" : "POST";
     const url = editingService
       ? `http://127.0.0.1:8001/api/services/${editingService.id}/`
       : "http://127.0.0.1:8001/api/services/";
 
+    console.log("✅ Final Payload:", transformedService);
+
     fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newService),
+      body: JSON.stringify(transformedService),
     })
       .then((res) => {
         if (!res.ok) return res.json().then((err) => Promise.reject(err));
@@ -137,7 +155,7 @@ export default function ServicesPage() {
       headers: { "Content-Type": "application/json" },
     })
       .then((res) => {
-        if (!res.ok) return res.json().then(err => Promise.reject(err));
+        if (!res.ok) return res.json().then((err) => Promise.reject(err));
         fetchServices();
       })
       .catch((err) => {
@@ -177,7 +195,7 @@ export default function ServicesPage() {
       required_time_hours: 0,
       is_active: true,
       links: [],
-      required_documents: [], // ✅ add this
+      required_documents: [],
     });
     setEditingService(null);
     setShowForm(false);
@@ -260,12 +278,16 @@ export default function ServicesPage() {
         </div>
       )}
 
-      <Modal isOpen={showForm} onClose={resetForm} title={editingService ? "Update Service" : "Add Service"}>
+      <Modal
+        isOpen={showForm}
+        onClose={resetForm}
+        title={editingService ? "Update Service" : "Add Service"}
+      >
         <ServiceForm
           newService={newService}
           setNewService={setNewService}
           description={newService.description}
-          setDescription={(desc) => setNewService(prev => ({ ...prev, description: desc }))}
+          setDescription={(desc) => setNewService((prev) => ({ ...prev, description: desc }))}
           handleInputChange={handleInputChange}
           handleSubmit={handleSubmit}
           handleLinkChange={handleLinkChange}

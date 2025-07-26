@@ -330,6 +330,9 @@
 .serviceDetailsNote {
   font-size: 0.8rem;
   color: #bfbfbf;
+}
+
+.serviceDetailsNote{
   font-style: italic;
 }
 

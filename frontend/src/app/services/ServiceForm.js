@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import styles from "../styles/components/modalForm.module.css";
 import { DeleteIcon } from "../components/Icons";
 import SupportingDocumentsSection from "./SupportingDocumentsSection";
+import RequiredDocumentsSection from "./RequiredDocumentsSection";
 
 export default function ServiceForm({
   newService,
@@ -183,14 +184,17 @@ export default function ServiceForm({
 
       const updatedDocs = await fetchDocuments();
 
-setNewService((prev) => ({
-  ...prev,
-  required_documents: [
-    ...(prev.required_documents || []),
-    { document: docId, requirement_type: "original" }, // default to "original"
-  ],
-}));
-
+      setNewService((prev) => ({
+        ...prev,
+        required_documents: [
+          ...(prev.required_documents || []),
+          {
+            document: result.id, // ✅ use the actual ID from the API response
+            requirement_type: "original",
+            is_mandatory: true,
+          },
+        ],
+      }));
 
       setNewDocData({ name: "", categories: "", additional_details: "" });
       setShowNewDocForm(false);
@@ -303,115 +307,24 @@ setNewService((prev) => ({
         Add Link
       </button>
 
-      {/* === Required Documents Selection === */}
-      <div className={styles.modalFormGroup}>
-        {/* Selected Document Tags */}
-        <div className={styles.selectedDocContainer}>
-          {(newService.required_documents || []).map((docId) => {
-            const doc = documents.find((d) => d.id === Number(docId));
-            if (!doc) return null;
-            return (
-              <div key={doc.id} className={`${styles.selectedDocTag} ${styles.linkRow}`}>
-                {doc.name}
-                <button
-                  type="button"
-                  onClick={() =>
-                    setNewService((prev) => ({
-                      ...prev,
-                      required_documents: prev.required_documents.filter(
-                        (id) => Number(id) !== Number(doc.id)
-                      ),
-                    }))
-                  }
-                  className={styles.removeButton}
-                  aria-label="Remove Document"
-                >
-                  <DeleteIcon className={styles.icon} />
-                </button>
-              </div>
-            );
-          })}
-        </div>
+      {/* === Required Documents Section === */}
+      <RequiredDocumentsSection
+        documents={documents}
+        newService={newService}
+        setNewService={setNewService}
+        newDocSelectValue={newDocSelectValue}
+        setNewDocSelectValue={setNewDocSelectValue}
+        showNewDocForm={showNewDocForm}
+        setShowNewDocForm={setShowNewDocForm}
+        newDocData={newDocData}
+        setNewDocData={setNewDocData}
+        docSubmitting={docSubmitting}
+        handleNewDocSubmit={handleNewDocSubmit}
+        editingService={editingService} // <-- add this
+        setDescription={setDescription} // <-- and this
+      />
 
-        {/* Dropdown to select new document */}
-        {documents.filter(
-          (d) => !(newService.required_documents || []).includes(d.id)
-        ).length > 0 && (
-            <select
-              value={newDocSelectValue}
-              onChange={(e) => {
-                const docId = parseInt(e.target.value);
-                if (!isNaN(docId)) {
-                  setNewService((prev) => ({
-                    ...prev,
-                    required_documents: [...(prev.required_documents || []), docId],
-                  }));
-                  setNewDocSelectValue("");
-                }
-              }}
-              className={styles.modalFormSelect}
-            >
-              <option value="" disabled>
-                Select a document...
-              </option>
-              {documents
-                .filter((doc) => !(newService.required_documents || []).includes(doc.id))
-                .map((doc) => (
-                  <option key={doc.id} value={doc.id}>
-                    {doc.name}
-                  </option>
-                ))}
-            </select>
-          )}
-
-        {/* Add New Document Button */}
-        <button
-          type="button"
-          onClick={() => setShowNewDocForm(true)}
-          className={styles.buttonAddLink}
-        >
-          + Add New Document
-        </button>
-      </div>
-
-      {/* === New Document Form === */}
-      {showNewDocForm && (
-        <div className={styles.modalFormGroup} style={{ marginTop: "1rem" }}>
-          <input
-            type="text"
-            placeholder="Document Name"
-            value={newDocData.name}
-            onChange={(e) => setNewDocData({ ...newDocData, name: e.target.value })}
-            className={styles.modalFormInput}
-          />
-          <input
-            type="text"
-            placeholder="Categories (comma separated)"
-            value={newDocData.categories}
-            onChange={(e) =>
-              setNewDocData({ ...newDocData, categories: e.target.value })
-            }
-            className={styles.modalFormInput}
-          />
-          <textarea
-            placeholder="Additional Details"
-            value={newDocData.additional_details}
-            onChange={(e) =>
-              setNewDocData({ ...newDocData, additional_details: e.target.value })
-            }
-            className={styles.modalFormTextarea}
-          />
-          <button
-            type="button"
-            className={styles.buttonSubmit}
-            onClick={handleNewDocSubmit}
-            disabled={docSubmitting}
-          >
-            {docSubmitting ? "Saving..." : "Save Document"}
-          </button>
-        </div>
-      )}
-      
+      {/* === Supporting Documents Section === */}
       <SupportingDocumentsSection
         editingService={editingService}
         supportingDocs={supportingDocs}
