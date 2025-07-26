@@ -47,7 +47,6 @@ class UserSerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
     
 # ---------------------- SERVICE RELATED SERIALIZER ---------------------- #
-
 class DocumentCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = DocumentCategory
@@ -89,10 +88,12 @@ class NestedDocumentSerializer(serializers.ModelSerializer):
 
 class DocumentRequirementReadSerializer(serializers.ModelSerializer):
     document = NestedDocumentSerializer()
+    requirement_type = serializers.CharField(source='get_requirement_type_display')  # gets "Original", "Xerox", etc.
 
     class Meta:
         model = ServiceDocumentRequirement
-        fields = ['id', 'document']
+        fields = ['id', 'document', 'requirement_type']  # <- MUST include it here
+
 
 class ServiceDocumentRequirementSerializer(serializers.ModelSerializer):
     document = DocumentSerializer(read_only=True)

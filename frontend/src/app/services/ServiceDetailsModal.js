@@ -54,16 +54,40 @@ export default function ServiceDetailsModal({
       <div className="serviceDetailsContainer space-y-4">
         {/* === Basic Details === */}
         <div className="service-details-row">
-          <p className="service-fee">₹&nbsp;{service.service_fee ?? "0.00"}</p>
-          <p className="required-time">
-            {service.required_time_hours
-              ? `${(service.required_time_hours / 24).toFixed(1)} days`
-              : "—"}
+          <p className="service-fee">
+            ₹{" "}
+            {Number(service.service_fee) % 1 === 0
+              ? Number(service.service_fee)
+              : Number(service.service_fee).toFixed(2)}
           </p>
+
+          {service.required_time_hours ? (
+            <div className="required-time">
+              {(() => {
+                const rawHours = Number(service.required_time_hours);
+                const days = rawHours / 24;
+
+                const isAlmostWhole = Math.abs(days - Math.round(days)) < 0.01;
+                const displayDays = isAlmostWhole
+                  ? `${Math.round(days)} days`
+                  : `${days.toFixed(1)} days`;
+
+                return (
+                  <>
+                    <p>{displayDays}</p>
+                    <p className="required-date">
+                      {new Date(Date.now() + rawHours * 60 * 60 * 1000).toLocaleDateString("en-GB")}
+                    </p>
+                  </>
+                );
+              })()}
+            </div>
+          ) : (
+            <p className="required-time">—</p>
+          )}
         </div>
 
-        {/* === Links === */}
-        {service.links?.length > 0 && (
+        {(service.links?.length > 0 || supportingDocs.length > 0) && (
           <div className="serviceDetailsLinks">
             <ul className="serviceDetailsLinkList">
               {service.links.map((link, idx) => (
@@ -74,42 +98,11 @@ export default function ServiceDetailsModal({
                 </li>
               ))}
             </ul>
-          </div>
-        )}
-
-        {/* === Required Documents === */}
-        {service.requirements?.length > 0 && (
-          <div className="serviceDetailsDocuments">
-            <h4 className="serviceDetailsLabel">Required Documents:</h4>
-            <ul className="serviceDetailsDocList">
-              {service.requirements.map((req) => (
-                <li key={req.id} className="serviceDetailsDocItem">
-                  <strong>{req.document.name}</strong>
-                  {req.document.additional_details && (
-                    <div className="serviceDetailsDescription">
-                      Note: {req.document.additional_details}
-                    </div>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* === Supporting Documents === */}
-        {supportingDocs.length > 0 && (
-          <div className="serviceDetailsDocuments">
-            <h4 className="serviceDetailsLabel">Supporting Documents:</h4>
-            <ul className="serviceDetailsDocList flex flex-wrap gap-4">
+            <ul className="serviceDetailsLinkList">
               {supportingDocs.map((doc) => (
-                <li key={doc.id} className="serviceDetailsDocItem">
+                <li key={doc.id}>
                   {doc.file ? (
-                    <a
-                      href={doc.file}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-500 underline"
-                    >
+                    <a href={doc.file} target="_blank" rel="noopener noreferrer">
                       {doc.name}
                     </a>
                   ) : (
@@ -121,8 +114,33 @@ export default function ServiceDetailsModal({
           </div>
         )}
 
+        {/* === Required Documents === */}
+        {service.requirements?.length > 0 && (
+          <div className="serviceDetailsDocuments">
+            <h4 className="serviceDetailsLabel">Documents:</h4>
+            <ul className="serviceDetailsDocList">
+              {service.requirements.map((req) => (
+                <li key={req.id} className="serviceDetailsDocItem">
+                  <div className="doc-item-header">
+                    <strong>{req.document.name}</strong>
+                    {req.requirement_type && (
+                      <span className="requirementType">{req.requirement_type}</span>
+                    )}
+                  </div>
+                  {req.document.additional_details && (
+                    <div className="serviceDetailsNote">
+                      Note: {req.document.additional_details}
+                    </div>
+                  )}
+                </li>
+
+              ))}
+            </ul>
+          </div>
+        )}
+
         {/* === Description === */}
-        <p className="serviceDetailsItem">{service.description || "—"}</p>
+        <p className="serviceDetailsDescription">{service.description || "—"}</p>
 
         {/* === Actions === */}
         <div className="service-details-actions">

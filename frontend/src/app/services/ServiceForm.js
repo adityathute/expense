@@ -183,12 +183,13 @@ export default function ServiceForm({
 
       const updatedDocs = await fetchDocuments();
 
-      setNewService((prev) => ({
-        ...prev,
-        required_documents: (prev.required_documents || []).map((doc) =>
-          typeof doc === "object" ? doc.id : doc
-        ),
-      }));
+setNewService((prev) => ({
+  ...prev,
+  required_documents: [
+    ...(prev.required_documents || []),
+    { document: docId, requirement_type: "original" }, // default to "original"
+  ],
+}));
 
 
       setNewDocData({ name: "", categories: "", additional_details: "" });
@@ -410,6 +411,7 @@ export default function ServiceForm({
           </button>
         </div>
       )}
+      
       <SupportingDocumentsSection
         editingService={editingService}
         supportingDocs={supportingDocs}
