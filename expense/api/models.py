@@ -113,6 +113,8 @@ class Service(models.Model):
     required_time_hours = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     is_active = models.BooleanField(default=True)
     is_deleted = models.BooleanField(default=False)
+    passport_required = models.BooleanField(default=False, help_text="Is passport required?")
+    photo_count = models.PositiveIntegerField(default=0, help_text="Number of passport photos required")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -25,6 +25,9 @@ export default function ServiceForm({
   const [docToDelete, setDocToDelete] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const serviceId = editingService?.id || newService?.id;
+  const isPhotoInvalid =
+    newService.passport_required &&
+    (!newService.photo_count || newService.photo_count <= 0);
 
   const [documents, setDocuments] = useState([]);
   const [newDocSelectValue, setNewDocSelectValue] = useState("");
@@ -307,6 +310,49 @@ export default function ServiceForm({
         Add Link
       </button>
 
+      {/* === Passport Required & Photo Count (Row) === */}
+      <div className={styles.passportRow}>
+        <label className={styles.passportLabel}>
+          <input
+            type="checkbox"
+            name="passport_required"
+            checked={!!newService.passport_required}
+            onChange={(e) => {
+              const isChecked = e.target.checked;
+
+              setNewService((prev) => ({
+                ...prev,
+                passport_required: isChecked,
+                photo_count: isChecked
+                  ? prev.photo_count > 0
+                    ? prev.photo_count // keep existing if already set
+                    : 1 // default to 1
+                  : "", // clear if unchecked
+              }));
+            }}
+          />
+          Passport Photo
+        </label>
+
+        {newService.passport_required && (
+          <input
+            type="number"
+            name="photo_count"
+            value={safeValue(newService.photo_count)}
+            onChange={(e) =>
+              setNewService((prev) => ({
+                ...prev,
+                photo_count: parseInt(e.target.value || "0", 10),
+              }))
+            }
+            placeholder="No. of Photos"
+            className={`${styles.modalFormInput} ${styles.passportPhotoInput}`}
+            spellCheck={false}
+            min={0}
+          />
+        )}
+      </div>
+
       {/* === Required Documents Section === */}
       <RequiredDocumentsSection
         documents={documents}
@@ -345,9 +391,14 @@ export default function ServiceForm({
           marginTop: "1rem",
         }}
       >
-        <button type="submit" className={styles.buttonSubmit}>
+        <button
+          type="submit"
+          className={styles.buttonSubmit}
+          disabled={isPhotoInvalid}
+        >
           {editingService ? "Update Service" : "Create Service"}
         </button>
+
       </div>
     </form>
   );

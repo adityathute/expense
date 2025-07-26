@@ -187,7 +187,7 @@
 }
 
 .serviceDetailsLinkList a {
-  color: #38bdf8;
+  color: #40a9ff;
   /* sky-400 */
   text-decoration: none;
   font-weight: 500;
@@ -248,6 +248,19 @@
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
 }
 
+.documents-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.passport-info {
+  font-size: 0.8rem;
+  color: #d1d1d1;
+  font-weight: 500;
+}
+
 .serviceDetailsLabel {
   font-size: 0.95rem;
   margin-bottom: 0.6rem;
@@ -292,7 +305,7 @@
 
 .serviceDetailsDocItem strong {
   font-weight: 600;
-  color: #40a9ff;
+  color: #B8C1CC;
   /* tech blue */
   font-size: 0.94rem;
   display: inline-block;

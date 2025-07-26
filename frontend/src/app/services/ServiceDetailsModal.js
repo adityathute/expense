@@ -76,7 +76,22 @@ export default function ServiceDetailsModal({
                   <>
                     <p>{displayDays}</p>
                     <p className="required-date">
-                      {new Date(Date.now() + rawHours * 60 * 60 * 1000).toLocaleDateString("en-GB")}
+                      {(() => {
+                        const rawHours = Number(service.required_time_hours);
+                        const totalDays = Math.ceil(rawHours / 24);
+                        let resultDate = new Date(); // today
+                        let addedDays = 0;
+
+                        while (addedDays < totalDays) {
+                          resultDate.setDate(resultDate.getDate() + 1);
+                          const day = resultDate.getDay(); // 0 = Sun, 6 = Sat
+                          if (day !== 0 && day !== 6) {
+                            addedDays++;
+                          }
+                        }
+
+                        return resultDate.toLocaleDateString("en-GB");
+                      })()}
                     </p>
                   </>
                 );
@@ -88,36 +103,64 @@ export default function ServiceDetailsModal({
         </div>
 
         {(service.links?.length > 0 || supportingDocs.length > 0) && (
-          <div className="serviceDetailsLinks">
-            <ul className="serviceDetailsLinkList">
-              {service.links.map((link, idx) => (
-                <li key={idx}>
-                  <a href={link.url} target="_blank" rel="noopener noreferrer">
-                    {link.label || link.url}
-                  </a>
-                </li>
-              ))}
-            </ul>
-            <ul className="serviceDetailsLinkList">
-              {supportingDocs.map((doc) => (
-                <li key={doc.id}>
-                  {doc.file ? (
-                    <a href={doc.file} target="_blank" rel="noopener noreferrer">
-                      {doc.name}
+          <div
+            className="serviceDetailsLinks"
+            style={{
+              display: "flex",
+              flexDirection:
+                service.links?.length > 0 && supportingDocs.length > 0
+                  ? "row"
+                  : "column",
+              gap: "1rem",
+            }}
+          >
+            {service.links?.length > 0 && (
+              <ul className="serviceDetailsLinkList" style={{ flex: 1 }}>
+                {service.links.map((link, idx) => (
+                  <li key={idx}>
+                    <a href={link.url} target="_blank" rel="noopener noreferrer">
+                      {link.label || link.url}
                     </a>
-                  ) : (
-                    <strong>{doc.name}</strong>
-                  )}
-                </li>
-              ))}
-            </ul>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {supportingDocs.length > 0 && (
+              <ul
+                className="serviceDetailsLinkList"
+                style={{
+                  flex: 1,
+                  order: service.links?.length > 0 ? 2 : 1,
+                }}
+              >
+                {supportingDocs.map((doc) => (
+                  <li key={doc.id}>
+                    {doc.file ? (
+                      <a href={doc.file} target="_blank" rel="noopener noreferrer">
+                        {doc.name}
+                      </a>
+                    ) : (
+                      <strong>{doc.name}</strong>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         )}
 
-        {/* === Required Documents === */}
         {service.requirements?.length > 0 && (
           <div className="serviceDetailsDocuments">
-            <h4 className="serviceDetailsLabel">Documents:</h4>
+            <div className="documents-header-row">
+              <h4 className="serviceDetailsLabel">Documents:</h4>
+              {service.passport_required && (
+                <p className="passport-info">
+                  📸 {service.photo_count === 1 ? "Photo" : "Photos"} ×{" "}
+                  <strong>{service.photo_count || "—"}</strong>
+                </p>
+              )}
+            </div>
             <ul className="serviceDetailsDocList">
               {service.requirements.map((req) => (
                 <li key={req.id} className="serviceDetailsDocItem">
@@ -133,7 +176,6 @@ export default function ServiceDetailsModal({
                     </div>
                   )}
                 </li>
-
               ))}
             </ul>
           </div>

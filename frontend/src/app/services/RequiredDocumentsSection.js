@@ -62,7 +62,7 @@ export default function RequiredDocumentsSection({
                             className={`${styles.selectedDocTag} ${styles.linkRow}`}
                             style={{ alignItems: "center", gap: "0.5rem" }}
                         >
-                            <span>{doc.name}</span>
+                            <span style={{ width: "55%", padding: "0.2rem" }}>{doc.name}</span>
 
                             <select
                                 value={requirementType}
@@ -76,8 +76,8 @@ export default function RequiredDocumentsSection({
                                     }
                                     setNewService((prev) => ({ ...prev, required_documents: updatedDocs }));
                                 }}
-                                className={styles.modalFormSelect}
-                                style={{ minWidth: "100px" }}
+                                className={styles.modalFormSelectDocs}
+                                style={{ marginLeft: "auto" }}
                             >
                                 <option value="" disabled>Requirement Type</option>
                                 <option value="original">Original</option>

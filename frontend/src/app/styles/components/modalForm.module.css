@@ -7,21 +7,32 @@
 }
 
 /* Add dropdown (select) styling for consistency */
-.modalFormSelect {
-  background-color: #2a2a2e;
+.modalFormSelect,
+.modalFormSelectDocs {
   color: #f1f5f9;
-  padding: 0.50rem 0.80rem;
   border: 1px solid #3f3f46;
   border-radius: 0.6rem;
   font-size: 0.90rem;
   transition: border-color 0.25s ease, box-shadow 0.25s ease;
-  width: 100%;
   caret-color: #ffffff;
   appearance: none;
-  margin-bottom: 0.80rem;
 }
 
-.modalFormSelect:focus {
+.modalFormSelect {
+  width: 100%;
+  margin-bottom: 0.80rem;
+  padding: 0.50rem 0.80rem;
+  background-color: #2a2a2e;
+}
+
+.modalFormSelectDocs {
+  width: max-content;
+  padding: 0.30rem 0.60rem;
+  background-color: #222;
+}
+
+.modalFormSelect:focus,
+.modalFormSelectDocs:focus {
   outline: none;
   border-color: #6366f1;
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
@@ -292,6 +303,51 @@
   font-weight: 500;
 }
 
+.passportRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background-color: #1f1f1f;
+  border: 1px solid #2a2a2a;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.passportRow input {
+  width: fit-content;
+  margin: 0;
+  padding: 0.40rem 0.80rem;
+  user-select: none;
+}
+
+.passportLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #f1f1f1;
+  font-size: 0.95rem;
+  margin: 0.42rem 0;
+  user-select: none;
+}
+
+.passportInput {
+  accent-color: #00c46c;
+  cursor: pointer;
+  user-select: none;
+}
+
+.passportPhotoCount {
+  font-size: 0.95rem;
+  color: #e0e0e0;
+  white-space: nowrap;
+}
+
+.passportPhotoCount strong {
+  color: #00c46c;
+}
+
 .supportingDocItem {
   display: flex;
   justify-content: space-between;
@@ -319,7 +375,8 @@
 }
 
 .docLink {
-  color: #3b82f6; /* Tailwind's text-blue-500 */
+  color: #3b82f6;
+  /* Tailwind's text-blue-500 */
   text-decoration: none;
   font-weight: 500;
   font-size: 0.95rem;
@@ -327,7 +384,14 @@
 
 .docLink:hover {
   text-decoration: underline;
-  color: #2563eb; /* Slightly darker blue (Tailwind's text-blue-600) */
+  color: #2563eb;
+  /* Slightly darker blue (Tailwind's text-blue-600) */
+}
+
+.buttonSubmit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #444;
 }
 
 /* === Responsive === */

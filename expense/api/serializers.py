@@ -134,6 +134,8 @@ class ServiceSerializer(serializers.ModelSerializer):
             'id', 'name', 'description',
             'service_fee', 'service_charge', 'other_charge',
             'pages_required', 'required_time_hours',
+            'passport_required',
+            'photo_count',
             'is_active', 'links', 'required_documents',
             'servicedocumentrequirement_set',
             'requirements',
