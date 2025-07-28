@@ -10,8 +10,28 @@ export default function SupportingDocumentsSection({ editingService, newService 
   const [docToDelete, setDocToDelete] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const fileInputRef = useRef(null);
-
+  const [allSupportingDocs, setAllSupportingDocs] = useState([]);
+  const [selectedDocId, setSelectedDocId] = useState("");
   const serviceId = editingService?.id || newService?.id;
+
+  const fetchAllSupportingDocs = async () => {
+    try {
+      const res = await fetch("http://127.0.0.1:8001/api/supporting-documents/");
+      if (!res.ok) throw new Error("Failed to fetch all supporting docs");
+      const data = await res.json();
+      setAllSupportingDocs(data);
+    } catch (err) {
+      console.error("Error fetching all supporting documents:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchAllSupportingDocs();
+  }, []);
+
+  const unlinkedDocs = allSupportingDocs.filter(
+    (doc) => !supportingDocs.find((d) => d.id === doc.id)
+  );
 
   const fetchUpdatedSupportingDocs = async () => {
     if (!serviceId) return;
@@ -110,20 +130,63 @@ export default function SupportingDocumentsSection({ editingService, newService 
   return (
     <>
       {editingService && (
-        <input
-          type="file"
-          multiple
-          ref={fileInputRef}
-          onChange={(e) => {
-            const files = Array.from(e.target.files);
-            if (files.length > 0) {
-              handleSupportingDocsUpload(files).then(() => {
-                if (fileInputRef.current) fileInputRef.current.value = "";
-              });
-            }
-          }}
-          className={styles.inputFileModern}
-        />
+        <div style={{ marginBottom: "0.9rem" }}>
+          <input
+            type="file"
+            multiple
+            ref={fileInputRef}
+            onChange={(e) => {
+              const files = Array.from(e.target.files);
+              if (files.length > 0) {
+                handleSupportingDocsUpload(files).then(() => {
+                  if (fileInputRef.current) fileInputRef.current.value = "";
+                });
+              }
+            }}
+            className={styles.inputFileModern}
+          />
+        </div>
+      )}
+
+      {editingService && unlinkedDocs.length > 0 && (
+        <div className={styles.modalFormGroup}>
+          <select
+            value={selectedDocId}
+            onChange={(e) => setSelectedDocId(e.target.value)}
+            className={styles.modalFormInput}
+          >
+            <option value="">Select existing supporting document</option>
+            {unlinkedDocs.map((doc) => (
+              <option key={doc.id} value={doc.id}>
+                {doc.name}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            className={styles.buttonAddLink}
+            onClick={async () => {
+              if (!selectedDocId) return;
+              try {
+                const res = await fetch("http://127.0.0.1:8001/api/service-supporting-documents/", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    service: serviceId,
+                    supporting_document_id: parseInt(selectedDocId),
+                  }),
+                });
+                if (!res.ok) throw new Error("Failed to link existing document");
+                await fetchUpdatedSupportingDocs(); // refresh UI
+                setSelectedDocId(""); // reset
+              } catch (err) {
+                alert("Error linking document: " + err.message);
+              }
+            }}
+          >
+            Link Document
+          </button>
+        </div>
       )}
 
       {supportingDocs.length > 0 && (
