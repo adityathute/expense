@@ -124,6 +124,12 @@ class Service(models.Model):
         related_name="services"
     )
 
+    supporting_documents = models.ManyToManyField(
+        "SupportingDocument",
+        through="ServiceSupportingDocument",
+        related_name="services"
+    )
+
     def __str__(self):
         return self.name
 
@@ -170,13 +176,14 @@ class ServiceLink(models.Model):
         return f"{self.label} - {self.service.name}"
 
 class SupportingDocument(models.Model):
-    service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='supporting_documents')
     name = models.CharField(max_length=255)  # e.g., "Self Declaration"
     file = models.FileField(upload_to='supporting_documents/')
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.name} for {self.service.name}"
+        services = self.services.all()
+        service_names = ", ".join([s.name for s in services])
+        return f"{self.name} (Linked to: {service_names})"
 
 @receiver(post_delete, sender=SupportingDocument)
 def delete_supporting_document_file(sender, instance, **kwargs):
@@ -184,6 +191,16 @@ def delete_supporting_document_file(sender, instance, **kwargs):
     if instance.file:
         if os.path.isfile(instance.file.path):
             os.remove(instance.file.path)
+
+class ServiceSupportingDocument(models.Model):
+    service = models.ForeignKey("Service", on_delete=models.CASCADE)
+    supporting_document = models.ForeignKey("SupportingDocument", on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ("service", "supporting_document")
+
+    def __str__(self):
+        return f"{self.supporting_document.name} for {self.service.name}"
 
 # ---------------------- ACCOUNTS RELATED MODELS ---------------------- #
 

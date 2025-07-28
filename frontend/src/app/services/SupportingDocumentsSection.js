@@ -23,8 +23,6 @@ export default function SupportingDocumentsSection({
         setDocToDelete(doc); // useEffect will now handle modal
     };
 
-
-
     return (
         <>
             {editingService && (

@@ -21,7 +21,6 @@ export default function ServiceForm({
   showLinksSection,
 }) {
   const nameInputRef = useRef(null);
-  const fileInputRef = useRef(null);
   const [docToDelete, setDocToDelete] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const serviceId = editingService?.id || newService?.id;
@@ -56,6 +55,22 @@ export default function ServiceForm({
     }
   };
 
+  const fetchUpdatedSupportingDocs = async () => {
+    if (!serviceId) return;
+    try {
+      const res = await fetch(`http://127.0.0.1:8001/api/supporting-documents/?service=${serviceId}`);
+      if (!res.ok) throw new Error("Failed to fetch supporting documents");
+      const data = await res.json();
+      setSupportingDocs(data);
+    } catch (err) {
+      console.error("Error fetching updated supporting documents:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchUpdatedSupportingDocs();
+  }, [serviceId]);
+
   const handleSupportingDocsUpload = async (files) => {
     const uploaded = [];
 
@@ -66,63 +81,106 @@ export default function ServiceForm({
       const formData = new FormData();
       formData.append("file", file);
       formData.append("name", name);
-      formData.append("service", editingService?.id || newService?.id);
+
+      let supportingDocumentId = null;
 
       try {
-        const res = await fetch("http://127.0.1:8001/api/supporting-documents/", {
+        // STEP 1: Upload the SupportingDocument
+        const res = await fetch("http://127.0.0.1:8001/api/supporting-documents/", {
           method: "POST",
           body: formData,
         });
 
         if (!res.ok) throw new Error("Upload failed");
 
-        const data = await res.json();
-        uploaded.push(data);
+        const doc = await res.json();
+        supportingDocumentId = doc.id;
+
+        // STEP 2: Link it to the service via through model
+        const service = editingService?.id || newService?.id;
+        if (service && supportingDocumentId) {
+          const linkRes = await fetch("http://127.0.0.1:8001/api/service-supporting-documents/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              service,
+              supporting_document_id: supportingDocumentId, // 🔄 this is the fix
+            }),
+          });
+
+          if (!linkRes.ok) {
+            const errResponse = await linkRes.json().catch(() => ({}));
+            console.error("Link failed:", errResponse);
+            throw new Error("Failed to link document to service");
+          }
+
+          uploaded.push(doc);
+        }
       } catch (err) {
-        console.error("Upload failed:", err);
+        console.error("Upload/link failed:", err);
       }
     }
 
-    // ✅ Fetch fresh list
-    const fetchUpdatedSupportingDocs = async () => {
-      const serviceId = editingService?.id || newService?.id;
-      if (!serviceId) return;
-
-      try {
-        const res = await fetch(`http://127.0.0.1:8001/api/supporting-documents/?service=${serviceId}`);
-        if (!res.ok) throw new Error("Failed to fetch supporting documents");
-
-        const data = await res.json();
-        setSupportingDocs(data);
-      } catch (err) {
-        console.error("Error fetching updated supporting documents:", err);
-      }
-    };
-
+    // Fetch updated documents after all uploads
     await fetchUpdatedSupportingDocs();
   };
 
   const handleDeleteSupportingDoc = async () => {
-    if (!docToDelete) return;
+    if (!docToDelete) {
+      console.log("❌ No document selected to delete.");
+      return;
+    }
+
+    console.log("🗑️ Deleting supporting document:", docToDelete);
+    console.log("🔗 Service ID:", serviceId);
 
     try {
-      await fetch(`http://127.0.0.1:8001/api/supporting-documents/${docToDelete.id}/`, {
+      // STEP 1: Unlink from service
+      console.log("⏳ Unlinking supporting document from service...");
+      const unlinkRes = await fetch(`http://127.0.0.1:8001/api/service-supporting-documents/`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          service: serviceId,
+          supporting_document_id: docToDelete.id,
+        }),
+      });
+
+      if (!unlinkRes.ok) {
+        const errData = await unlinkRes.json().catch(() => ({}));
+        console.error("❌ Failed to unlink document from service:", errData);
+        throw new Error("Unlink failed");
+      }
+      console.log("✅ Unlinked from service");
+
+      // STEP 2: Delete the document itself
+      console.log("⏳ Deleting document file...");
+      const deleteDocRes = await fetch(`http://127.0.0.1:8001/api/supporting-documents/${docToDelete.id}/`, {
         method: "DELETE",
       });
 
-      // Remove from local state
+      if (!deleteDocRes.ok) {
+        const errData = await deleteDocRes.json().catch(() => ({}));
+        console.error("❌ Failed to delete document file:", errData);
+        throw new Error("Document delete failed");
+      }
+      console.log("✅ Document file deleted");
+
+      // STEP 3: Update state
       setSupportingDocs((prevDocs) =>
         prevDocs.filter((doc) => doc.id !== docToDelete.id)
       );
+      console.log("🧹 State updated. Document removed from UI.");
 
-      // ✅ Just close the delete modal
       setDocToDelete(null);
-      setShowDeleteModal(false); // ✅ ONLY close delete modal
+      setShowDeleteModal(false);
+      console.log("🧼 Cleanup complete. Modal closed.");
     } catch (error) {
-      console.error("Delete failed", error);
-      alert("Failed to delete document.");
+      console.error("❌ Delete failed:", error);
+      alert("Failed to delete supporting document.");
     }
   };
+
   useEffect(() => {
     fetchDocuments();
   }, []);
@@ -158,7 +216,8 @@ export default function ServiceForm({
     };
 
     fetchExistingSupportingDocs();
-  }, [editingService?.id]);
+  }, [serviceId]); // <-- updated dependency
+
 
   const handleNewDocSubmit = async () => {
     if (!newDocData.name.trim()) return;
@@ -366,8 +425,8 @@ export default function ServiceForm({
         setNewDocData={setNewDocData}
         docSubmitting={docSubmitting}
         handleNewDocSubmit={handleNewDocSubmit}
-        editingService={editingService} // <-- add this
-        setDescription={setDescription} // <-- and this
+        editingService={editingService}
+        setDescription={setDescription}
       />
 
       {/* === Supporting Documents Section === */}

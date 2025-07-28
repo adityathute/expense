@@ -8,6 +8,7 @@ router.register(r'services', views.ServiceViewSet, basename='service')
 router.register(r'documents', views.DocumentViewSet, basename='document')
 router.register(r'service-document-requirements', views.ServiceDocumentRequirementViewSet, basename='service-document-requirement')  # ✅ New line
 router.register(r'supporting-documents', views.SupportingDocumentViewSet)
+router.register(r'service-supporting-documents', views.ServiceSupportingDocumentViewSet, basename='service-supporting-document')
 
 urlpatterns = [
     path('api/', include(router.urls)),
