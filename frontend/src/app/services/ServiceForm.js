@@ -5,7 +5,6 @@ import styles from "../styles/components/modalForm.module.css";
 import { DeleteIcon } from "../components/Icons";
 import SupportingDocumentsSection from "./SupportingDocumentsSection";
 import RequiredDocumentsSection from "./RequiredDocumentsSection";
-import { DeleteSupportingDocModal } from "./DeleteSupportingDocModal"; // ✅ Make sure this import is at the top
 
 export default function ServiceForm({
   newService,
@@ -22,8 +21,6 @@ export default function ServiceForm({
   showLinksSection,
 }) {
   const nameInputRef = useRef(null);
-  const [docToDelete, setDocToDelete] = useState(null);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const serviceId = editingService?.id || newService?.id;
   const isPhotoInvalid =
     newService.passport_required &&
@@ -71,94 +68,6 @@ export default function ServiceForm({
   useEffect(() => {
     fetchUpdatedSupportingDocs();
   }, [serviceId]);
-
-  const handleSupportingDocsUpload = async (files) => {
-    const uploaded = [];
-
-    for (const file of files) {
-      const name = prompt(`Enter name for: ${file.name}`);
-      if (!name) continue;
-
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("name", name);
-
-      let supportingDocumentId = null;
-
-      try {
-        // STEP 1: Upload the SupportingDocument
-        const res = await fetch("http://127.0.0.1:8001/api/supporting-documents/", {
-          method: "POST",
-          body: formData,
-        });
-
-        if (!res.ok) throw new Error("Upload failed");
-
-        const doc = await res.json();
-        supportingDocumentId = doc.id;
-
-        // STEP 2: Link it to the service via through model
-        const service = editingService?.id || newService?.id;
-        if (service && supportingDocumentId) {
-          const linkRes = await fetch("http://127.0.0.1:8001/api/service-supporting-documents/", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              service,
-              supporting_document_id: supportingDocumentId, // 🔄 this is the fix
-            }),
-          });
-
-          if (!linkRes.ok) {
-            const errResponse = await linkRes.json().catch(() => ({}));
-            console.error("Link failed:", errResponse);
-            throw new Error("Failed to link document to service");
-          }
-
-          uploaded.push(doc);
-        }
-      } catch (err) {
-        console.error("Upload/link failed:", err);
-      }
-    }
-
-    // Fetch updated documents after all uploads
-    await fetchUpdatedSupportingDocs();
-  };
-
-  const handleDeleteSupportingDoc = async () => {
-    if (!docToDelete) {
-      return;
-    }
-
-    try {
-      // STEP 1: Unlink from service
-      const unlinkRes = await fetch(`http://127.0.0.1:8001/api/service-supporting-documents/unlink/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          service: serviceId,
-          supporting_document_id: docToDelete.id,
-        }),
-      });
-
-      if (!unlinkRes.ok) {
-        const errData = await unlinkRes.json().catch(() => ({}));
-        console.error("❌ Failed to unlink document from service:", errData);
-        throw new Error("Unlink failed");
-      }
-
-      // STEP 2: Update frontend state only
-      setSupportingDocs((prevDocs) =>
-        prevDocs.filter((doc) => doc.id !== docToDelete.id)
-      );
-
-      setDocToDelete(null);
-      setShowDeleteModal(false);
-    } catch (error) {
-      alert("Failed to unlink supporting document.");
-    }
-  };
 
   useEffect(() => {
     fetchDocuments();
@@ -222,8 +131,6 @@ export default function ServiceForm({
         console.error("Full error response:", result);
         throw new Error(result.error || JSON.stringify(result));
       }
-
-      const updatedDocs = await fetchDocuments();
 
       setNewService((prev) => ({
         ...prev,
@@ -411,13 +318,7 @@ export default function ServiceForm({
       {/* === Supporting Documents Section === */}
       <SupportingDocumentsSection
         editingService={editingService}
-        supportingDocs={supportingDocs}
-        setSupportingDocs={setSupportingDocs}
-        setDocToDelete={setDocToDelete}
-        showDeleteModal={showDeleteModal}
-        setShowDeleteModal={setShowDeleteModal}
-        handleDeleteSupportingDoc={handleDeleteSupportingDoc}
-        handleSupportingDocsUpload={handleSupportingDocsUpload}
+        newService={newService}
       />
 
       {/* === Submit Button === */}
@@ -438,21 +339,6 @@ export default function ServiceForm({
         </button>
 
       </div>
-
-      {/* === Delete Supporting Document Modal === */}
-      {showDeleteModal && docToDelete && (
-        <DeleteSupportingDocModal
-          isOpen={showDeleteModal}
-          onClose={() => {
-            setShowDeleteModal(false);
-            setDocToDelete(null);
-          }}
-          doc={docToDelete}
-          onConfirm={async () => {
-            await handleDeleteSupportingDoc(); // this uses your already defined function
-          }}
-        />
-      )}
     </form>
   );
 }
