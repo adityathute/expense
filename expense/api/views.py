@@ -210,7 +210,34 @@ class SupportingDocumentViewSet(viewsets.ModelViewSet):
 class ServiceSupportingDocumentViewSet(viewsets.ModelViewSet):
     queryset = ServiceSupportingDocument.objects.all()
     serializer_class = ServiceSupportingDocumentSerializer
-    
+
+    @action(detail=False, methods=['post'], url_path='unlink')
+    def unlink_document(self, request):
+        service_id = request.data.get("service")
+        doc_id = request.data.get("supporting_document_id")
+
+        if not service_id or not doc_id:
+            return Response(
+                {"detail": "Missing service or document ID"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            link = ServiceSupportingDocument.objects.get(
+                service_id=service_id,
+                supporting_document_id=doc_id
+            )
+            link.delete()
+            return Response(
+                {"detail": "Unlinked successfully"},
+                status=status.HTTP_204_NO_CONTENT
+            )
+        except ServiceSupportingDocument.DoesNotExist:
+            return Response(
+                {"detail": "Link does not exist"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
 # ---------------------- ACCOUNTS RELATED VIEWS ---------------------- #
 
 class AccountListView(APIView):

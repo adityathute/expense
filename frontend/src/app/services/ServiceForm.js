@@ -5,6 +5,7 @@ import styles from "../styles/components/modalForm.module.css";
 import { DeleteIcon } from "../components/Icons";
 import SupportingDocumentsSection from "./SupportingDocumentsSection";
 import RequiredDocumentsSection from "./RequiredDocumentsSection";
+import { DeleteSupportingDocModal } from "./DeleteSupportingDocModal"; // ✅ Make sure this import is at the top
 
 export default function ServiceForm({
   newService,
@@ -127,18 +128,13 @@ export default function ServiceForm({
 
   const handleDeleteSupportingDoc = async () => {
     if (!docToDelete) {
-      console.log("❌ No document selected to delete.");
       return;
     }
 
-    console.log("🗑️ Deleting supporting document:", docToDelete);
-    console.log("🔗 Service ID:", serviceId);
-
     try {
       // STEP 1: Unlink from service
-      console.log("⏳ Unlinking supporting document from service...");
-      const unlinkRes = await fetch(`http://127.0.0.1:8001/api/service-supporting-documents/`, {
-        method: "DELETE",
+      const unlinkRes = await fetch(`http://127.0.0.1:8001/api/service-supporting-documents/unlink/`, {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           service: serviceId,
@@ -151,33 +147,16 @@ export default function ServiceForm({
         console.error("❌ Failed to unlink document from service:", errData);
         throw new Error("Unlink failed");
       }
-      console.log("✅ Unlinked from service");
 
-      // STEP 2: Delete the document itself
-      console.log("⏳ Deleting document file...");
-      const deleteDocRes = await fetch(`http://127.0.0.1:8001/api/supporting-documents/${docToDelete.id}/`, {
-        method: "DELETE",
-      });
-
-      if (!deleteDocRes.ok) {
-        const errData = await deleteDocRes.json().catch(() => ({}));
-        console.error("❌ Failed to delete document file:", errData);
-        throw new Error("Document delete failed");
-      }
-      console.log("✅ Document file deleted");
-
-      // STEP 3: Update state
+      // STEP 2: Update frontend state only
       setSupportingDocs((prevDocs) =>
         prevDocs.filter((doc) => doc.id !== docToDelete.id)
       );
-      console.log("🧹 State updated. Document removed from UI.");
 
       setDocToDelete(null);
       setShowDeleteModal(false);
-      console.log("🧼 Cleanup complete. Modal closed.");
     } catch (error) {
-      console.error("❌ Delete failed:", error);
-      alert("Failed to delete supporting document.");
+      alert("Failed to unlink supporting document.");
     }
   };
 
@@ -459,6 +438,21 @@ export default function ServiceForm({
         </button>
 
       </div>
+
+      {/* === Delete Supporting Document Modal === */}
+      {showDeleteModal && docToDelete && (
+        <DeleteSupportingDocModal
+          isOpen={showDeleteModal}
+          onClose={() => {
+            setShowDeleteModal(false);
+            setDocToDelete(null);
+          }}
+          doc={docToDelete}
+          onConfirm={async () => {
+            await handleDeleteSupportingDoc(); // this uses your already defined function
+          }}
+        />
+      )}
     </form>
   );
 }

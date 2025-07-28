@@ -10,14 +10,7 @@ export function DeleteSupportingDocModal({
   doc,
 }) {
 
-  useEffect(() => {
-  if (docToDelete) {
-    console.log("🧪 docToDelete set, opening modal...");
-    setShowDeleteModal(true);
-  }
-}, [docToDelete]);
-
-  if (!doc) return null; // 🔒 Don't render if doc is not ready
+  if (!isOpen || !doc) return null;
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Delete Supporting Document">
@@ -32,9 +25,7 @@ export function DeleteSupportingDocModal({
           <button
             className="service-delete-btn"
             onClick={async () => {
-              console.log("🧪 Deleting document:", doc);
-              await onConfirm(); // Call parent handler
-              console.log("✅ Delete confirmed");
+              await onConfirm();
             }}
           >
             🗑 Yes, Delete

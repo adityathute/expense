@@ -2,25 +2,20 @@
 
 import React, { useRef } from "react";
 import { DeleteIcon } from "../components/Icons";
-import { DeleteSupportingDocModal } from "./DeleteSupportingDocModal";
 import styles from "../styles/components/modalForm.module.css";
 
 export default function SupportingDocumentsSection({
     editingService,
     supportingDocs,
-    setSupportingDocs,
-    docToDelete,
     setDocToDelete,
-    showDeleteModal,
     setShowDeleteModal,
-    handleDeleteSupportingDoc,
     handleSupportingDocsUpload,
 }) {
     const fileInputRef = useRef(null);
 
     const handleDeleteClick = (doc) => {
-        console.log("🧪 Clicked Delete, doc:", doc);
-        setDocToDelete(doc); // useEffect will now handle modal
+        setDocToDelete({ ...doc }); // Force a shallow copy (new reference)
+        setShowDeleteModal(true);
     };
 
     return (
@@ -44,7 +39,6 @@ export default function SupportingDocumentsSection({
 
             {supportingDocs.length > 0 && (
                 <div className={styles.modalFormGroup}>
-                    {/* <h4 className={styles.modalFormLabel}>Supporting Documents:</h4> */}
                     <ul className={styles.uploadedDocList}>
                         {supportingDocs.map((doc, idx) => (
                             <li key={idx} className={styles.supportingDocItem}>
@@ -74,21 +68,6 @@ export default function SupportingDocumentsSection({
                         ))}
                     </ul>
                 </div>
-            )}
-
-            {/* ✅ Only render modal when both flags are true */}
-            {showDeleteModal && docToDelete && (
-                <DeleteSupportingDocModal
-                    isOpen={showDeleteModal}
-                    onClose={() => setShowDeleteModal(false)}
-                    doc={docToDelete}
-                    onConfirm={async () => {
-                        console.log("🧪 Parent onConfirm called");
-                        await handleDeleteSupportingDoc(docToDelete.id); // pass explicitly
-                        setShowDeleteModal(false);
-                        setDocToDelete(null); // clear after delete
-                    }}
-                />
             )}
         </>
     );
