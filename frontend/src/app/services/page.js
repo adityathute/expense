@@ -25,7 +25,7 @@ export default function ServicesPage() {
   const [selectedService, setSelectedService] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const entriesPerPage = 30;
+  const entriesPerPage = 10;
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState(null);
   const [returnToDetails, setReturnToDetails] = useState(false);
