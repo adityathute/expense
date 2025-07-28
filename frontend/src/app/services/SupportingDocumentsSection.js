@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { DeleteIcon } from "../components/Icons";
 import styles from "../styles/components/modalForm.module.css";
 import { DeleteSupportingDocModal } from "./DeleteSupportingDocModal";
+import { NameInputModal } from "./NameInputModal";
 
 export default function SupportingDocumentsSection({ editingService, newService }) {
   const [supportingDocs, setSupportingDocs] = useState([]);
@@ -13,6 +14,9 @@ export default function SupportingDocumentsSection({ editingService, newService 
   const [allSupportingDocs, setAllSupportingDocs] = useState([]);
   const [selectedDocId, setSelectedDocId] = useState("");
   const serviceId = editingService?.id || newService?.id;
+  const [pendingFiles, setPendingFiles] = useState([]);
+  const [currentFileIndex, setCurrentFileIndex] = useState(0);
+  const [showNameModal, setShowNameModal] = useState(false);
 
   const fetchAllSupportingDocs = async () => {
     try {
@@ -127,6 +131,47 @@ export default function SupportingDocumentsSection({ editingService, newService 
     setShowDeleteModal(true);
   };
 
+  const handleNameSubmit = async (name) => {
+    const file = pendingFiles[currentFileIndex];
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("name", name);
+
+    try {
+      const res = await fetch("http://127.0.0.1:8001/api/supporting-documents/", {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) throw new Error("Upload failed");
+      const doc = await res.json();
+
+      const linkRes = await fetch("http://127.0.0.1:8001/api/service-supporting-documents/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          service: serviceId,
+          supporting_document_id: doc.id,
+        }),
+      });
+
+      if (!linkRes.ok) throw new Error("Linking failed");
+
+      await fetchUpdatedSupportingDocs();
+    } catch (err) {
+      console.error("Upload/link failed:", err);
+    }
+
+    const nextIndex = currentFileIndex + 1;
+    if (nextIndex < pendingFiles.length) {
+      setCurrentFileIndex(nextIndex);
+    } else {
+      setPendingFiles([]);
+      setCurrentFileIndex(0);
+      setShowNameModal(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
   return (
     <>
       {editingService && (
@@ -138,9 +183,9 @@ export default function SupportingDocumentsSection({ editingService, newService 
             onChange={(e) => {
               const files = Array.from(e.target.files);
               if (files.length > 0) {
-                handleSupportingDocsUpload(files).then(() => {
-                  if (fileInputRef.current) fileInputRef.current.value = "";
-                });
+                setPendingFiles(files);
+                setCurrentFileIndex(0);
+                setShowNameModal(true);
               }
             }}
             className={styles.inputFileModern}
@@ -188,6 +233,17 @@ export default function SupportingDocumentsSection({ editingService, newService 
           </button>
         </div>
       )}
+
+      <NameInputModal
+        file={pendingFiles[currentFileIndex]}
+        isOpen={showNameModal}
+        onClose={() => {
+          setShowNameModal(false);
+          setPendingFiles([]);
+          setCurrentFileIndex(0);
+        }}
+        onSubmit={handleNameSubmit}
+      />
 
       {supportingDocs.length > 0 && (
         <div className={styles.modalFormGroup}>

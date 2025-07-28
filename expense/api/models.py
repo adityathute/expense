@@ -185,13 +185,6 @@ class SupportingDocument(models.Model):
         service_names = ", ".join([s.name for s in services])
         return f"{self.name} (Linked to: {service_names})"
 
-@receiver(post_delete, sender=SupportingDocument)
-def delete_supporting_document_file(sender, instance, **kwargs):
-    """Deletes file from filesystem when corresponding `SupportingDocument` object is deleted."""
-    if instance.file:
-        if os.path.isfile(instance.file.path):
-            os.remove(instance.file.path)
-
 class ServiceSupportingDocument(models.Model):
     service = models.ForeignKey("Service", on_delete=models.CASCADE)
     supporting_document = models.ForeignKey("SupportingDocument", on_delete=models.CASCADE)
