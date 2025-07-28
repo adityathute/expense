@@ -21,7 +21,6 @@ export default function ServicesPage() {
   const [editingServiceId, setEditingServiceId] = useState(null);
   const [editingService, setEditingService] = useState(null);
   const [showForm, setShowForm] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
   const [showLinksSection, setShowLinksSection] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -129,8 +128,6 @@ export default function ServicesPage() {
       .then(() => {
         fetchServices();
         resetForm();
-        setSuccessMessage(editingService ? "Service updated!" : "Service added!");
-        setTimeout(() => setSuccessMessage(""), 3000);
       })
       .catch((err) => {
         console.error("Server error response:", err);
@@ -211,8 +208,6 @@ export default function ServicesPage() {
 
   return (
     <div>
-      {successMessage && <div className="success-message">{successMessage}</div>}
-
       <HeaderWithNewButton
         title="Services"
         buttonLabel="Add Service"

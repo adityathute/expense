@@ -187,13 +187,12 @@ class ServiceSerializer(serializers.ModelSerializer):
 
         # Add document requirements
         for requirement in requirements_data:
-            document_data = requirement.pop('document')
-            categories_data = document_data.pop('document_categories', [])
-            document = Document.objects.create(**document_data)
+            document = requirement.pop("document", None)
+            if not document:
+                document = requirement.pop("document_id", None)
 
-            for category in categories_data:
-                cat_obj, _ = DocumentCategory.objects.get_or_create(name=category['name'])
-                document.document_categories.add(cat_obj)
+            if not document:
+                raise serializers.ValidationError("Document is required for each requirement.")
 
             ServiceDocumentRequirement.objects.create(
                 service=service,
