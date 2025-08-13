@@ -1,6 +1,6 @@
 // settings/page.js
 "use client";
-// import "./settings.css";
+import "./settings.css";
 
 export default function Settings() {
   return (

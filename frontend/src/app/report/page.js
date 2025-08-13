@@ -3,7 +3,7 @@
 import { useState } from "react";
 import StyledTable from "../components/StyledTable";
 import BalanceCell from "../components/BalanceCell";
-// import "./reports.css";
+import "./reports.css";
 
 export default function Reports() {
   const [selectedMonth, setSelectedMonth] = useState("2025-05");
