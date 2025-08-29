@@ -1,8 +1,8 @@
 from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 from rest_framework import generics, status, viewsets
-from .models import Category, Service, User, Account, Document, ServiceDocumentRequirement, DocumentCategory, SupportingDocument
-from .serializers import CategorySerializer, UserSerializer, ServiceSerializer, AccountSerializer, DocumentSerializer, ServiceDocumentRequirementSerializer, SupportingDocumentSerializer
+from .models import Category, Service, User, Account, Document, ServiceDocumentRequirement, DocumentCategory, SupportingDocument, ServiceSupportingDocument
+from .serializers import CategorySerializer, UserSerializer, ServiceSerializer, AccountSerializer, DocumentSerializer, ServiceDocumentRequirementSerializer, SupportingDocumentSerializer, ServiceSupportingDocumentSerializer
 from rest_framework.generics import DestroyAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
@@ -197,16 +197,47 @@ class ServiceViewSet(viewsets.ModelViewSet):
         return Response({"message": "Service deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
 
 class SupportingDocumentViewSet(viewsets.ModelViewSet):
-    queryset = SupportingDocument.objects.all()
     serializer_class = SupportingDocumentSerializer
-
-def get_queryset(self):
     queryset = SupportingDocument.objects.all()
-    service_id = self.request.query_params.get("service")
-    if service_id:
-        queryset = queryset.filter(service_id=service_id)
-    return queryset
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        service_id = self.request.query_params.get("service")
+        if service_id:
+            queryset = queryset.filter(servicesupportingdocument__service_id=service_id).distinct()
+        return queryset
+
+class ServiceSupportingDocumentViewSet(viewsets.ModelViewSet):
+    queryset = ServiceSupportingDocument.objects.all()
+    serializer_class = ServiceSupportingDocumentSerializer
+
+    @action(detail=False, methods=['post'], url_path='unlink')
+    def unlink_document(self, request):
+        service_id = request.data.get("service")
+        doc_id = request.data.get("supporting_document_id")
+
+        if not service_id or not doc_id:
+            return Response(
+                {"detail": "Missing service or document ID"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            link = ServiceSupportingDocument.objects.get(
+                service_id=service_id,
+                supporting_document_id=doc_id
+            )
+            link.delete()
+            return Response(
+                {"detail": "Unlinked successfully"},
+                status=status.HTTP_204_NO_CONTENT
+            )
+        except ServiceSupportingDocument.DoesNotExist:
+            return Response(
+                {"detail": "Link does not exist"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
 # ---------------------- ACCOUNTS RELATED VIEWS ---------------------- #
 
 class AccountListView(APIView):

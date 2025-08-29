@@ -3,8 +3,6 @@
 import React, { useEffect, useState } from "react";
 import Modal from "../components/Modal";
 import { ActiveIcon, InactiveIcon } from "../components/StatusIcons";
-import styles from "../styles/components/modalForm.module.css";
-import { DeleteIcon } from "../components/Icons";
 
 export default function ServiceDetailsModal({
   isOpen,
@@ -14,25 +12,6 @@ export default function ServiceDetailsModal({
   onDelete,
 }) {
   const [supportingDocs, setSupportingDocs] = useState([]);
-  const handleDeleteSupportingDoc = async (docId) => {
-    if (!window.confirm("Are you sure you want to delete this document?")) return;
-
-    try {
-      const res = await fetch(`http://localhost:8001/api/supporting-documents/${docId}/`, {
-        method: "DELETE",
-      });
-
-      if (!res.ok) throw new Error("Failed to delete document");
-
-      // Remove from local state
-      setSupportingDocs((prev) => prev.filter((doc) => doc.id !== docId));
-    } catch (error) {
-      console.error("Delete failed:", error);
-      alert("Failed to delete document.");
-    }
-  };
-const [docToDelete, setDocToDelete] = useState(null);
-const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchSupportingDocs = async () => {
@@ -75,39 +54,124 @@ const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
       <div className="serviceDetailsContainer space-y-4">
         {/* === Basic Details === */}
         <div className="service-details-row">
-          <p className="service-fee">₹&nbsp;{service.service_fee ?? "0.00"}</p>
-          <p className="required-time">
-            {service.required_time_hours
-              ? `${(service.required_time_hours / 24).toFixed(1)} days`
-              : "—"}
+          <p className="service-fee">
+            ₹{" "}
+            {Number(service.service_fee) % 1 === 0
+              ? Number(service.service_fee)
+              : Number(service.service_fee).toFixed(2)}
           </p>
+
+          {service.required_time_hours ? (
+            <div className="required-time">
+              {(() => {
+                const rawHours = Number(service.required_time_hours);
+                const days = rawHours / 24;
+
+                const isAlmostWhole = Math.abs(days - Math.round(days)) < 0.01;
+                const displayDays = isAlmostWhole
+                  ? `${Math.round(days)} days`
+                  : `${days.toFixed(1)} days`;
+
+                return (
+                  <>
+                    <p>{displayDays}</p>
+                    <p className="required-date">
+                      {(() => {
+                        const rawHours = Number(service.required_time_hours);
+                        const totalDays = Math.ceil(rawHours / 24);
+                        let resultDate = new Date(); // today
+                        let addedDays = 0;
+
+                        while (addedDays < totalDays) {
+                          resultDate.setDate(resultDate.getDate() + 1);
+                          const day = resultDate.getDay(); // 0 = Sun, 6 = Sat
+                          if (day !== 0 && day !== 6) {
+                            addedDays++;
+                          }
+                        }
+
+                        return resultDate.toLocaleDateString("en-GB");
+                      })()}
+                    </p>
+                  </>
+                );
+              })()}
+            </div>
+          ) : (
+            <p className="required-time">—</p>
+          )}
         </div>
 
-        {/* === Links === */}
-        {service.links?.length > 0 && (
-          <div className="serviceDetailsLinks">
-            <ul className="serviceDetailsLinkList">
-              {service.links.map((link, idx) => (
-                <li key={idx}>
-                  <a href={link.url} target="_blank" rel="noopener noreferrer">
-                    {link.label || link.url}
-                  </a>
-                </li>
-              ))}
-            </ul>
+        {(service.links?.length > 0 || supportingDocs.length > 0) && (
+          <div
+            className="serviceDetailsLinks"
+            style={{
+              display: "flex",
+              flexDirection:
+                service.links?.length > 0 && supportingDocs.length > 0
+                  ? "row"
+                  : "column",
+              gap: "1rem",
+            }}
+          >
+            {service.links?.length > 0 && (
+              <ul className="serviceDetailsLinkList" style={{ flex: 1 }}>
+                {service.links.map((link, idx) => (
+                  <li key={idx}>
+                    <a href={link.url} target="_blank" rel="noopener noreferrer">
+                      {link.label || link.url}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            {supportingDocs.length > 0 && (
+              <ul
+                className="serviceDetailsLinkList"
+                style={{
+                  flex: 1,
+                  order: service.links?.length > 0 ? 2 : 1,
+                }}
+              >
+                {supportingDocs.map((doc) => (
+                  <li key={doc.id}>
+                    {doc.file ? (
+                      <a href={doc.file} target="_blank" rel="noopener noreferrer">
+                        {doc.name}
+                      </a>
+                    ) : (
+                      <strong>{doc.name}</strong>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         )}
 
-        {/* === Required Documents === */}
         {service.requirements?.length > 0 && (
           <div className="serviceDetailsDocuments">
-            <h4 className="serviceDetailsLabel">Required Documents:</h4>
+            <div className="documents-header-row">
+              <h4 className="serviceDetailsLabel">Documents:</h4>
+              {service.passport_required && (
+                <p className="passport-info">
+                  📸 {service.photo_count === 1 ? "Photo" : "Photos"} ×{" "}
+                  <strong>{service.photo_count || "—"}</strong>
+                </p>
+              )}
+            </div>
             <ul className="serviceDetailsDocList">
               {service.requirements.map((req) => (
                 <li key={req.id} className="serviceDetailsDocItem">
-                  <strong>{req.document.name}</strong>
+                  <div className="doc-item-header">
+                    <strong>{req.document.name}</strong>
+                    {req.requirement_type && (
+                      <span className="requirementType">{req.requirement_type}</span>
+                    )}
+                  </div>
                   {req.document.additional_details && (
-                    <div className="serviceDetailsDescription">
+                    <div className="serviceDetailsNote">
                       Note: {req.document.additional_details}
                     </div>
                   )}
@@ -117,42 +181,8 @@ const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
           </div>
         )}
 
-        {/* === Supporting Documents === */}
-        {supportingDocs.length > 0 && (
-          <div className="serviceDetailsDocuments">
-            <h4 className="serviceDetailsLabel">Supporting Documents:</h4>
-            <ul className="serviceDetailsDocList flex flex-wrap gap-4">
-              {supportingDocs.map((doc) => (
-                <li key={doc.id} className="serviceDetailsDocItem flex justify-between items-center">
-                  <div className="">
-                    <strong>{doc.name}</strong>
-                    {doc.file && (
-                      <a
-                        href={doc.file}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-500 underline ml-2"
-                      >
-                        (View File)
-                      </a>
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    className={styles.removeButton}
-                    onClick={() => handleDeleteSupportingDoc(doc.id)}
-                    aria-label="Remove Link"
-                  >
-                    <DeleteIcon className={styles.icon} />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
         {/* === Description === */}
-        <p className="serviceDetailsItem">{service.description || "—"}</p>
+        <p className="serviceDetailsDescription">{service.description || "—"}</p>
 
         {/* === Actions === */}
         <div className="service-details-actions">

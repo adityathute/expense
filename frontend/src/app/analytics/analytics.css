@@ -1,17 +1,19 @@
 .analytics {
   padding: 2rem;
-  background: #f5f8fa;
+  /* background: #1c1c1e; */
   font-family: "Segoe UI", sans-serif;
+  color: #f5f5f7; /* Light text for comfortable reading */
 }
 
 .analytics h1 {
   font-size: 2rem;
   margin-bottom: 0.2rem;
+  color: #ffffff;
 }
 
 .sub-text {
   font-size: 1rem;
-  color: #555;
+  color: #a1a1a6; /* Softer Apple gray */
   margin-bottom: 2rem;
 }
 
@@ -22,25 +24,26 @@
 }
 
 .stats-cards .card {
-  background: white;
+  background: #2c2c2e; /* Slightly lighter than background */
   padding: 1rem 1.5rem;
   border-radius: 14px;
   font-size: 1.1rem;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4); /* Soft depth */
   flex: 1;
+  color: #f5f5f7;
 }
 
 .income {
-  border-left: 6px solid #28a745;
+  border-left: 6px solid #30d158; /* Apple green */
 }
 
 .expense {
-  border-left: 6px solid #dc3545;
+  border-left: 6px solid #ff453a; /* Apple red */
 }
 
 .balance {
-  border-left: 6px solid #ffc107;
+  border-left: 6px solid #ffd60a; /* Apple yellow */
 }
 
 .analytics-grid {
@@ -51,27 +54,29 @@
 }
 
 .chart-box {
-  background: white;
+  background: #2c2c2e; /* Card background */
   border-radius: 1rem;
   padding: 1rem;
-  box-shadow: 0 0 10px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
   flex: 1 1 300px;
   min-width: 280px;
+  color: #f5f5f7;
 }
 
 .chart-box h3 {
   font-size: 1.2rem;
   margin-bottom: 1rem;
+  color: #ffffff;
 }
 
 .chart-placeholder {
-  background: #eaeaea;
+  background: linear-gradient(145deg, #3a3a3c, #2c2c2e); /* Subtle Apple-like gradient */
   height: 200px;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #777;
+  color: #a1a1a6;
   font-style: italic;
 }
 

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Category, Service, ServiceLink, User, UserID, Account, Document, DocumentCategory, DocumentCategory, Document, Service, ServiceLink, ServiceDocumentRequirement, SupportingDocument
+from .models import Category, Service, ServiceLink, User, UserID, Account, Document, DocumentCategory, DocumentCategory, Document, Service, ServiceLink, ServiceDocumentRequirement, SupportingDocument, ServiceSupportingDocument
 
 # ---------------------- CATEGORY RELATED SERIALIZER ---------------------- #
 
@@ -47,7 +47,6 @@ class UserSerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
     
 # ---------------------- SERVICE RELATED SERIALIZER ---------------------- #
-
 class DocumentCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = DocumentCategory
@@ -89,34 +88,68 @@ class NestedDocumentSerializer(serializers.ModelSerializer):
 
 class DocumentRequirementReadSerializer(serializers.ModelSerializer):
     document = NestedDocumentSerializer()
+    requirement_type = serializers.CharField(source='get_requirement_type_display')  # gets "Original", "Xerox", etc.
 
     class Meta:
         model = ServiceDocumentRequirement
-        fields = ['id', 'document']
+        fields = ['id', 'document', 'requirement_type']  # <- MUST include it here
 
 class ServiceDocumentRequirementSerializer(serializers.ModelSerializer):
     document = DocumentSerializer(read_only=True)
-    document_id = serializers.PrimaryKeyRelatedField(queryset=Document.objects.all(), source='document', write_only=True)
+    document_id = serializers.PrimaryKeyRelatedField(
+        queryset=Document.objects.all(), source='document', write_only=True
+    )
+    service = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = ServiceDocumentRequirement
-        fields = ['id', 'service', 'document', 'document_id']
+        fields = [
+            'id', 'service',
+            'document', 'document_id',
+            'requirement_type', 'is_mandatory',
+        ]
 
 class SupportingDocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = SupportingDocument
-        fields = ['id', 'service', 'name', 'file', 'uploaded_at']
+        fields = ['id', 'name', 'file', 'uploaded_at']
         read_only_fields = ['uploaded_at']
+
+class ServiceSupportingDocumentSerializer(serializers.ModelSerializer):
+    supporting_document = SupportingDocumentSerializer(read_only=True)
+    supporting_document_id = serializers.PrimaryKeyRelatedField(
+        queryset=SupportingDocument.objects.all(),
+        source='supporting_document',
+        write_only=True
+    )
+    service = serializers.PrimaryKeyRelatedField(
+        queryset=Service.objects.all()
+    )
+
+    class Meta:
+        model = ServiceSupportingDocument
+        fields = [
+            'id', 'service',
+            'supporting_document', 'supporting_document_id'
+        ]
 
 class ServiceSerializer(serializers.ModelSerializer):
     links = ServiceLinkSerializer(many=True, required=False)
     required_documents = serializers.PrimaryKeyRelatedField(
         queryset=Document.objects.all(), many=True, required=False
     )
+    servicedocumentrequirement_set = ServiceDocumentRequirementSerializer(
+    many=True, write_only=True, required=False
+    )
     requirements = DocumentRequirementReadSerializer(
         many=True, read_only=True, source='servicedocumentrequirement_set'
     )
-    supporting_documents = SupportingDocumentSerializer(many=True, read_only=True)
+    servicesupportingdocument_set = ServiceSupportingDocumentSerializer(
+        many=True, write_only=True, required=False
+    )
+    linked_supporting_documents = ServiceSupportingDocumentSerializer(
+        many=True, read_only=True, source='servicesupportingdocument_set'
+    )
 
     class Meta:
         model = Service
@@ -124,8 +157,13 @@ class ServiceSerializer(serializers.ModelSerializer):
             'id', 'name', 'description',
             'service_fee', 'service_charge', 'other_charge',
             'pages_required', 'required_time_hours',
-            'is_active', 'links', 'required_documents', 'requirements',
-            'supporting_documents',
+            'passport_required',
+            'photo_count',
+            'is_active', 'links', 'required_documents',
+            'servicedocumentrequirement_set',
+            'requirements',
+            'servicesupportingdocument_set',
+            'linked_supporting_documents',
             'created_at', 'updated_at'
         ]
         read_only_fields = ['created_at', 'updated_at']
@@ -134,6 +172,7 @@ class ServiceSerializer(serializers.ModelSerializer):
         links_data = validated_data.pop('links', [])
         required_documents_data = validated_data.pop('required_documents', [])
         requirements_data = validated_data.pop('servicedocumentrequirement_set', [])
+        supporting_documents_data = validated_data.pop('servicesupportingdocument_set', [])
 
         # Create the service without many-to-many field
         service = Service.objects.create(**validated_data)
@@ -148,13 +187,12 @@ class ServiceSerializer(serializers.ModelSerializer):
 
         # Add document requirements
         for requirement in requirements_data:
-            document_data = requirement.pop('document')
-            categories_data = document_data.pop('document_categories', [])
-            document = Document.objects.create(**document_data)
+            document = requirement.pop("document", None)
+            if not document:
+                document = requirement.pop("document_id", None)
 
-            for category in categories_data:
-                cat_obj, _ = DocumentCategory.objects.get_or_create(name=category['name'])
-                document.document_categories.add(cat_obj)
+            if not document:
+                raise serializers.ValidationError("Document is required for each requirement.")
 
             ServiceDocumentRequirement.objects.create(
                 service=service,
@@ -162,12 +200,23 @@ class ServiceSerializer(serializers.ModelSerializer):
                 **requirement
             )
 
+        for doc in supporting_documents_data:
+            supporting_document = (
+                doc.get('supporting_document') or doc.get('supporting_document_id')
+            )
+            if supporting_document:
+                ServiceSupportingDocument.objects.create(
+                    service=service,
+                    supporting_document=supporting_document
+                )
+
         return service
 
     def update(self, instance, validated_data):
         links_data = validated_data.pop('links', [])
         requirements_data = validated_data.pop('servicedocumentrequirement_set', [])
         required_documents_data = validated_data.pop('required_documents', [])
+        supporting_documents_data = validated_data.pop('servicesupportingdocument_set', [])
 
         # Update basic fields
         for attr, value in validated_data.items():
@@ -179,25 +228,35 @@ class ServiceSerializer(serializers.ModelSerializer):
         for link in links_data:
             ServiceLink.objects.create(service=instance, **link)
 
-        # Update required_documents (ManyToMany)
+        # Update required documents
         instance.required_documents.set(required_documents_data)
 
-        # Update document requirements (if needed)
+        # Update document requirements
         ServiceDocumentRequirement.objects.filter(service=instance).delete()
-        for requirement in requirements_data:
-            document_data = requirement.pop('document')
-            categories_data = document_data.pop('document_categories', [])
-
-            document = Document.objects.create(**document_data)
-            for category in categories_data:
-                cat_obj, _ = DocumentCategory.objects.get_or_create(name=category['name'])
-                document.document_categories.add(cat_obj)
-
+        for req_data in requirements_data:
             ServiceDocumentRequirement.objects.create(
                 service=instance,
-                document=document,
-                **requirement
+                **req_data
             )
+
+        # Update supporting documents: 🛠 sync instead of delete all
+        existing_links = {
+            s.supporting_document_id: s
+            for s in ServiceSupportingDocument.objects.filter(service=instance)
+        }
+
+        new_ids = set()
+        for doc in supporting_documents_data:
+            doc_id = (
+                doc.get('supporting_document') or
+                doc.get('supporting_document_id')
+            )
+            if doc_id and doc_id not in existing_links:
+                ServiceSupportingDocument.objects.create(
+                    service=instance,
+                    supporting_document=doc_id
+                )
+            new_ids.add(doc_id)
 
         return instance
 

@@ -3,6 +3,9 @@ from django.conf import settings
 from decouple import config
 from django.core.exceptions import ValidationError
 from .choices import CATEGORY_TYPES, CORE_CATEGORIES, GENDER_CHOICES, ID_TYPES, DOCUMENT_TYPE_CHOICES, ENTRY_TYPE_CHOICES, UID_TYPE_CHOICES,  UPDATE_TYPE_CHOICES, ENTRY_TYPE_CHOICES, STATUS_CHOICES, UID_TYPE_CHOICES, UPDATE_TYPE_CHOICES, PAYMENT_TYPE_CHOICES, ACCOUNT_TYPE_CHOICES, CATEGORY_CHOICES
+import os
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 
 # ---------------------- USER RELATED MODELS ---------------------- #
 
@@ -110,12 +113,20 @@ class Service(models.Model):
     required_time_hours = models.DecimalField(max_digits=5, decimal_places=2, blank=True, null=True)
     is_active = models.BooleanField(default=True)
     is_deleted = models.BooleanField(default=False)
+    passport_required = models.BooleanField(default=False, help_text="Is passport required?")
+    photo_count = models.PositiveIntegerField(default=0, help_text="Number of passport photos required")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     required_documents = models.ManyToManyField(
         "Document",
         through="ServiceDocumentRequirement",
+        related_name="services"
+    )
+
+    supporting_documents = models.ManyToManyField(
+        "SupportingDocument",
+        through="ServiceSupportingDocument",
         related_name="services"
     )
 
@@ -165,13 +176,24 @@ class ServiceLink(models.Model):
         return f"{self.label} - {self.service.name}"
 
 class SupportingDocument(models.Model):
-    service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='supporting_documents')
     name = models.CharField(max_length=255)  # e.g., "Self Declaration"
     file = models.FileField(upload_to='supporting_documents/')
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.name} for {self.service.name}"
+        services = self.services.all()
+        service_names = ", ".join([s.name for s in services])
+        return f"{self.name} (Linked to: {service_names})"
+
+class ServiceSupportingDocument(models.Model):
+    service = models.ForeignKey("Service", on_delete=models.CASCADE)
+    supporting_document = models.ForeignKey("SupportingDocument", on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ("service", "supporting_document")
+
+    def __str__(self):
+        return f"{self.supporting_document.name} for {self.service.name}"
 
 # ---------------------- ACCOUNTS RELATED MODELS ---------------------- #
 

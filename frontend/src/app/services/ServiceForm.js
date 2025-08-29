@@ -3,6 +3,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import styles from "../styles/components/modalForm.module.css";
 import { DeleteIcon } from "../components/Icons";
+import SupportingDocumentsSection from "./SupportingDocumentsSection";
+import RequiredDocumentsSection from "./RequiredDocumentsSection";
 
 export default function ServiceForm({
   newService,
@@ -19,7 +21,10 @@ export default function ServiceForm({
   showLinksSection,
 }) {
   const nameInputRef = useRef(null);
-  const fileInputRef = useRef(null);
+  const serviceId = editingService?.id || newService?.id;
+  const isPhotoInvalid =
+    newService.passport_required &&
+    (!newService.photo_count || newService.photo_count <= 0);
 
   const [documents, setDocuments] = useState([]);
   const [newDocSelectValue, setNewDocSelectValue] = useState("");
@@ -48,35 +53,21 @@ export default function ServiceForm({
     }
   };
 
-  const handleSupportingDocsUpload = async (files) => {
-    const uploaded = [];
-
-    for (const file of files) {
-      const name = prompt(`Enter name for: ${file.name}`);
-      if (!name) continue;
-
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("name", name);
-      formData.append("service", editingService?.id || newService?.id);
-
-      try {
-        const res = await fetch("http://localhost:8001/api/supporting-documents/", {
-          method: "POST",
-          body: formData,
-        });
-
-        if (!res.ok) throw new Error("Upload failed");
-
-        const data = await res.json();
-        uploaded.push(data);
-      } catch (err) {
-        console.error("Upload failed:", err);
-      }
+  const fetchUpdatedSupportingDocs = async () => {
+    if (!serviceId) return;
+    try {
+      const res = await fetch(`http://127.0.0.1:8001/api/supporting-documents/?service=${serviceId}`);
+      if (!res.ok) throw new Error("Failed to fetch supporting documents");
+      const data = await res.json();
+      setSupportingDocs(data);
+    } catch (err) {
+      console.error("Error fetching updated supporting documents:", err);
     }
-
-    setSupportingDocs((prev) => [...prev, ...uploaded]);
   };
+
+  useEffect(() => {
+    fetchUpdatedSupportingDocs();
+  }, [serviceId]);
 
   useEffect(() => {
     fetchDocuments();
@@ -98,19 +89,23 @@ export default function ServiceForm({
   }, []);
 
   useEffect(() => {
-    if (!editingService?.id) return;
+    if (!serviceId) return;
+
     const fetchExistingSupportingDocs = async () => {
       try {
-        const res = await fetch(`http://127.0.0.1:8001/api/supporting-documents/?service=${editingService.id}`);
+        const res = await fetch(`http://127.0.0.1:8001/api/supporting-documents/?service=${serviceId}`);
         if (!res.ok) throw new Error("Failed to fetch supporting documents");
+
         const data = await res.json();
         setSupportingDocs(data);
       } catch (err) {
         console.error("Error fetching existing supporting documents:", err);
       }
     };
+
     fetchExistingSupportingDocs();
-  }, [editingService?.id]);
+  }, [serviceId]); // <-- updated dependency
+
 
   const handleNewDocSubmit = async () => {
     if (!newDocData.name.trim()) return;
@@ -131,20 +126,22 @@ export default function ServiceForm({
       });
 
       const result = await res.json();
-      console.log("Document creation result:", result);
 
       if (!res.ok || !result.id) {
         console.error("Full error response:", result);
         throw new Error(result.error || JSON.stringify(result));
       }
 
-      const updatedDocs = await fetchDocuments();
-
       setNewService((prev) => ({
         ...prev,
-        required_documents: (service.required_documents || []).map((doc) =>
-          typeof doc === "object" ? doc.id : doc
-        ),
+        required_documents: [
+          ...(prev.required_documents || []),
+          {
+            document: result.id, // ✅ use the actual ID from the API response
+            requirement_type: "original",
+            is_mandatory: true,
+          },
+        ],
       }));
 
       setNewDocData({ name: "", categories: "", additional_details: "" });
@@ -258,170 +255,71 @@ export default function ServiceForm({
         Add Link
       </button>
 
-      {/* === Required Documents Selection === */}
-      <div className={styles.modalFormGroup}>
-        {/* Selected Document Tags */}
-        <div className={styles.selectedDocContainer}>
-          {(newService.required_documents || []).map((docId) => {
-            const doc = documents.find((d) => d.id === Number(docId));
-            if (!doc) return null;
-            return (
-              <div key={doc.id} className={`${styles.selectedDocTag} ${styles.linkRow}`}>
-                {doc.name}
-                <button
-                  type="button"
-                  onClick={() =>
-                    setNewService((prev) => ({
-                      ...prev,
-                      required_documents: prev.required_documents.filter(
-                        (id) => Number(id) !== Number(doc.id)
-                      ),
-                    }))
-                  }
-                  className={styles.removeButton}
-                  aria-label="Remove Document"
-                >
-                  <DeleteIcon className={styles.icon} />
-                </button>
-              </div>
-            );
-          })}
-        </div>
+      {/* === Passport Required & Photo Count (Row) === */}
+      <div className={styles.passportRow}>
+        <label className={styles.passportLabel}>
+          <input
+            type="checkbox"
+            name="passport_required"
+            checked={!!newService.passport_required}
+            onChange={(e) => {
+              const isChecked = e.target.checked;
 
-        {/* Dropdown to select new document */}
-        {documents.filter(
-          (d) => !(newService.required_documents || []).includes(d.id)
-        ).length > 0 && (
-            <select
-              value={newDocSelectValue}
-              onChange={(e) => {
-                const docId = parseInt(e.target.value);
-                if (!isNaN(docId)) {
-                  setNewService((prev) => ({
-                    ...prev,
-                    required_documents: [...(prev.required_documents || []), docId],
-                  }));
-                  setNewDocSelectValue("");
-                }
-              }}
-              className={styles.modalFormSelect}
-            >
-              <option value="" disabled>
-                Select a document...
-              </option>
-              {documents
-                .filter((doc) => !(newService.required_documents || []).includes(doc.id))
-                .map((doc) => (
-                  <option key={doc.id} value={doc.id}>
-                    {doc.name}
-                  </option>
-                ))}
-            </select>
-          )}
+              setNewService((prev) => ({
+                ...prev,
+                passport_required: isChecked,
+                photo_count: isChecked
+                  ? prev.photo_count > 0
+                    ? prev.photo_count // keep existing if already set
+                    : 1 // default to 1
+                  : "", // clear if unchecked
+              }));
+            }}
+          />
+          Passport Photo
+        </label>
 
-        {/* Add New Document Button */}
-        <button
-          type="button"
-          onClick={() => setShowNewDocForm(true)}
-          className={styles.buttonAddLink}
-        >
-          + Add New Document
-        </button>
+        {newService.passport_required && (
+          <input
+            type="number"
+            name="photo_count"
+            value={safeValue(newService.photo_count)}
+            onChange={(e) =>
+              setNewService((prev) => ({
+                ...prev,
+                photo_count: parseInt(e.target.value || "0", 10),
+              }))
+            }
+            placeholder="No. of Photos"
+            className={`${styles.modalFormInput} ${styles.passportPhotoInput}`}
+            spellCheck={false}
+            min={0}
+          />
+        )}
       </div>
 
-      {/* === New Document Form === */}
-      {showNewDocForm && (
-        <div className={styles.modalFormGroup} style={{ marginTop: "1rem" }}>
-          <input
-            type="text"
-            placeholder="Document Name"
-            value={newDocData.name}
-            onChange={(e) => setNewDocData({ ...newDocData, name: e.target.value })}
-            className={styles.modalFormInput}
-          />
-          <input
-            type="text"
-            placeholder="Categories (comma separated)"
-            value={newDocData.categories}
-            onChange={(e) =>
-              setNewDocData({ ...newDocData, categories: e.target.value })
-            }
-            className={styles.modalFormInput}
-          />
-          <textarea
-            placeholder="Additional Details"
-            value={newDocData.additional_details}
-            onChange={(e) =>
-              setNewDocData({ ...newDocData, additional_details: e.target.value })
-            }
-            className={styles.modalFormTextarea}
-          />
-          <button
-            type="button"
-            className={styles.buttonSubmit}
-            onClick={handleNewDocSubmit}
-            disabled={docSubmitting}
-          >
-            {docSubmitting ? "Saving..." : "Save Document"}
-          </button>
-        </div>
-      )}
-      {editingService && (
-        <input
-          type="file"
-          multiple
-          ref={fileInputRef}
-          onChange={(e) => {
-            const files = Array.from(e.target.files);
-            if (files.length > 0) {
-              handleSupportingDocsUpload(files).then(() => {
-                // Reset file input after upload
-                if (fileInputRef.current) {
-                  fileInputRef.current.value = "";
-                }
-              });
-            }
-          }}
-          className={styles.inputFileModern}
-        />
-      )}
+      {/* === Required Documents Section === */}
+      <RequiredDocumentsSection
+        documents={documents}
+        newService={newService}
+        setNewService={setNewService}
+        newDocSelectValue={newDocSelectValue}
+        setNewDocSelectValue={setNewDocSelectValue}
+        showNewDocForm={showNewDocForm}
+        setShowNewDocForm={setShowNewDocForm}
+        newDocData={newDocData}
+        setNewDocData={setNewDocData}
+        docSubmitting={docSubmitting}
+        handleNewDocSubmit={handleNewDocSubmit}
+        editingService={editingService}
+        setDescription={setDescription}
+      />
 
-      {supportingDocs.length > 0 && (
-        <div className={styles.modalFormGroup}>
-          <h4 className={styles.modalFormLabel}>Supporting Documents:</h4>
-          <ul className={styles.uploadedDocList}>
-            {supportingDocs.map((doc, idx) => (
-              <li key={idx} className={styles.supportingDocItem}>
-                <span>
-                  <strong>{doc.name}</strong>{" "}
-                  {doc.file && (
-                    <a
-                      href={doc.file}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={styles.viewFileLink}
-                    >
-                      (View File)
-                    </a>
-                  )}
-                </span>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setSupportingDocs((prev) =>
-                      prev.filter((_, index) => index !== idx)
-                    )
-                  }
-                  className={styles.removeButton}
-                  aria-label="Remove Supporting Document"
-                >
-                  <DeleteIcon className={styles.icon} />
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+      {/* === Supporting Documents Section === */}
+      <SupportingDocumentsSection
+        editingService={editingService}
+        newService={newService}
+      />
 
       {/* === Submit Button === */}
       <div
@@ -432,9 +330,14 @@ export default function ServiceForm({
           marginTop: "1rem",
         }}
       >
-        <button type="submit" className={styles.buttonSubmit}>
+        <button
+          type="submit"
+          className={styles.buttonSubmit}
+          disabled={isPhotoInvalid}
+        >
           {editingService ? "Update Service" : "Create Service"}
         </button>
+
       </div>
     </form>
   );

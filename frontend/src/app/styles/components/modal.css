@@ -132,11 +132,14 @@
 
 .required-time {
   color: #d1d5db;
-  /* Tailwind's gray-300 */
   font-size: 0.9rem;
-  /* Tailwind's text-sm */
   margin: 0;
   text-align: right;
+}
+
+.required-date {
+  color: #b9bcc0;
+  font-size: 0.7rem;
 }
 
 .serviceDetailsItem {
@@ -155,12 +158,18 @@
 }
 
 .serviceDetailsLinks {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 2rem;
+  flex-wrap: wrap;
   margin-top: 0.90rem;
-  background-color: #1e1e1e;
+  background-color: #222;
   padding: 1rem;
   border-radius: 0.75rem;
   border: 1px solid #333;
   color: #f1f5f9;
+  width: 100%;
 }
 
 .serviceDetailsLinkList {
@@ -169,12 +178,16 @@
   margin: 0;
 }
 
+.serviceDetailsLinks ul:nth-child(2) {
+  margin-left: auto;
+}
+
 .serviceDetailsLinkList li:not(:last-child) {
   margin-bottom: 0.5rem;
 }
 
 .serviceDetailsLinkList a {
-  color: #38bdf8;
+  color: #40a9ff;
   /* sky-400 */
   text-decoration: none;
   font-weight: 500;
@@ -223,7 +236,7 @@
 }
 
 .serviceDetailsDocuments {
-  background-color: #1a1a1a;
+  background-color: #222;
   border: 1px solid #2a2a2a;
   border-radius: 10px;
   padding: 1rem;
@@ -235,13 +248,24 @@
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
 }
 
+.documents-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.passport-info {
+  font-size: 0.8rem;
+  color: #d1d1d1;
+  font-weight: 500;
+}
+
 .serviceDetailsLabel {
   font-size: 0.95rem;
   margin-bottom: 0.6rem;
   font-weight: 600;
-  color: #00e676;
-  /* cyber green */
-  text-transform: uppercase;
+  color: #e6e6e6;
   letter-spacing: 0.5px;
 }
 
@@ -251,8 +275,23 @@
   margin: 0;
 }
 
+.doc-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.requirementType {
+  font-size: 0.7rem;
+  color: #b0b0b0;
+  font-weight: 500;
+}
+
 .serviceDetailsDocItem {
-  background-color: #222;
+  /* display: flex;
+  flex-direction: column; */
+  background-color: #1e1e1e;
   border-radius: 8px;
   padding: 0.6rem 0.9rem;
   margin-bottom: 0.6rem;
@@ -266,7 +305,7 @@
 
 .serviceDetailsDocItem strong {
   font-weight: 600;
-  color: #40a9ff;
+  color: #B8C1CC;
   /* tech blue */
   font-size: 0.94rem;
   display: inline-block;
@@ -300,10 +339,24 @@
   font-weight: 500;
 }
 
-.serviceDetailsDescription {
+.serviceDetailsDescription,
+.serviceDetailsNote {
   font-size: 0.8rem;
   color: #bfbfbf;
+}
+
+.serviceDetailsNote{
   font-style: italic;
+}
+
+.serviceDetailsDescription{
+  margin-top: 0.90rem;
+  background-color: #222;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid #333;
+  color: #f1f5f9;
+  width: 100%;
 }
 
 @media (max-width: 600px) {

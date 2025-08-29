@@ -1,4 +1,3 @@
-// services/page.js
 "use client";
 
 import { useEffect, useState } from "react";
@@ -6,7 +5,7 @@ import StyledTable from "../components/StyledTable";
 import SearchBar from "../components/SearchBar";
 import BalanceCell from "../components/BalanceCell";
 import HeaderWithNewButton from "../components/common/HeaderWithNewButton";
-import React from 'react';
+import React from "react";
 import Loader from "../components/Loader";
 import Modal from "../components/Modal";
 import ServiceForm from "./ServiceForm";
@@ -19,14 +18,14 @@ export default function ServicesPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState(null);
+  const [editingServiceId, setEditingServiceId] = useState(null);
   const [editingService, setEditingService] = useState(null);
   const [showForm, setShowForm] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
   const [showLinksSection, setShowLinksSection] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const entriesPerPage = 30;
+  const entriesPerPage = 10;
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState(null);
   const [returnToDetails, setReturnToDetails] = useState(false);
@@ -62,15 +61,18 @@ export default function ServicesPage() {
         setServices(data);
         setLoading(false);
 
-        // ✅ Refresh selectedService if returnToDetails is true
+        if (editingService) {
+          const updated = data.find((s) => s.id === editingService.id);
+          if (updated) setEditingService(updated);
+        }
+
         if (returnToDetails && selectedService) {
-          const updatedService = data.find(s => s.id === selectedService.id);
-          if (updatedService) {
-            setSelectedService(updatedService);
-          }
+          const updated = data.find((s) => s.id === selectedService.id);
+          if (updated) setSelectedService(updated);
         }
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error("Fetch error:", err);
         setError("Error fetching services.");
         setLoading(false);
       });
@@ -86,18 +88,38 @@ export default function ServicesPage() {
     }));
   };
 
+  function transformServiceForSubmit(service) {
+    const servicedocumentrequirement_set = (service.required_documents || []).map((docItem) => ({
+      document_id: docItem.document,
+      requirement_type: docItem.requirement_type || "original",
+      is_mandatory: docItem.is_mandatory ?? true,
+    }));
+
+    const payload = {
+      ...service,
+      servicedocumentrequirement_set,
+    };
+
+    delete payload.required_documents; // ✅ FIXED
+
+    return payload;
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    const transformedService = transformServiceForSubmit(newService);
 
     const method = editingService ? "PUT" : "POST";
     const url = editingService
-      ? `http://127.0.0.1:8001/api/services/${editingService}/`
+      ? `http://127.0.0.1:8001/api/services/${editingService.id}/`
       : "http://127.0.0.1:8001/api/services/";
+
+    console.log("✅ Final Payload:", transformedService);
 
     fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newService),
+      body: JSON.stringify(transformedService),
     })
       .then((res) => {
         if (!res.ok) return res.json().then((err) => Promise.reject(err));
@@ -106,8 +128,6 @@ export default function ServicesPage() {
       .then(() => {
         fetchServices();
         resetForm();
-        setSuccessMessage(editingService ? "Service updated!" : "Service added!");
-        setTimeout(() => setSuccessMessage(""), 3000);
       })
       .catch((err) => {
         console.error("Server error response:", err);
@@ -116,7 +136,8 @@ export default function ServicesPage() {
   };
 
   const handleEdit = (service) => {
-    setEditingService(service.id);
+    setEditingServiceId(service);
+    setEditingService(service);
     setNewService({
       ...service,
       links: service.links ?? [],
@@ -131,7 +152,7 @@ export default function ServicesPage() {
       headers: { "Content-Type": "application/json" },
     })
       .then((res) => {
-        if (!res.ok) return res.json().then(err => Promise.reject(err));
+        if (!res.ok) return res.json().then((err) => Promise.reject(err));
         fetchServices();
       })
       .catch((err) => {
@@ -171,7 +192,7 @@ export default function ServicesPage() {
       required_time_hours: 0,
       is_active: true,
       links: [],
-      required_documents: [], // ✅ add this
+      required_documents: [],
     });
     setEditingService(null);
     setShowForm(false);
@@ -187,8 +208,6 @@ export default function ServicesPage() {
 
   return (
     <div>
-      {successMessage && <div className="success-message">{successMessage}</div>}
-
       <HeaderWithNewButton
         title="Services"
         buttonLabel="Add Service"
@@ -254,12 +273,16 @@ export default function ServicesPage() {
         </div>
       )}
 
-      <Modal isOpen={showForm} onClose={resetForm} title={editingService ? "Update Service" : "Add Service"}>
+      <Modal
+        isOpen={showForm}
+        onClose={resetForm}
+        title={editingService ? "Update Service" : "Add Service"}
+      >
         <ServiceForm
           newService={newService}
           setNewService={setNewService}
           description={newService.description}
-          setDescription={(desc) => setNewService(prev => ({ ...prev, description: desc }))}
+          setDescription={(desc) => setNewService((prev) => ({ ...prev, description: desc }))}
           handleInputChange={handleInputChange}
           handleSubmit={handleSubmit}
           handleLinkChange={handleLinkChange}
@@ -271,6 +294,7 @@ export default function ServicesPage() {
           showLinksSection={showLinksSection}
           setShowLinksSection={setShowLinksSection}
           documents={documents}
+          onUpdate={fetchServices}
         />
       </Modal>
 
