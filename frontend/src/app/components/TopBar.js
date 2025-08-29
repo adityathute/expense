@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
-import "../styles/components/topbar.css";
+import "../styles/components/TopBar.css";
 import Image from "next/image";
 
 export default function TopBar({ isSidebarOpen, onToggleSidebar }) {
