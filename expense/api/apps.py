@@ -16,8 +16,8 @@ def create_core_categories(sender, **kwargs):
 
     table_name = Category._meta.db_table
     with connection.cursor() as cursor:
-        cursor.execute("SHOW TABLES LIKE %s", [table_name])
-        if not cursor.fetchone():
+        cursor.execute("SELECT to_regclass(%s)", [table_name])
+        if not cursor.fetchone()[0]:
             return
 
     core_categories = {

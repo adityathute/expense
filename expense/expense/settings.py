@@ -4,7 +4,8 @@
 # Imports
 from decouple import config
 import os
-
+from urllib.parse import urlparse, parse_qsl
+from dotenv import load_dotenv
 # Retrieve the PROJECT_NAME from configuration
 PROJECT_NAME = config("PROJECT_NAME")
 AUTH_SERVER_URL = config('AUTH_SERVER_URL')
@@ -85,22 +86,33 @@ TEMPLATES = [
 
 # WSGI application configuration
 WSGI_APPLICATION = f"{PROJECT_NAME}.wsgi.application"
-
+load_dotenv()
+tmpPostgres = urlparse(os.getenv("DATABASE_URL"))
 # Database configuration
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.mysql",
+#         "NAME": config("DB_NAME"),
+#         "USER": config("DB_USER"),
+#         "PASSWORD": config("DB_PASSWORD"),
+#         "HOST": config("DB_HOST"),  # Connect to the local forwarded port
+#         "PORT": config("DB_PORT", cast=int),  # Use the local forwarded port
+#         "OPTIONS": {
+#             "charset": "utf8mb4",
+#         },
+#     }
+# }
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.mysql",
-        "NAME": config("DB_NAME"),
-        "USER": config("DB_USER"),
-        "PASSWORD": config("DB_PASSWORD"),
-        "HOST": config("DB_HOST"),  # Connect to the local forwarded port
-        "PORT": config("DB_PORT", cast=int),  # Use the local forwarded port
-        "OPTIONS": {
-            "charset": "utf8mb4",
-        },
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': tmpPostgres.path.replace('/', ''),
+        'USER': tmpPostgres.username,
+        'PASSWORD': tmpPostgres.password,
+        'HOST': tmpPostgres.hostname,
+        'PORT': 5432,
+        'OPTIONS': dict(parse_qsl(tmpPostgres.query)),
     }
 }
-
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -130,7 +142,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
-
+STATIC_ROOT= os.path.join(BASE_DIR, 'staticfiles')
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
