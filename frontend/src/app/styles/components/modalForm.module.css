@@ -347,6 +347,13 @@
   font-weight: 500;
 }
 
+.idInputRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
 .passportRow {
   display: flex;
   align-items: center;

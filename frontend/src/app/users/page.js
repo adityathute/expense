@@ -5,9 +5,10 @@ import { useEffect, useState } from "react";
 import SearchBar from "../components/SearchBar";
 import UserDetailsPopup from "./components/UserDetailsPopup";
 import AddUserForm from "./components/AddUserForm";
-// import "../users/styles.css";
 import StyledTable from "../components/StyledTable";
 import HeaderWithNewButton from "../components/common/HeaderWithNewButton";
+import Modal from "../components/Modal";
+import Pagination from "../components/Pagination"; // ✅ Import Pagination
 
 export default function Users() {
   const [services, setServices] = useState([]);
@@ -16,6 +17,10 @@ export default function Users() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const entriesPerPage = 10;
 
   const fetchUsers = async () => {
     try {
@@ -37,20 +42,30 @@ export default function Users() {
   }, []);
 
   const handleSaveEdit = async () => {
+    if (!editingUser) return;
+
     try {
-      const response = await fetch(`http://127.0.0.1:8001/api/users/${selectedUser.id}/`, {
+      const payload = {
+        name: editingUser.name,
+        mobile_number: editingUser.mobile_number,
+        // include other backend-accepted fields only
+      };
+
+      const response = await fetch(`http://127.0.0.1:8001/api/users/${editingUser.id}/`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(selectedUser),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
 
       if (response.ok) {
         const updatedUser = await response.json();
         setUsers(users.map((u) => (u.id === updatedUser.id ? updatedUser : u)));
+        setEditingUser(null);
+        setSelectedUser(null);
+        setShowModal(false);
       } else {
-        console.error("Failed to update user");
+        const errorData = await response.json();
+        console.error("Failed to update user:", response.status, errorData);
       }
     } catch (error) {
       console.error("Error updating user:", error);
@@ -93,37 +108,47 @@ export default function Users() {
     });
 
     setFilteredUsers(filteredUsers);
+    setCurrentPage(1);
   };
 
   const headers = ["Name", "Mobile", "ID"];
   const columns = ["name", "mobile_number", "id"];
 
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredUsers.length / entriesPerPage);
+  const startIndex = (currentPage - 1) * entriesPerPage;
+  const paginatedUsers = filteredUsers.slice(startIndex, startIndex + entriesPerPage);
+
   return (
-        <div>
-          <HeaderWithNewButton
-            title="Users"
-            buttonLabel="Add User"
-            onClick={() => setShowForm(true)}
-          />
+    <div>
+      <HeaderWithNewButton
+        title="Users"
+        buttonLabel="Add User"
+        onClick={() => { setEditingUser(null); setShowModal(true); }}
+      />
 
-          <SearchBar
-            value={searchQuery}
-            onChange={handleSearchChange}
-            placeholder="Search users..."
-          />
-          {showForm && <AddUserForm onClose={() => setShowForm(false)} onAddUser={handleAddUser} />}
+      <SearchBar
+        value={searchQuery}
+        onChange={handleSearchChange}
+        placeholder="Search users..."
+      />
+      {showForm && <AddUserForm onClose={() => setShowForm(false)} onAddUser={handleAddUser} />}
 
+      {paginatedUsers.length > 0 ? (
+        <>
           <StyledTable
             headers={headers}
             columns={columns}
-            data={filteredUsers}
-            emptyText="No users found."
+            data={paginatedUsers}
             renderCell={(user, col) => {
               if (col === "name") {
                 return (
-                  <span className="user-link" onClick={() => setSelectedUser(user)}>
+                  <button
+                    onClick={() => { setEditingUser(user); setShowModal(true); }}
+                    className="text-blue-400 hover:underline"
+                  >
                     {user.name}
-                  </span>
+                  </button>
                 );
               }
               if (col === "mobile_number") return user.mobile_number;
@@ -135,12 +160,42 @@ export default function Users() {
               return "-";
             }}
           />
+
+          {totalPages > 1 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          )}
+        </>
+      ) : (
+        <div style={{ padding: "1rem", textAlign: "center", color: "#888" }}>
+          No users found.
+        </div>
+      )}
+
       {selectedUser && (
         <UserDetailsPopup
           selectedUser={selectedUser}
           onClose={() => setSelectedUser(null)}
           onSave={handleSaveEdit}
         />
+      )}
+
+      {showModal && (
+        <Modal
+          isOpen={showModal}
+          onClose={() => setShowModal(false)}
+          title={editingUser ? "Edit User" : "Add User"}
+        >
+          <AddUserForm
+            initialData={editingUser} // null for add, user object for edit
+            onClose={() => setShowModal(false)}
+            onAddUser={editingUser ? handleSaveEdit : handleAddUser} // ✅ use proper handler
+          />
+
+        </Modal>
       )}
     </div>
   );

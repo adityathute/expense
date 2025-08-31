@@ -1,15 +1,28 @@
 // users/components/AddUserForm.js
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import styles from "../../styles/components/modalForm.module.css";
+import { DeleteIcon } from "../../components/Icons";
 
-export default function AddUserForm({ onClose, onAddUser }) {
+export default function AddUserForm({ onClose, onAddUser, initialData = null }) {
   const [newUser, setNewUser] = useState({
     name: "",
     mobile_number: "",
     gender: "",
-    user_type: ["Customer"], // Default user type set to "Customer"
-    identifications: [{ id_type: "Aadhaar", id_number: "" }], // Default field
+    user_type: ["Customer"],
+    identifications: [{ id_type: "Aadhaar", id_number: "" }],
   });
+
+  useEffect(() => {
+    if (initialData) {
+      setNewUser({
+        ...initialData,
+        identifications: initialData.identifications.length
+          ? initialData.identifications
+          : [{ id_type: "Aadhaar", id_number: "" }],
+      });
+    }
+  }, [initialData]);
 
   const [errorMessage, setErrorMessage] = useState({
     name: "",
@@ -267,160 +280,125 @@ export default function AddUserForm({ onClose, onAddUser }) {
   };
 
   return (
-    <div className="modal">
-      <div className="modal-overlay">
-        <div className="modal-content">
-          <div className="modal-content-inner">
-            <div className="model-header-with-button">
-              <div className="model-header">
-                <h2>Add User</h2>
+    <div className={styles.modalFormGroup}>
+      <input
+        type="text"
+        name="name"
+        className={styles.modalFormInput}
+        placeholder="Full Name"
+        value={newUser.name || ""}
+        onChange={handleInputChange}
+        required
+      />
+      {errorMessage.name && <p className="error-text">{errorMessage.name}</p>}
+
+      {/* Mobile Number */}
+      <div className="id-input-group">
+
+        <input
+          type="text"
+          name="mobile_number"
+          placeholder="Mobile Number"
+          value={newUser.mobile_number || ""}
+          onChange={handleInputChange}
+          className={styles.modalFormInput}
+        />
+
+        <div className="">
+          <select className={styles.modalFormInput}
+            name="gender" value={newUser.gender} onChange={handleInputChange}>
+            <option value="">Select Gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+
+      </div>
+      {errorMessage.mobile_number && <p className="error-text">{errorMessage.mobile_number}</p>}
+
+      {newUser.identifications.map((id, index) => (
+        <div key={index} className="id-input-group">
+          {/* ID Type dropdown and ID Number input remain in a row */}
+          <div className="id-main-group-outer">
+            <div className="id-main-group">
+              <div className="dropdown-container">
+                <select
+                  value={id.id_type}
+                  onChange={(e) => handleIDChange(index, "id_type", e.target.value)}
+                  className={styles.modalFormInput}                >
+                  <option value="">Select ID Type</option>
+                  {["Aadhaar", "Pancard", "Voter ID", "Driving License", "Passport", "Ration Card", "BOCW", "Aapaar ID", "ABHA ID", "Other"]
+                    .filter((idType) =>
+                      idType === id.id_type || !newUser.identifications.some((i) => i.id_type === idType)
+                    )
+                    .map((filteredId) => (
+                      <option key={filteredId} value={filteredId}>
+                        {filteredId}
+                      </option>
+                    ))}
+                </select>
               </div>
-              <span className="modal-close-button" onClick={onClose}>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-              </span>
-            </div>
-
-            <input
-              type="text"
-              name="name"
-              className="modal-content-input"
-              placeholder="Full Name"
-              value={newUser.name || ""}
-              onChange={handleInputChange}
-              required
-            />
-            {errorMessage.name && <p className="error-text">{errorMessage.name}</p>}
-
-            {/* Mobile Number */}
-            <div className="id-input-group">
-
-              <div className="id-main-group">
+              {/* Custom document name input appears in a new row when "Other" is selected */}
+              {id.id_type === "Other" && (
+                <div className="other-document-container">
+                  <input
+                    type="text"
+                    placeholder="Document Name"
+                    className={styles.modalFormInput}
+                    value={id.other_doc_name || ""}
+                    onChange={(e) => handleIDChange(index, "other_doc_name", e.target.value)}
+                  />
+                </div>
+              )}
+              <div className={styles.idInputRow}>
                 <input
                   type="text"
-                  name="mobile_number"
-                  placeholder="Mobile Number"
-                  value={newUser.mobile_number || ""}
-                  onChange={handleInputChange}
-                  className="model-content-input-number"
+                  className={styles.modalFormInput}
+                  placeholder="ID Number"
+                  value={id.id_number || ""}
+                  onChange={(e) => handleIDChange(index, "id_number", e.target.value)}
                 />
-
-                <div className="dropdown-container">
-                  <select className="custom-dropdown" name="gender" value={newUser.gender} onChange={handleInputChange}>
-                    <option value="">Select Gender</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                  </select>
-                  {/* Custom Arrow Icon */}
-                  <svg className="dropdown-icon" viewBox="0 0 24 24">
-                    <path d="M7 10l5 5 5-5H7z" fill="currentColor" />
-                  </svg>
-                </div>
-
+                {newUser.identifications.length > 1 && (
+                  <button
+                    onClick={() => handleRemoveID(index)}
+                    className={styles.removeButton}
+                    aria-label="Remove Document"
+                    style={{ marginBottom: "0.8rem" }} // inline style
+                  >
+                    <DeleteIcon className={styles.icon} />
+                  </button>
+                )}
               </div>
 
             </div>
-            {errorMessage.mobile_number && <p className="error-text">{errorMessage.mobile_number}</p>}
-
-            {newUser.identifications.map((id, index) => (
-              <div key={index} className="id-input-group">
-                {/* ID Type dropdown and ID Number input remain in a row */}
-                <div className="id-main-group-outer">
-                  <div className="id-main-group">
-                    <div className="dropdown-container">
-                      <select
-                        value={id.id_type}
-                        onChange={(e) => handleIDChange(index, "id_type", e.target.value)}
-                        className="custom-dropdown"
-                      >
-                        <option value="">Select ID Type</option>
-                        {["Aadhaar", "Pancard", "Voter ID", "Driving License", "Passport", "Ration Card", "BOCW", "Aapaar ID", "ABHA ID", "Other"]
-                          .filter((idType) =>
-                            idType === id.id_type || !newUser.identifications.some((i) => i.id_type === idType)
-                          )
-                          .map((filteredId) => (
-                            <option key={filteredId} value={filteredId}>
-                              {filteredId}
-                            </option>
-                          ))}
-                      </select>
-
-                      {/* Custom Arrow Icon */}
-                      <svg className="dropdown-icon" viewBox="0 0 24 24">
-                        <path d="M7 10l5 5 5-5H7z" fill="currentColor" />
-                      </svg>
-                    </div>
-                    <input
-                      type="text"
-                      className="id-number-input"
-                      placeholder="ID Number"
-                      value={id.id_number || ""}
-                      onChange={(e) => handleIDChange(index, "id_number", e.target.value)}
-                    />
-
-                    {newUser.identifications.length > 1 && (
-                      <button type="button" className="remove-button" onClick={() => handleRemoveID(index)}>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="20"
-                          height="20"
-                          viewBox="0 0 24 24"
-                          fill="black"
-                        >
-                          <path d="M3 6h18v2H3V6zm2 3h14v13H5V9zm2 2v9h10v-9H7zm4-6h2v2h-2V5zm-1 2h4v2h-4V7z" />
-                        </svg>
-                      </button>
-                    )}
-                  </div>
-                  <div className="">
-                    {/* Aadhaar Number Validation Error Below Input */}
-                    {errorMessage[`id_${index}`] && <p className="error-text">{errorMessage[`id_${index}`]}</p>}
-                  </div>
-                </div>
-                {/* Custom document name input appears in a new row when "Other" is selected */}
-                {id.id_type === "Other" && (
-                  <div className="other-document-container">
-                    <input
-                      type="text"
-                      placeholder="Document Name"
-                      className="modal-content-input"
-                      value={id.other_doc_name || ""}
-                      onChange={(e) => handleIDChange(index, "other_doc_name", e.target.value)}
-                    />
-                  </div>
-                )}
-
-              </div>
-            ))}
-
-            <button
-              className="add-more-id-button"
-              type="button"
-              onClick={handleAddID}
-              disabled={!newUser.identifications[0].id_type || !newUser.identifications[0].id_number}
-            >
-              + Add More ID
-            </button>
-            {errorMessage.user_id && <p className="error-text">{errorMessage.user_id}</p>}
-            <button className="add-id-button mt-15" onClick={handleSubmit}>
-              Save
-            </button>
+            <div className="">
+              {/* Aadhaar Number Validation Error Below Input */}
+              {errorMessage[`id_${index}`] && <p className="error-text">{errorMessage[`id_${index}`]}</p>}
+            </div>
           </div>
         </div>
-      </div>
+      ))}
+
+      <button
+        className="service-edit-btn"
+        type="button"
+        onClick={handleAddID}
+        disabled={!newUser.identifications[0].id_type || !newUser.identifications[0].id_number}
+      >
+        + Add More ID
+      </button>
+
+      {errorMessage.user_id && <p className="error-text">{errorMessage.user_id}</p>}
+
+      <button
+        className={styles.buttonSubmit}
+        onClick={handleSubmit}
+        style={{ marginLeft: "0.7rem" }} // inline margin-left
+      >
+        Save
+      </button>
 
     </div>
   );
