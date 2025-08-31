@@ -3,7 +3,7 @@ import "./settings.css";
 import { DeleteIcon } from "../components/Icons";
 import styles from "../styles/components/modalForm.module.css";
 import Link from "next/link";
-import { ListTree, Store, LineChart, Server } from "lucide-react";
+import { ListTree, Store, LineChart, Server, Banknote } from "lucide-react";
 
 export default function Settings() {
   return (
@@ -12,22 +12,6 @@ export default function Settings() {
       <p className="sub-text">Manage your business preferences and configurations.</p>
 
       <div className="settings-grid">
-        {/* Recycle Bin */}
-        <div className="setting-card">
-          <h2 style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
-            <DeleteIcon className={styles.icon} />
-            Recycle Bin
-          </h2>
-          <p>View and restore deleted items from your account.</p>
-          <div style={{ display: "flex", justifyContent: "center", marginTop: "1rem" }}>
-            <Link href="/recycle" style={{ width: "100%", maxWidth: "400px" }}>
-              <button className="setting-card-link" style={{ width: "100%" }}>
-                Open Recycle Bin
-              </button>
-            </Link>
-          </div>
-        </div>
-
         {/* Category Management */}
         <div className="setting-card">
           <h2 style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
@@ -39,22 +23,6 @@ export default function Settings() {
             <Link href="/categories" style={{ width: "100%", maxWidth: "400px" }}>
               <button className="setting-card-link" style={{ width: "100%" }}>
                 Manage Categories
-              </button>
-            </Link>
-          </div>
-        </div>
-
-        {/* Shop Details */}
-        <div className="setting-card">
-          <h2 style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
-            <Store size={20} style={{ color: "#91a7ff" }} />
-            Shop Details
-          </h2>
-          <p>View and update your shop information including address, contact, and settings.</p>
-          <div style={{ display: "flex", justifyContent: "center", marginTop: "1rem" }}>
-            <Link href="/shop-details" style={{ width: "100%", maxWidth: "400px" }}>
-              <button className="setting-card-link" style={{ width: "100%" }}>
-                Manage Shop Details
               </button>
             </Link>
           </div>
@@ -76,6 +44,54 @@ export default function Settings() {
           </div>
         </div>
 
+        {/* Shop Details */}
+        <div className="setting-card">
+          <h2 style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+            <Store size={20} style={{ color: "#91a7ff" }} />
+            Shop Details
+          </h2>
+          <p>View and update your shop information including address, contact, and settings.</p>
+          <div style={{ display: "flex", justifyContent: "center", marginTop: "1rem" }}>
+            <Link href="/shop-details" style={{ width: "100%", maxWidth: "400px" }}>
+              <button className="setting-card-link" style={{ width: "100%" }}>
+                Manage Shop Details
+              </button>
+            </Link>
+          </div>
+        </div>
+
+        {/* Accounts */}
+        <div className="setting-card">
+          <h2 style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+            <Banknote size={20} style={{ color: "#34d399" }} />
+            Accounts
+          </h2>
+          <p>Manage your bank and cash accounts, add new accounts, and update existing ones.</p>
+          <div style={{ display: "flex", justifyContent: "center", marginTop: "1rem" }}>
+            <Link href="/accounts" style={{ width: "100%", maxWidth: "400px" }}>
+              <button className="setting-card-link" style={{ width: "100%" }}>
+                Manage Accounts
+              </button>
+            </Link>
+          </div>
+        </div>
+
+        {/* Recycle Bin */}
+        <div className="setting-card">
+          <h2 style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+            <DeleteIcon className={styles.icon} />
+            Recycle Bin
+          </h2>
+          <p>View and restore deleted items from your account.</p>
+          <div style={{ display: "flex", justifyContent: "center", marginTop: "1rem" }}>
+            <Link href="/recycle" style={{ width: "100%", maxWidth: "400px" }}>
+              <button className="setting-card-link" style={{ width: "100%" }}>
+                Open Recycle Bin
+              </button>
+            </Link>
+          </div>
+        </div>
+
         {/* Backup & Restore */}
         <div className="setting-card">
           <h2 style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
@@ -91,7 +107,6 @@ export default function Settings() {
             </Link>
           </div>
         </div>
-
       </div>
     </div>
   );

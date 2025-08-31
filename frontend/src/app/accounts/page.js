@@ -1,11 +1,14 @@
-// accounts/page.js
 "use client";
 import { useState, useEffect } from "react";
-// import "./style.css";
 import StyledTable from "../components/StyledTable";
-// import "../styles/balancecell.css";
 import BalanceCell from "../components/BalanceCell";
 import HeaderWithNewButton from "../components/common/HeaderWithNewButton";
+import SearchBar from "../components/SearchBar";
+import Pagination from "../components/Pagination";
+import Modal from "../components/Modal"; // ✅ Import your Modal
+import styles from "../styles/components/modalForm.module.css";
+import "./accounts.css";
+import DeleteAccountModal from "./DeleteAccountModal";
 
 export default function Account() {
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -22,6 +25,11 @@ export default function Account() {
     category: "Business",
   });
   const [editingId, setEditingId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const entriesPerPage = 10;
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [accountToDelete, setAccountToDelete] = useState(null);
 
   useEffect(() => {
     fetch("http://127.0.0.1:8001/api/accounts/")
@@ -32,10 +40,7 @@ export default function Account() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleAddAccount = () => {
@@ -69,24 +74,11 @@ export default function Account() {
         return res.json();
       })
       .then((savedAccount) => {
-        setBankAccounts((prev) => {
-          if (editingId) {
-            return prev.map((acc) => (acc.id === editingId ? savedAccount : acc));
-          } else {
-            return [...prev, savedAccount];
-          }
-        });
-
-        setFormData({
-          account_holder_name: "",
-          account_number: "",
-          bank_service_name: "",
-          ifsc_code: "",
-          balance: 0,
-          account_mode: "Cash",
-          account_type: "",
-          category: "Business",
-        });
+        setBankAccounts((prev) =>
+          editingId
+            ? prev.map((acc) => (acc.id === editingId ? savedAccount : acc))
+            : [...prev, savedAccount]
+        );
         setShowForm(false);
         setEditingId(null);
       })
@@ -108,6 +100,21 @@ export default function Account() {
     setShowForm(true);
   };
 
+  const handleDelete = (id) => {
+    if (!confirm("Are you sure you want to delete this account?")) return;
+
+    fetch(`http://127.0.0.1:8001/api/accounts/${id}/`, {
+      method: "DELETE",
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to delete account");
+        setBankAccounts((prev) => prev.filter((acc) => acc.id !== id));
+        setShowForm(false);
+        setEditingId(null);
+      })
+      .catch((err) => alert(err.message));
+  };
+
   const handleCloseForm = () => {
     setShowForm(false);
     setEditingId(null);
@@ -123,10 +130,18 @@ export default function Account() {
 
   const totalBalance = Object.values(categoryTotals).reduce((sum, val) => sum + val, 0);
 
-  // Prepare data and columns for StyledTable
-  const filteredAccounts = selectedCategory
-    ? bankAccounts.filter((acc) => acc.category === selectedCategory)
-    : bankAccounts;
+  const filteredAccounts = bankAccounts
+    .filter((acc) => !selectedCategory || acc.category === selectedCategory)
+    .filter((acc) =>
+      acc.account_holder_name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+  const totalPages = Math.ceil(filteredAccounts.length / entriesPerPage);
+  const startIndex = (currentPage - 1) * entriesPerPage;
+  const paginatedAccounts = filteredAccounts.slice(
+    startIndex,
+    startIndex + entriesPerPage
+  );
 
   const columns = [
     { key: "index", label: "#" },
@@ -138,10 +153,9 @@ export default function Account() {
     { key: "category", label: "Category" },
   ];
 
-  // Add index for display (1-based)
-  const tableData = filteredAccounts.map((account, i) => ({
+  const tableData = paginatedAccounts.map((account, i) => ({
     ...account,
-    index: i + 1,
+    index: startIndex + i + 1,
   }));
 
   return (
@@ -152,111 +166,186 @@ export default function Account() {
         {Object.entries(categoryTotals).map(([category, total]) => (
           <div
             key={category}
-            className={`category-card ${selectedCategory === category ? "selected" : ""}`}
-            onClick={() => setSelectedCategory(category === selectedCategory ? null : category)}
+            className={`category-card ${selectedCategory === category ? "selected" : ""
+              }`}
+            onClick={() =>
+              setSelectedCategory(category === selectedCategory ? null : category)
+            }
           >
             <h3>{category}</h3>
-            <p className="cat-card-special-block">₹&nbsp;{total.toFixed(2)}</p>
+            <p
+              className={`cat-card-special-block ${total > 0
+                ? "balance-positive"
+                : total === 0
+                  ? "balance-zero"
+                  : "balance-negative"
+                }`}
+            >
+              ₹ {total.toFixed(2)}
+            </p>
           </div>
         ))}
         <div className="category-card total-balance-block">
           <h3>Total Balance</h3>
-          <div className="cat-card-special-block">
-            <p>₹&nbsp;{totalBalance.toFixed(2)}</p>
-          </div>
+          <div className="cat-card-special-block">₹ {totalBalance.toFixed(2)}</div>
         </div>
       </div>
 
       <div className="bank-account-section">
-        {showForm && (
-          <div className="modal-overlay">
-            <div className="modal-content">
-              <h3>{editingId ? "Edit Account" : "Add New Account"}</h3>
-              <div className="form">
-                <select name="account_mode" value={formData.account_mode} onChange={handleChange}>
-                  <option value="Cash">Cash</option>
-                  <option value="Online">Online</option>
-                </select>
+        {/* Modal */}
+        <Modal
+          isOpen={showForm}
+          onClose={handleCloseForm}
+          title={editingId ? "Edit Account" : "Add New Account"}
+        >
+          <div className="form">
+            <select
+              name="account_mode"
+              className={styles.modalFormInput}
+              value={formData.account_mode}
+              onChange={handleChange}
+            >
+              <option value="Cash">Cash</option>
+              <option value="Online">Online</option>
+            </select>
 
-                {isCash ? (
-                  <input
-                    type="text"
-                    name="bank_service_name"
-                    placeholder="Service Name"
-                    value={formData.bank_service_name}
-                    onChange={handleChange}
-                  />
-                ) : (
-                  <>
-                    <input
-                      type="text"
-                      name="bank_service_name"
-                      placeholder="Bank Name"
-                      value={formData.bank_service_name}
-                      onChange={handleChange}
-                    />
-                    <input
-                      type="text"
-                      name="account_holder_name"
-                      placeholder="Account Holder Name"
-                      value={formData.account_holder_name}
-                      onChange={handleChange}
-                    />
-                  </>
-                )}
-
-                {!isCash && (
-                  <>
-                    <input
-                      type="text"
-                      name="account_number"
-                      placeholder="Account Number"
-                      value={formData.account_number}
-                      onChange={handleChange}
-                    />
-                    <input
-                      type="text"
-                      name="ifsc_code"
-                      placeholder="IFSC Code"
-                      value={formData.ifsc_code}
-                      onChange={handleChange}
-                    />
-                    <select name="account_type" value={formData.account_type} onChange={handleChange}>
-                      <option value="">Select Account Type</option>
-                      <option value="Current">Current</option>
-                      <option value="Saving">Saving</option>
-                      <option value="Pigme">Pigme</option>
-                      <option value="Fixed Deposit">Fixed Deposit</option>
-                      <option value="Mutual Fund">Mutual Fund</option>
-                      <option value="Digital Gold">Digital Gold</option>
-                      <option value="Trading">Trading</option>
-                    </select>
-                  </>
-                )}
-
+            {isCash ? (
+              <input
+                type="text"
+                name="bank_service_name"
+                className={styles.modalFormInput}
+                placeholder="Service Name"
+                value={formData.bank_service_name}
+                onChange={handleChange}
+              />
+            ) : (
+              <>
                 <input
-                  type="number"
-                  name="balance"
-                  placeholder="Initial Balance"
-                  value={formData.balance}
+                  type="text"
+                  name="bank_service_name"
+                  className={styles.modalFormInput}
+                  placeholder="Bank Name"
+                  value={formData.bank_service_name}
                   onChange={handleChange}
-                  step="0.01"
                 />
-
-                <select name="category" value={formData.category} onChange={handleChange}>
-                  <option value="Business">Business</option>
-                  <option value="Personal">Personal</option>
-                  <option value="Home">Home</option>
+                <input
+                  type="text"
+                  name="account_holder_name"
+                  className={styles.modalFormInput}
+                  placeholder="Account Holder Name"
+                  value={formData.account_holder_name}
+                  onChange={handleChange}
+                />
+                <input
+                  type="text"
+                  name="account_number"
+                  className={styles.modalFormInput}
+                  placeholder="Account Number"
+                  value={formData.account_number}
+                  onChange={handleChange}
+                />
+                <input
+                  type="text"
+                  name="ifsc_code"
+                  className={styles.modalFormInput}
+                  placeholder="IFSC Code"
+                  value={formData.ifsc_code}
+                  onChange={handleChange}
+                />
+                <select
+                  name="account_type"
+                  className={styles.modalFormInput}
+                  value={formData.account_type}
+                  onChange={handleChange}
+                >
+                  <option value="">Select Account Type</option>
+                  <option value="Current">Current</option>
+                  <option value="Saving">Saving</option>
+                  <option value="Pigme">Pigme</option>
+                  <option value="Fixed Deposit">Fixed Deposit</option>
+                  <option value="Mutual Fund">Mutual Fund</option>
+                  <option value="Digital Gold">Digital Gold</option>
+                  <option value="Trading">Trading</option>
                 </select>
+              </>
+            )}
 
-                <div style={{ display: "flex", gap: "10px" }}>
-                  <button onClick={handleFormSubmit}>{editingId ? "Update" : "Submit"}</button>
-                  <button onClick={handleCloseForm}>Close</button>
-                </div>
-              </div>
+            <input
+              type="number"
+              className={styles.modalFormInput}
+              name="balance"
+              placeholder="Initial Balance"
+              value={formData.balance}
+              onChange={handleChange}
+              step="0.01"
+            />
+
+            <select name="category" value={formData.category} onChange={handleChange} className={styles.modalFormInput}>
+              <option value="Business">Business</option>
+              <option value="Personal">Personal</option>
+              <option value="Home">Home</option>
+            </select>
+
+            <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+              {/* If creating a new account */}
+              {!editingId && (
+                <button
+                  onClick={handleFormSubmit}
+                  className={styles.buttonSubmit}
+                >
+                  Submit
+                </button>
+              )}
+
+              {/* If editing an existing account */}
+              {editingId && (
+                <>
+                  <button
+                    onClick={handleFormSubmit}
+                    className="service-edit-btn"
+                  >
+                    ✎ Update
+                  </button>
+                  <button
+                    onClick={() => {
+                      setAccountToDelete({
+                        id: editingId,
+                        name: formData.account_holder_name || formData.bank_service_name
+                      });
+                      setShowDeleteModal(true);
+                    }}
+                    className="service-delete-btn"
+                  >
+                    🗑 Delete
+                  </button>
+                </>
+              )}
             </div>
           </div>
-        )}
+        </Modal>
+        
+        <DeleteAccountModal
+          isOpen={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          accountId={accountToDelete?.id}
+          accountName={accountToDelete?.name}
+          onDelete={(id) => {
+            fetch(`http://127.0.0.1:8001/api/accounts/${id}/`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ is_deleted: true }),
+            })
+              .then((res) => {
+                if (!res.ok) throw new Error("Failed to move account to Recycle Bin");
+                setBankAccounts((prev) => prev.filter((acc) => acc.id !== id));
+                setShowForm(false);
+                setEditingId(null);
+                setShowDeleteModal(false);
+                setAccountToDelete(null);
+              })
+              .catch((err) => alert(err.message));
+          }}
+        />
 
         <div className="bank-account-list">
           <HeaderWithNewButton
@@ -265,20 +354,38 @@ export default function Account() {
             onClick={handleAddAccount}
           />
 
-          <StyledTable
-            headers={columns.map((col) => col.label)}
-            columns={columns.map((col) => col.key)}
-            data={tableData}
-            onEdit={handleEdit}
-            renderCell={(row, col) =>
-              col === "balance" ? (
-                <BalanceCell value={parseFloat(row.balance)} />
-              ) : (
-                row[col] ?? "-"
-              )
-            }
-            emptyText="No accounts found."
+          <SearchBar
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+            placeholder="Search accounts..."
           />
+
+          {tableData.length > 0 ? (
+            <StyledTable
+              headers={columns.map((col) => col.label)}
+              columns={columns.map((col) => col.key)}
+              data={tableData}
+              onEdit={handleEdit}
+              renderCell={(row, col) =>
+                col === "balance" ? <BalanceCell value={parseFloat(row.balance)} /> : row[col] ?? "-"
+              }
+            />
+          ) : (
+            <div style={{ padding: "1rem", textAlign: "center", color: "#888" }}>
+              No accounts found.
+            </div>
+          )}
+
+          {filteredAccounts.length > entriesPerPage && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          )}
         </div>
       </div>
     </div>

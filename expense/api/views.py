@@ -284,19 +284,51 @@ class ServiceSupportingDocumentViewSet(viewsets.ModelViewSet):
 # ---------------------- ACCOUNTS RELATED VIEWS ---------------------- #
 
 class AccountListView(APIView):
-    permission_classes = [AllowAny]  # You can replace this with specific permissions later
-
     def get(self, request, *args, **kwargs):
-        # Fetch all active accounts
-        accounts = Account.active_objects.all()
+        show_deleted = request.query_params.get('show_deleted', 'false').lower() == 'true'
+        if show_deleted:
+            accounts = Account.objects.filter(is_deleted=True)
+        else:
+            accounts = Account.objects.filter(is_deleted=False)
         serializer = AccountSerializer(accounts, many=True)
         return Response(serializer.data)
     
 class AccountViewSet(viewsets.ModelViewSet):
-    queryset = Account.active_objects.all()
     serializer_class = AccountSerializer
-    permission_classes = [AllowAny]  # You can change this later for authentication
+    permission_classes = [AllowAny]
 
+    def get_queryset(self):
+        show_deleted = self.request.query_params.get('show_deleted', 'false').lower() == 'true'
+        if show_deleted:
+            return Account.objects.filter(is_deleted=True)
+        return Account.objects.filter(is_deleted=False)
+
+    def destroy(self, request, *args, **kwargs):
+        account = self.get_object()
+        if account.is_deleted:
+            account.delete()  # hard delete
+            return Response({"success": True})
+        return Response({"error": "Cannot delete active account"}, status=400)
+
+@api_view(['POST'])
+def account_restore(request, account_id):
+    try:
+        account = Account.objects.get(id=account_id, is_deleted=True)
+        account.is_deleted = False
+        account.save()
+        return Response({"success": True})
+    except Account.DoesNotExist:
+        return Response({"error": "Account not found"}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['DELETE'])
+def account_hard_delete(request, account_id):
+    try:
+        account = Account.objects.get(id=account_id, is_deleted=True)
+        account.delete()  # Permanently remove
+        return Response({"success": True})
+    except Account.DoesNotExist:
+        return Response({"error": "Account not found"}, status=status.HTTP_404_NOT_FOUND)
+    
 # ---------------------- PDF RELATED VIEWS ---------------------- #
 
 @api_view(['POST'])

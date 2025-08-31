@@ -1,0 +1,76 @@
+/* Container grid */
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+/* Each category card */
+.category-card {
+  background-color: #2a2a2a;
+  border-radius: 8px;
+  padding: 0.6rem 0.9rem;
+  margin-bottom: 0.6rem;
+  transition: background 0.2s;
+  border: 1px solid #2f2f2f;
+  user-select: none;
+  cursor: context-menu;
+}
+
+/* Hover effect */
+.category-card:hover {
+  transform: translateY(-3px);
+  background-color: #1e1e1e;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
+}
+
+/* Selected category highlight */
+.category-card.selected {
+  background-color: #2a2a2a; /* semi-transparent green */
+  color: #ffffff;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+}
+
+/* Total balance card */
+.total-balance-block {
+  background-color: #2a2a2a;
+  border-radius: 8px;
+  padding: 0.6rem 0.9rem;
+  margin-bottom: 0.6rem;
+  transition: background 0.2s;
+  border: 1px solid #2f2f2f;
+  user-select: none;
+  cursor: context-menu;
+}
+
+/* Category name */
+.category-card h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+/* Balance text */
+.cat-card-special-block {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0;
+  color: inherit;
+  transition: color 0.3s ease;
+}
+
+/* Positive balance */
+.balance-positive {
+  color: #10b981; /* green */
+}
+
+/* Zero balance */
+.balance-zero {
+  color: #f59e0b; /* orange */
+}
+
+/* Negative balance */
+.balance-negative {
+  color: #ef4444; /* red */
+}

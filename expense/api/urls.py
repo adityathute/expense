@@ -25,6 +25,8 @@ urlpatterns = [
 
     # Accounts
     path('api/accounts/', views.AccountListView.as_view(), name='account-list'),
+    path('api/accounts/<int:account_id>/restore/', views.account_restore, name='account-restore'),
+    path('api/accounts/<int:account_id>/hard-delete/', views.account_hard_delete, name='account-hard-delete'),
 
     # PDF Generation
     path('api/generate-pdf/', views.generate_pdf, name='generate_pdf'),

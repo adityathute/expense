@@ -19,9 +19,10 @@ export default function RecycleBinPage() {
   useEffect(() => {
     Promise.all([
       fetch("http://127.0.0.1:8001/api/services/?show_deleted=true").then(res => res.json()),
-      fetch("http://127.0.0.1:8001/api/categories/?show_deleted=true").then(res => res.json())
+      fetch("http://127.0.0.1:8001/api/categories/?show_deleted=true").then(res => res.json()),
+      fetch("http://127.0.0.1:8001/api/accounts/?show_deleted=true").then(res => res.json()), // ✅ Add accounts
     ])
-      .then(([servicesData, categoriesData]) => {
+      .then(([servicesData, categoriesData, accountsData]) => {
         const deletedServices = servicesData.filter(s => s.is_deleted);
         const servicesWithType = deletedServices.map(s => ({
           id: s.id,
@@ -36,15 +37,24 @@ export default function RecycleBinPage() {
           type: "Category"
         }));
 
+        const deletedAccounts = accountsData.filter(a => a.is_deleted);
+        const accountsWithType = deletedAccounts.map(a => ({
+          id: a.id,
+          name: a.account_holder_name || a.bank_service_name || `Account ${a.id}`,
+          type: "Account"
+        }));
+
         const combinedItems = [
           ...servicesWithType.map(s => ({ ...s, reactKey: `Service-${s.id}` })),
           ...categoriesWithType.map(c => ({ ...c, reactKey: `Category-${c.id}` })),
+          ...accountsWithType.map(a => ({ ...a, reactKey: `Account-${a.id}` })), // ✅ Add accounts
         ];
 
         setDeletedItems(combinedItems);
       })
       .catch(err => console.error(err));
   }, []);
+
 
   // Filter deletedItems based on searchTerm
   const filteredItems = deletedItems.filter(item =>
@@ -57,9 +67,10 @@ export default function RecycleBinPage() {
 
   const handleRestore = async (id, type) => {
     try {
-      const url = type === "Service"
-        ? `http://127.0.0.1:8001/api/services/${id}/restore/`
-        : `http://127.0.0.1:8001/api/categories/${id}/restore/`;
+      let url;
+      if (type === "Service") url = `http://127.0.0.1:8001/api/services/${id}/restore/`;
+      else if (type === "Category") url = `http://127.0.0.1:8001/api/categories/${id}/restore/`;
+      else if (type === "Account") url = `http://127.0.0.1:8001/api/accounts/${id}/restore/`; // ✅ Accounts restore
 
       const response = await fetch(url, { method: "POST" });
       if (response.ok) {
@@ -72,9 +83,10 @@ export default function RecycleBinPage() {
 
   const handlePermanentDelete = async (id, type) => {
     try {
-      const url = type === "Service"
-        ? `http://127.0.0.1:8001/api/services/${id}/`
-        : `http://127.0.0.1:8001/api/categories/${id}/`;
+      let url;
+      if (type === "Service") url = `http://127.0.0.1:8001/api/services/${id}/`;
+      else if (type === "Category") url = `http://127.0.0.1:8001/api/categories/${id}/`;
+      if (type === "Account") url = `http://127.0.0.1:8001/api/accounts/${id}/hard-delete/`;
 
       const response = await fetch(url, { method: "DELETE" });
       if (response.ok) {

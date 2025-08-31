@@ -329,7 +329,7 @@ export default function Categories() {
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
         onDelete={handleDeleteCategory}
-        categoryId={categoryToDelete} // ✅ pass id instead of full category object
+        categoryId={categoryToDelete}
         categoryName={categories.find((cat) => cat.id === categoryToDelete)?.name}
       />
 
