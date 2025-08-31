@@ -13,7 +13,8 @@ class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
-        fields = ['id', 'name', 'description', 'core_category', 'parent', 'subcategories']
+        fields = ['id', 'name', 'description', 'core_category', 'parent', 'subcategories', 'category_type']
+        read_only_fields = ['subcategories']
 
 # ---------------------- USER RELATED SERIALIZERS ---------------------- #
 

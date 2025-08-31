@@ -36,18 +36,21 @@ export default function Categories() {
   useEffect(() => {
     fetchCategories();
   }, [categoryType]);
-  console.log("Fetching categories for type:", categoryType);
 
   async function fetchCategories() {
-    setLoading(true);
     try {
       const response = await fetch(`http://127.0.0.1:8001/api/categories/?type=${categoryType}`);
-      console.log("Response status:", response.status);
 
       if (!response.ok) throw new Error("Failed to fetch categories");
       const data = await response.json();
-      setCategories(data.categories);
-      setCoreCategories(data.core_categories);
+
+      if (Array.isArray(data)) {
+        setCategories(data); // API returns an array
+        setCategories(data.categories);
+      } else {
+        setCategories(data.categories || []);
+        setCoreCategories(data.core_categories || []);
+      }
     } catch (error) {
       console.error("Error fetching categories:", error);
     } finally {
@@ -126,16 +129,25 @@ export default function Categories() {
     }
   }
 
-  async function handleDeleteCategory() {
+  async function handleDeleteCategory(id) {
     try {
-      await fetch(`http://127.0.0.1:8001/api/categories/${categoryToDelete}/`, { method: "DELETE" });
+      if (!id) {
+        console.error("No category ID to delete");
+        return;
+      }
+
+      const response = await fetch(`http://127.0.0.1:8001/api/categories/${id}/`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) throw new Error("Failed to delete category");
+
       fetchCategories();
       setShowDeleteModal(false);
       setCategoryToDelete(null);
-      setMessage("Category deleted successfully!");
+
     } catch (error) {
       console.error("Error deleting category:", error);
-      setMessage("Failed to delete category.");
     }
   }
 
@@ -211,7 +223,7 @@ export default function Categories() {
             value={newCategory.description}
             onChange={(e) => setNewCategory({ ...newCategory, description: e.target.value })}
             className={styles.modalFormTextarea}
-              style={{
+            style={{
               marginBottom: "0.9rem",
             }}
           />
@@ -248,7 +260,7 @@ export default function Categories() {
                     hierarchy: selectedCategoryId ? [selectedCategoryId] : [],
                   });
                 }}
-                className="modal-select"
+                className={styles.modalFormInput}
               >
                 <option value="">Select Main Category</option>
                 {categories
@@ -281,7 +293,7 @@ export default function Categories() {
                     hierarchy: newHierarchy,
                   });
                 }}
-                className="modal-select"
+                className={styles.modalFormInput}
               >
                 <option value="">Select Subcategory</option>
                 {subcategories.map((sub) => (
@@ -308,8 +320,11 @@ export default function Categories() {
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
         onDelete={handleDeleteCategory}
-        category={categories.find((cat) => cat.id === categoryToDelete)}
+        categoryId={categoryToDelete} // ✅ pass id instead of full category object
+        categoryName={categories.find((cat) => cat.id === categoryToDelete)?.name}
       />
+
+
       {filteredCategories.length > 0 ? (
         <div className="category-table-container">
           <StyledTable
@@ -323,8 +338,9 @@ export default function Categories() {
             onEdit={handleEditCategory}
             onDelete={(cat) => {
               setShowDeleteModal(true);
-              setCategoryToDelete(cat.id);
+              setCategoryToDelete(cat);
             }}
+
           />
         </div>
       ) : (

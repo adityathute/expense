@@ -22,25 +22,25 @@ pdfmetrics.registerFont(TTFont('Gotham', os.path.join('static', 'fonts', 'Gotham
 
 @api_view(['GET', 'POST'])
 def category_list(request):
-    category_type = request.GET.get('type', 'Home')
+    category_type = request.GET.get('type')
 
     if request.method == "POST":
-        data = request.data.copy()
-        data['category_type'] = data.get("category_type", category_type)
-
-        serializer = CategorySerializer(data=data)
+        serializer = CategorySerializer(data=request.data)
         if serializer.is_valid():
             category_instance = serializer.save()
             return Response(CategorySerializer(category_instance).data, status=201)
         return Response(serializer.errors, status=400)
 
     core_category_names = [c[0] for c in CORE_CATEGORIES]
-    categories = Category.objects.filter(category_type=category_type).exclude(name__in=core_category_names)
+    categories = Category.objects.filter(is_deleted=False).exclude(name__in=core_category_names)
+
+    if category_type:  # ✅ Only filter if provided
+        categories = categories.filter(category_type=category_type)
+
     return Response({
         "categories": CategorySerializer(categories, many=True).data,
         "core_categories": core_category_names
     })
-
 
 @api_view(['GET', 'PUT', 'DELETE'])
 def category_detail(request, category_id):
@@ -59,7 +59,7 @@ def category_detail(request, category_id):
     elif request.method == "DELETE":
         category.is_deleted = True
         category.save()
-        return Response({"message": "Category deleted successfully"}, status=204)
+        return Response({"message": "Category deleted successfully"}, status=200)
 
     return Response(CategorySerializer(category).data)
 
