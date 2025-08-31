@@ -16,3 +16,16 @@ export function DeleteIcon({ className = "icon" }) {
     </svg>
   );
 }
+
+export function RestoreIcon({ className = "icon" }) {
+  return (
+    <svg
+      className={className}
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+    >
+      <path d="M13 3a9 9 0 00-9 9H2l3.89 3.89.07.14L10 12H7a7 7 0 117 7 6.978 6.978 0 01-4.95-2.05l-1.42 1.42A8.978 8.978 0 0013 21a9 9 0 000-18z" />
+    </svg>
+  );
+}

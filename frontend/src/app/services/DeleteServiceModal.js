@@ -1,4 +1,3 @@
-// services/DeleteServiceModal.js
 "use client";
 
 import React from "react";
@@ -9,13 +8,20 @@ export default function DeleteServiceModal({
   onClose,
   onDelete,
   service,
+  type = "soft", // "soft" = move to recycle bin, "hard" = permanently delete
 }) {
+  // Dynamic text
+  const message =
+    type === "soft"
+      ? `Are you sure you want to move "${service?.name}" to the Recycle Bin?`
+      : `Are you sure you want to permanently delete "${service?.name}"? This action cannot be undone.`;
+
+  const buttonText = type === "soft" ? "Move to Recycle Bin" : "🗑 Yes, Permanently Delete";
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Delete Service">
       <div style={{ padding: "1rem" }}>
-        <p style={{ marginBottom: "2rem", color: "#f87171" }}>
-          Are you sure you want to delete <strong>{service?.name}</strong>?
-        </p>
+        <p style={{ marginBottom: "2rem", color: "#f87171" }}>{message}</p>
         <div style={{ display: "flex", justifyContent: "flex-end", gap: "1rem" }}>
           <button className="service-cancel-btn-delete" onClick={onClose}>
             Cancel
@@ -26,7 +32,7 @@ export default function DeleteServiceModal({
               onDelete(service?.id);
             }}
           >
-            🗑 Yes, Delete
+            {buttonText}
           </button>
         </div>
       </div>

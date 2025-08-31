@@ -13,7 +13,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
-        fields = ['id', 'name', 'description', 'core_category', 'parent', 'subcategories', 'category_type']
+        fields = ['id', 'name', 'description', 'core_category', 'parent', 'subcategories', 'category_type', 'is_deleted']
         read_only_fields = ['subcategories']
 
 # ---------------------- USER RELATED SERIALIZERS ---------------------- #
@@ -162,7 +162,10 @@ class ServiceSerializer(serializers.ModelSerializer):
             'pages_required', 'required_time_hours',
             'passport_required',
             'photo_count',
-            'is_active', 'links', 'required_documents',
+            'is_active', 
+            'is_deleted',
+            'links', 
+            'required_documents',
             'servicedocumentrequirement_set',
             'requirements',
             'servicesupportingdocument_set',

@@ -1,0 +1,82 @@
+.backup-page {
+  color: #e0e0e0;
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+}
+
+.backup-page h1 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.backup-page .sub-text {
+  font-size: 1rem;
+  color: #b0b0b0;
+  margin-bottom: 2rem;
+}
+
+.backup-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.backup-btn-container {
+  display: flex;
+  justify-content: center;
+}
+
+.backup-card {
+  background-color: #1e1e1e;
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.backup-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.7);
+}
+
+.backup-card h2 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: #fff;
+}
+
+.backup-card p {
+  font-size: 0.95rem;
+  color: #b0b0b0;
+  margin-bottom: 1.5rem;
+}
+
+.backup-btn {
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  width: 100%;
+  max-width: 300px;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.backup-btn.backup {
+  background-color: #63e6be;
+  color: #000;
+}
+
+.backup-btn.restore {
+  background-color: #ffa94d;
+  color: #000;
+}
+
+.backup-btn:hover {
+  transform: translateY(-2px);
+  opacity: 0.9;
+}

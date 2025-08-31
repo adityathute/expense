@@ -6,6 +6,7 @@ import StyledTable from "../components/StyledTable"; // adjust the path if neede
 import Modal from "../components/Modal";
 import DeleteCategoryModal from "./DeleteCategoryModal";
 import styles from "../styles/components/modalForm.module.css";
+import Pagination from "../components/Pagination";
 
 export default function Categories() {
   const [showCategoryModal, setShowCategoryModal] = useState(false);
@@ -14,6 +15,8 @@ export default function Categories() {
   const [coreCategories, setCoreCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const entriesPerPage = 10;
 
   const [newCategory, setNewCategory] = useState({
     name: "",
@@ -32,7 +35,9 @@ export default function Categories() {
   const filteredCategories = categories.filter((cat) =>
     cat.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
+  const totalPages = Math.ceil(filteredCategories.length / entriesPerPage);
+  const startIndex = (currentPage - 1) * entriesPerPage;
+  const paginatedCategories = filteredCategories.slice(startIndex, startIndex + entriesPerPage);
   useEffect(() => {
     fetchCategories();
   }, [categoryType]);
@@ -197,9 +202,13 @@ export default function Categories() {
           + Create Category
         </button>
       </div>
+
       <SearchBar
         value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
+        onChange={(e) => {
+          setSearchTerm(e.target.value);
+          setCurrentPage(1); // reset page when searching
+        }}
         placeholder="Search categories..."
       />
 
@@ -324,13 +333,12 @@ export default function Categories() {
         categoryName={categories.find((cat) => cat.id === categoryToDelete)?.name}
       />
 
-
-      {filteredCategories.length > 0 ? (
+      {paginatedCategories.length > 0 ? (
         <div className="category-table-container">
           <StyledTable
             headers={["Name", "Description", "Core Category", "Parent"]}
             columns={["name", "description", "core_category", "parentPath"]}
-            data={filteredCategories.map(cat => ({
+            data={paginatedCategories.map(cat => ({
               ...cat,
               parentPath: getParentPath(categories, cat).replace("Category: ", ""),
               description: cat.description || "-"
@@ -340,15 +348,20 @@ export default function Categories() {
               setShowDeleteModal(true);
               setCategoryToDelete(cat);
             }}
-
           />
+          {filteredCategories.length > entriesPerPage && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          )}
         </div>
       ) : (
         <div style={{ padding: "1rem", textAlign: "center", color: "#888" }}>
           No categories found.
         </div>
       )}
-
 
     </div>
   );

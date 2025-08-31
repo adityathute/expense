@@ -16,6 +16,7 @@ urlpatterns = [
     # Categories (unchanged, assuming custom views)
     path('api/categories/', views.category_list, name='category_list'),
     path('api/categories/<int:category_id>/', views.category_detail, name='category_detail'),
+    path('api/categories/<int:category_id>/restore/', views.category_restore, name='category-restore'),
 
     # Users
     path('api/users/', views.UserListCreateView.as_view(), name='user-list-create'),

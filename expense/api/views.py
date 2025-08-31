@@ -23,6 +23,7 @@ pdfmetrics.registerFont(TTFont('Gotham', os.path.join('static', 'fonts', 'Gotham
 @api_view(['GET', 'POST'])
 def category_list(request):
     category_type = request.GET.get('type')
+    show_deleted = request.GET.get('show_deleted') == 'true'  # ✅
 
     if request.method == "POST":
         serializer = CategorySerializer(data=request.data)
@@ -32,9 +33,13 @@ def category_list(request):
         return Response(serializer.errors, status=400)
 
     core_category_names = [c[0] for c in CORE_CATEGORIES]
-    categories = Category.objects.filter(is_deleted=False).exclude(name__in=core_category_names)
+    
+    if show_deleted:
+        categories = Category.objects.exclude(name__in=core_category_names)
+    else:
+        categories = Category.objects.filter(is_deleted=False).exclude(name__in=core_category_names)
 
-    if category_type:  # ✅ Only filter if provided
+    if category_type:  # Only filter if provided
         categories = categories.filter(category_type=category_type)
 
     return Response({
@@ -42,14 +47,27 @@ def category_list(request):
         "core_categories": core_category_names
     })
 
-@api_view(['GET', 'PUT', 'DELETE'])
-def category_detail(request, category_id):
+@api_view(['POST'])
+def category_restore(request, category_id):
     try:
-        category = Category.objects.get(id=category_id, is_deleted=False)
+        category = Category.objects.get(id=category_id)
+        category.is_deleted = False
+        category.save(update_fields=['is_deleted'])
+        return Response({"message": "Category restored successfully"}, status=200)
     except Category.DoesNotExist:
         return Response({"error": "Category not found"}, status=404)
 
-    if request.method == "PUT":
+@api_view(['GET', 'PUT', 'DELETE'])
+def category_detail(request, category_id):
+    try:
+        category = Category.objects.get(id=category_id)
+    except Category.DoesNotExist:
+        return Response({"error": "Category not found"}, status=404)
+
+    if request.method == "GET":
+        return Response(CategorySerializer(category).data)
+
+    elif request.method == "PUT":
         serializer = CategorySerializer(category, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
@@ -57,11 +75,15 @@ def category_detail(request, category_id):
         return Response(serializer.errors, status=400)
 
     elif request.method == "DELETE":
-        category.is_deleted = True
-        category.save()
-        return Response({"message": "Category deleted successfully"}, status=200)
-
-    return Response(CategorySerializer(category).data)
+        if not category.is_deleted:
+            # Soft delete
+            category.is_deleted = True
+            category.save(update_fields=['is_deleted'])
+            return Response({"message": "Category marked as deleted"}, status=200)
+        else:
+            # Hard delete
+            category.delete()
+            return Response({"message": "Category permanently deleted"}, status=200)
 
 # ---------------------- USER RELATED VIEWS ---------------------- #
 
@@ -166,8 +188,19 @@ class ServiceDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class ServiceViewSet(viewsets.ModelViewSet):
-    queryset = Service.objects.all()
     serializer_class = ServiceSerializer
+
+    def get_queryset(self):
+        show_deleted = self.request.query_params.get('show_deleted', 'false').lower() == 'true'
+
+        # For delete or restore actions, include all services
+        if self.action in ['destroy', 'restore']:
+            return Service.objects.all()
+
+        if show_deleted:
+            return Service.objects.filter(is_deleted=True).order_by('-id')
+
+        return Service.objects.filter(is_deleted=False).order_by('-id')
 
     def perform_create(self, serializer):
         service = serializer.save()
@@ -189,9 +222,23 @@ class ServiceViewSet(viewsets.ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        self.perform_destroy(instance)
-        return Response({"message": "Service deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+        # If it's already deleted, delete permanently
+        if instance.is_deleted:
+            instance.delete()
+            return Response({"message": "Service permanently deleted"}, status=status.HTTP_200_OK)
 
+        # Otherwise soft delete
+        instance.is_deleted = True
+        instance.save(update_fields=['is_deleted'])
+        return Response({"message": "Service marked as deleted"}, status=status.HTTP_200_OK)
+    
+    @action(detail=True, methods=['post'])
+    def restore(self, request, pk=None):
+        instance = self.get_object()
+        instance.is_deleted = False
+        instance.save(update_fields=['is_deleted'])
+        return Response({"message": "Service restored successfully"}, status=status.HTTP_200_OK)
+        
 class SupportingDocumentViewSet(viewsets.ModelViewSet):
     serializer_class = SupportingDocumentSerializer
     queryset = SupportingDocument.objects.all()

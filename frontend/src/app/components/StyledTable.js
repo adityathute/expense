@@ -1,5 +1,3 @@
-// components/StyledTable.js
-
 "use client";
 
 import ActionButtons from "../components/ActionButtons";
@@ -13,6 +11,7 @@ export default function StyledTable({
   onEdit,
   onDelete,
   renderCell,
+  getRowKey, // add this
 }) {
   return (
     <table className="table">
@@ -27,9 +26,13 @@ export default function StyledTable({
       <tbody>
         {data.length ? (
           data.map((row, rowIndex) => (
-            <tr key={row.id || rowIndex}>
+            <tr key={getRowKey ? getRowKey(row) : row.id || rowIndex}>
               {columns.map((col, i) => (
-                <td key={i} data-label={headers[i]} className={col === "name" ? "service-name-cell" : ""}>
+                <td
+                  key={i}
+                  data-label={headers[i]}
+                  className={col === "name" ? "service-name-cell" : ""}
+                >
                   {renderCell ? renderCell(row, col) : row[col] ?? "-"}
                 </td>
               ))}
@@ -39,7 +42,6 @@ export default function StyledTable({
                     <ActionButtons row={row} onEdit={onEdit} onDelete={onDelete} />
                   </div>
                 </td>
-
               )}
             </tr>
           ))
