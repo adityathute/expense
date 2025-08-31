@@ -3,16 +3,18 @@ from .models import Category, Service, ServiceLink, User, UserID, Account, Docum
 
 # ---------------------- CATEGORY RELATED SERIALIZER ---------------------- #
 
+class SubCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ['id', 'name']
+
 class CategorySerializer(serializers.ModelSerializer):
-    subcategories = serializers.SerializerMethodField()
+    subcategories = SubCategorySerializer(many=True, read_only=True)
 
     class Meta:
         model = Category
         fields = ['id', 'name', 'description', 'core_category', 'parent', 'subcategories']
 
-    def get_subcategories(self, obj):
-        return CategorySerializer(obj.subcategories.all(), many=True).data
-    
 # ---------------------- USER RELATED SERIALIZERS ---------------------- #
 
 class UserIDSerializer(serializers.ModelSerializer):

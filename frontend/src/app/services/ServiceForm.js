@@ -33,7 +33,10 @@ export default function ServiceForm({
     name: "",
     categories: "",
     additional_details: "",
+    requirement_type: "original",
+    is_mandatory: true,
   });
+
   const [docSubmitting, setDocSubmitting] = useState(false);
   const [supportingDocs, setSupportingDocs] = useState([]);
 
@@ -112,41 +115,43 @@ export default function ServiceForm({
     try {
       setDocSubmitting(true);
 
+      // Save the document to the API
       const res = await fetch("http://127.0.0.1:8001/api/documents/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: newDocData.name.trim(),
-          categories: newDocData.categories
-            .split(",")
-            .map((c) => c.trim())
-            .filter(Boolean),
+          categories: newDocData.categories.split(",").map((c) => c.trim()).filter(Boolean),
           additional_details: newDocData.additional_details.trim(),
         }),
       });
 
       const result = await res.json();
+      if (!res.ok || !result.id) throw new Error(result.error || JSON.stringify(result));
 
-      if (!res.ok || !result.id) {
-        console.error("Full error response:", result);
-        throw new Error(result.error || JSON.stringify(result));
-      }
+      // Add new document to dropdown list
+      setDocuments((prevDocs) => [...prevDocs, result]);
 
+      // Add to required documents with requirement_type and is_mandatory
       setNewService((prev) => ({
         ...prev,
         required_documents: [
           ...(prev.required_documents || []),
           {
-            document: result.id, // ✅ use the actual ID from the API response
-            requirement_type: "original",
-            is_mandatory: true,
+            document: result.id,
+            requirement_type: newDocData.requirement_type,
           },
         ],
       }));
 
-      setNewDocData({ name: "", categories: "", additional_details: "" });
+      // Reset form
+      setNewDocData({
+        name: "",
+        categories: "",
+        additional_details: "",
+        requirement_type: "original",
+      });
       setShowNewDocForm(false);
-      setNewDocSelectValue(result.id.toString());
     } catch (err) {
       console.error("Error creating document:", err);
       alert("Error creating document: " + err.message);

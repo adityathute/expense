@@ -1,10 +1,10 @@
 // categories/page.js
 "use client";
 import { useEffect, useState, useRef } from "react";
-// import "./categories.css";
-// import "../globals.css";
 import SearchBar from "../components/SearchBar"; // ✅ Add this line
 import StyledTable from "../components/StyledTable"; // adjust the path if needed
+import Modal from "../components/Modal";
+import DeleteCategoryModal from "./DeleteCategoryModal";
 
 export default function Categories() {
   const [showCategoryModal, setShowCategoryModal] = useState(false);
@@ -35,11 +35,14 @@ export default function Categories() {
   useEffect(() => {
     fetchCategories();
   }, [categoryType]);
+  console.log("Fetching categories for type:", categoryType);
 
   async function fetchCategories() {
     setLoading(true);
     try {
       const response = await fetch(`http://127.0.0.1:8001/api/categories/?type=${categoryType}`);
+      console.log("Response status:", response.status);
+
       if (!response.ok) throw new Error("Failed to fetch categories");
       const data = await response.json();
       setCategories(data.categories);
@@ -188,144 +191,123 @@ export default function Categories() {
       />
 
       {/* Modal for Category Form */}
-      {showCategoryModal && (
-        <div className="modal">
-          <div className="modal-overlay">
-            <div className="modal-content">
+      <Modal
+        isOpen={showCategoryModal}
+        onClose={closeModal}
+        title={editingCategory ? "Edit Category" : "Add Category"}
+      >
+        <div className="space-y-4">
+          <input
+            type="text"
+            placeholder="Category Name"
+            value={newCategory.name}
+            onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
+            className="modal-input"
+          />
+          <input
+            type="text"
+            placeholder="Description"
+            value={newCategory.description}
+            onChange={(e) => setNewCategory({ ...newCategory, description: e.target.value })}
+            className="modal-input"
+          />
 
-              <div className="model-header-with-button">
-                <div className="model-header">
-                  <h2>{editingCategory ? "Edit Category" : "Add Category"}</h2>
-                </div>
-                <span className="modal-close-button" onClick={closeModal}>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <line x1="18" y1="6" x2="6" y2="18" />
-                    <line x1="6" y1="6" x2="18" y2="18" />
-                  </svg>
-                </span>
-              </div>
+          <select
+            value={newCategory.core_category || ""}
+            onChange={(e) => {
+              setNewCategory({
+                ...newCategory,
+                core_category: e.target.value,
+                parent: null,
+                hierarchy: [],
+              });
+            }}
+            className="modal-select"
+          >
+            <option value="">Select Core Category</option>
+            {coreCategories.map((core) => (
+              <option key={core} value={core}>
+                {core}
+              </option>
+            ))}
+          </select>
 
-              <input
-                type="text"
-                placeholder="Category Name"
-                value={newCategory.name}
-                onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
-              />
-              <input
-                type="text"
-                placeholder="Description"
-                value={newCategory.description}
-                onChange={(e) => setNewCategory({ ...newCategory, description: e.target.value })}
-              />
-
+          {newCategory.core_category &&
+            categories.some((cat) => cat.core_category === newCategory.core_category && !cat.parent) && (
               <select
-                value={newCategory.core_category || ""}
+                value={newCategory.hierarchy[0] || ""}
                 onChange={(e) => {
+                  const selectedCategoryId = e.target.value;
                   setNewCategory({
                     ...newCategory,
-                    core_category: e.target.value,
-                    parent: null,
-                    hierarchy: [],
+                    parent: selectedCategoryId || null,
+                    hierarchy: selectedCategoryId ? [selectedCategoryId] : [],
                   });
                 }}
+                className="modal-select"
               >
-                <option value="">Select Core Category</option>
-                {coreCategories.map((core) => (
-                  <option key={core} value={core}>
-                    {core}
+                <option value="">Select Main Category</option>
+                {categories
+                  .filter((cat) => cat.core_category === newCategory.core_category && !cat.parent)
+                  .map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+              </select>
+            )}
+
+          {newCategory.hierarchy.map((parentId, index) => {
+            const subcategories = categories.filter((cat) => cat.parent == parentId);
+            if (subcategories.length === 0) return null;
+
+            return (
+              <select
+                key={index}
+                value={newCategory.hierarchy[index + 1] || ""}
+                onChange={(e) => {
+                  const selectedSubcategoryId = e.target.value;
+                  let newHierarchy = [...newCategory.hierarchy.slice(0, index + 1)];
+
+                  if (selectedSubcategoryId) newHierarchy.push(selectedSubcategoryId);
+
+                  setNewCategory({
+                    ...newCategory,
+                    parent: selectedSubcategoryId || null,
+                    hierarchy: newHierarchy,
+                  });
+                }}
+                className="modal-select"
+              >
+                <option value="">Select Subcategory</option>
+                {subcategories.map((sub) => (
+                  <option key={sub.id} value={sub.id}>
+                    {sub.name}
                   </option>
                 ))}
               </select>
+            );
+          })}
 
-              {newCategory.core_category &&
-                categories.some((cat) => cat.core_category === newCategory.core_category && !cat.parent) && (
-                  <select
-                    value={newCategory.hierarchy[0] || ""}
-                    onChange={(e) => {
-                      const selectedCategoryId = e.target.value;
-                      setNewCategory({
-                        ...newCategory,
-                        parent: selectedCategoryId || null,
-                        hierarchy: selectedCategoryId ? [selectedCategoryId] : [],
-                      });
-                    }}
-                  >
-                    <option value="">Select Main Category</option>
-                    {categories
-                      .filter((cat) => cat.core_category === newCategory.core_category && !cat.parent)
-                      .map((cat) => (
-                        <option key={cat.id} value={cat.id}>
-                          {cat.name}
-                        </option>
-                      ))}
-                  </select>
-                )}
-
-              {newCategory.hierarchy.map((parentId, index) => {
-                const subcategories = categories.filter((cat) => cat.parent == parentId);
-                if (subcategories.length === 0) return null;
-
-                return (
-                  <select
-                    key={index}
-                    value={newCategory.hierarchy[index + 1] || ""}
-                    onChange={(e) => {
-                      const selectedSubcategoryId = e.target.value;
-                      let newHierarchy = [...newCategory.hierarchy.slice(0, index + 1)];
-
-                      if (selectedSubcategoryId) newHierarchy.push(selectedSubcategoryId);
-
-                      setNewCategory({
-                        ...newCategory,
-                        parent: selectedSubcategoryId || null,
-                        hierarchy: newHierarchy,
-                      });
-                    }}
-                  >
-                    <option value="">Select Subcategory</option>
-                    {subcategories.map((sub) => (
-                      <option key={sub.id} value={sub.id}>
-                        {sub.name}
-                      </option>
-                    ))}
-                  </select>
-                );
-              })}
-              <div className="modal-actions">
-                <button className="add-btn" onClick={editingCategory ? handleUpdateCategory : handleAddCategory}>
-                  {editingCategory ? "Update Category" : "Add Category"}
-                </button>
-                <button className="cancel-btn" onClick={closeModal}>Cancel</button>
-              </div>
-            </div>
+          <div className="modal-actions">
+            <button
+              className="modal-save-btn"
+              onClick={editingCategory ? handleUpdateCategory : handleAddCategory}
+            >
+              {editingCategory ? "Update Category" : "Add Category"}
+            </button>
+            <button className="modal-cancel-btn" onClick={closeModal}>Cancel</button>
           </div>
         </div>
-      )}
-      {message && <div className="message">{message}</div>}
-      {showDeleteModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h3>Confirm Delete</h3>
-            <p>Are you sure you want to delete this category?</p>
-            <div className="modal-actions">
-              <button className="delete-btn" onClick={handleDeleteCategory}>Yes, Delete</button>
-              <button className="cancel-btn" onClick={() => setShowDeleteModal(false)}>Cancel</button>
-            </div>
-          </div>
-        </div>
-      )}
+      </Modal>
 
-      {loading ? <p>Loading categories...</p> : (
+      <DeleteCategoryModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onDelete={handleDeleteCategory}
+        category={categories.find((cat) => cat.id === categoryToDelete)}
+      />
+      {filteredCategories.length > 0 ? (
         <div className="category-table-container">
           <StyledTable
             headers={["Name", "Description", "Core Category", "Parent"]}
@@ -335,7 +317,6 @@ export default function Categories() {
               parentPath: getParentPath(categories, cat).replace("Category: ", ""),
               description: cat.description || "-"
             }))}
-            emptyText="No categories found."
             onEdit={handleEditCategory}
             onDelete={(cat) => {
               setShowDeleteModal(true);
@@ -343,7 +324,13 @@ export default function Categories() {
             }}
           />
         </div>
+      ) : (
+        <div style={{ padding: "1rem", textAlign: "center", color: "#888" }}>
+          No categories found.
+        </div>
       )}
+
+
     </div>
   );
 }

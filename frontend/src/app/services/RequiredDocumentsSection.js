@@ -31,7 +31,6 @@ export default function RequiredDocumentsSection({
             const mergedRequiredDocs = (editingService.requirements || []).map((req) => ({
                 document: req.document.id,
                 requirement_type: req.requirement_type?.toLowerCase() || "original",
-                is_mandatory: req.is_mandatory ?? true,
             }));
 
             setNewService((prev) => ({
@@ -77,7 +76,6 @@ export default function RequiredDocumentsSection({
                                     setNewService((prev) => ({ ...prev, required_documents: updatedDocs }));
                                 }}
                                 className={styles.modalFormSelectDocs}
-                                style={{ marginLeft: "auto" }}
                             >
                                 <option value="" disabled>Requirement Type</option>
                                 <option value="original">Original</option>
@@ -183,9 +181,25 @@ export default function RequiredDocumentsSection({
                         }
                         className={styles.modalFormTextarea}
                     />
+
+                    {/* Requirement Type Dropdown */}
+                    <select
+                        value={newDocData.requirement_type}
+                        onChange={(e) =>
+                            setNewDocData({ ...newDocData, requirement_type: e.target.value })
+                        }
+                        className={styles.modalFormSelectDocs}
+                        style={{ marginLeft: "auto" }}
+                    >
+                        <option value="original">Original</option>
+                        <option value="xerox">Xerox</option>
+                        <option value="both">Both</option>
+                    </select>
+
                     <button
                         type="button"
                         className={styles.buttonSubmit}
+                        style={{ marginLeft: "0.7rem" }}
                         onClick={handleNewDocSubmit}
                         disabled={docSubmitting}
                     >
@@ -193,6 +207,7 @@ export default function RequiredDocumentsSection({
                     </button>
                 </div>
             )}
+
         </div>
     );
 }

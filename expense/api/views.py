@@ -26,21 +26,16 @@ def category_list(request):
 
     if request.method == "POST":
         data = request.data.copy()
+        data['category_type'] = data.get("category_type", category_type)
 
         serializer = CategorySerializer(data=data)
-        
         if serializer.is_valid():
             category_instance = serializer.save()
-            category_instance.category_type = data.get("category_type", category_type)
-            category_instance.save()
-            
             return Response(CategorySerializer(category_instance).data, status=201)
-        
         return Response(serializer.errors, status=400)
 
     core_category_names = [c[0] for c in CORE_CATEGORIES]
     categories = Category.objects.filter(category_type=category_type).exclude(name__in=core_category_names)
-    
     return Response({
         "categories": CategorySerializer(categories, many=True).data,
         "core_categories": core_category_names
@@ -50,7 +45,7 @@ def category_list(request):
 @api_view(['GET', 'PUT', 'DELETE'])
 def category_detail(request, category_id):
     try:
-        category = Category.objects.get(id=category_id)
+        category = Category.objects.get(id=category_id, is_deleted=False)
     except Category.DoesNotExist:
         return Response({"error": "Category not found"}, status=404)
 
@@ -62,7 +57,8 @@ def category_detail(request, category_id):
         return Response(serializer.errors, status=400)
 
     elif request.method == "DELETE":
-        category.delete()
+        category.is_deleted = True
+        category.save()
         return Response({"message": "Category deleted successfully"}, status=204)
 
     return Response(CategorySerializer(category).data)
