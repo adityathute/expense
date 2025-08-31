@@ -3,6 +3,7 @@
 import React, { useEffect, useRef } from "react";
 import { DeleteIcon } from "../components/Icons";
 import styles from "../styles/components/modalForm.module.css";
+import Select from "react-select";
 
 export default function RequiredDocumentsSection({
     documents,
@@ -111,10 +112,10 @@ export default function RequiredDocumentsSection({
                             (typeof docItem === "object" ? docItem.document : docItem) === d.id
                     )
             ).length > 0 && (
-                    <select
-                        value={newDocSelectValue}
-                        onChange={(e) => {
-                            const docId = parseInt(e.target.value);
+                    <Select
+                        value={documents.find((d) => d.id === parseInt(newDocSelectValue)) || null}
+                        onChange={(selectedOption) => {
+                            const docId = selectedOption?.value;
                             if (!isNaN(docId)) {
                                 setNewService((prev) => ({
                                     ...prev,
@@ -126,10 +127,7 @@ export default function RequiredDocumentsSection({
                                 setNewDocSelectValue("");
                             }
                         }}
-                        className={styles.modalFormSelect}
-                    >
-                        <option value="" disabled>Select a document...</option>
-                        {documents
+                        options={documents
                             .filter(
                                 (doc) =>
                                     !(newService.required_documents || []).some(
@@ -137,12 +135,13 @@ export default function RequiredDocumentsSection({
                                             (typeof docItem === "object" ? docItem.document : docItem) === doc.id
                                     )
                             )
-                            .map((doc) => (
-                                <option key={doc.id} value={doc.id}>
-                                    {doc.name}
-                                </option>
-                            ))}
-                    </select>
+                            .map((doc) => ({
+                                value: doc.id,
+                                label: doc.name,
+                            }))}
+                        placeholder="Search and select a document..."
+                        className={styles.modalFormSelect}
+                    />
                 )}
 
             {/* Add New Document Button */}

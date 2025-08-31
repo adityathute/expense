@@ -12,7 +12,7 @@
   color: #f1f5f9;
   border: 1px solid #3f3f46;
   border-radius: 0.6rem;
-  font-size: 0.90rem;
+  font-size: 0.9rem;
   transition: border-color 0.25s ease, box-shadow 0.25s ease;
   caret-color: #ffffff;
   appearance: none;
@@ -20,14 +20,56 @@
 
 .modalFormSelect {
   width: 100%;
-  margin-bottom: 0.80rem;
-  padding: 0.50rem 0.80rem;
+  margin-bottom: 0.8rem;
+  padding: 0.5rem 0.8rem;
   background-color: #2a2a2e;
+}
+
+/* === react-select CSS class names (with your className prefix) === */
+.modalFormSelect__control {
+  background-color: #2a2a2e;
+  border: 1px solid #3f3f46;
+  border-radius: 0.6rem;
+  min-height: 38px;
+  cursor: pointer;
+}
+
+.modalFormSelect__control:hover {
+  border-color: #6366f1;
+}
+
+.modalFormSelect__placeholder {
+  color: #888;
+}
+
+.modalFormSelect__single-value {
+  color: #f1f5f9;
+}
+
+.modalFormSelect__menu {
+  background-color: #2a2a2e;
+  border-radius: 0.6rem;
+  z-index: 9999;
+}
+
+.modalFormSelect__option {
+  background-color: #2a2a2e;
+  color: #f1f5f9;
+  cursor: pointer;
+}
+
+.modalFormSelect__option--is-focused {
+  background-color: #3b3b3b;
+}
+
+.modalFormSelect__option--is-selected {
+  background-color: #6366f1;
+  color: #ffffff;
 }
 
 .modalFormSelectDocs {
   width: max-content;
-  padding: 0.30rem 0.60rem;
+  padding: 0.3rem 0.6rem;
   background-color: #222;
 }
 
@@ -46,10 +88,10 @@
 .modalFormTextarea {
   background-color: #2a2a2e;
   color: #f1f5f9;
-  padding: 0.50rem 0.80rem;
+  padding: 0.5rem 0.8rem;
   border: 1px solid #3f3f46;
   border-radius: 0.6rem;
-  font-size: 0.90rem;
+  font-size: 0.9rem;
   transition: border-color 0.25s ease, box-shadow 0.25s ease;
   width: 100%;
   caret-color: #ffffff;
@@ -77,7 +119,7 @@
 
 .modalFormTextarea {
   resize: vertical;
-  margin-bottom: 0.20rem;
+  margin-bottom: 0.2rem;
 }
 
 .modalFormError {
@@ -152,14 +194,14 @@
   min-width: 100px;
   background-color: #2a2a2e;
   color: #f1f5f9;
-  padding: 0.50rem 0.80rem;
+  padding: 0.5rem 0.8rem;
   border: 1px solid #3f3f46;
   border-radius: 0.6rem;
-  font-size: 0.90rem;
+  font-size: 0.9rem;
   transition: border-color 0.25s ease, box-shadow 0.25s ease;
   width: 100%;
   caret-color: #ffffff;
-  margin-bottom: 0.80rem;
+  margin-bottom: 0.8rem;
 }
 
 .selectedDocContainer {
@@ -233,7 +275,8 @@
   border-radius: 0.75rem;
   padding: 0.6rem 1rem;
   font-size: 0.95rem;
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif;
   cursor: pointer;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
   transition: all 0.2s ease;
@@ -272,7 +315,8 @@
   border: 1px solid #2b2b2d;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
   overflow: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", sans-serif;
   margin-top: 0.4rem;
 }
 
@@ -318,7 +362,7 @@
 .passportRow input {
   width: fit-content;
   margin: 0;
-  padding: 0.40rem 0.80rem;
+  padding: 0.4rem 0.8rem;
   user-select: none;
 }
 
@@ -394,9 +438,38 @@
   background-color: #444;
 }
 
+.customSelect__control {
+  background-color: #2a2a2e;
+  border: 1px solid #3f3f46;
+  border-radius: 0.6rem;
+  color: #f1f5f9;
+}
+.customSelect__control:hover {
+  border-color: #6366f1;
+}
+.customSelect__option {
+  background-color: #2a2a2e;
+  color: #f1f5f9;
+}
+.customSelect__option--is-focused {
+  background-color: #444;
+}
+.customSelect__option--is-selected {
+  background-color: #6366f1;
+}
+.customSelect__menu {
+  background-color: #2a2a2e;
+  border-radius: 0.6rem;
+}
+.customSelect__single-value {
+  color: #f1f5f9;
+}
+.customSelect__placeholder {
+  color: #888;
+}
+
 /* === Responsive === */
 @media (max-width: 768px) {
-
   .modalFormInput,
   .modalFormTextarea {
     font-size: 0.9rem;

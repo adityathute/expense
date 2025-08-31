@@ -1,17 +1,19 @@
 .settings {
   padding: 2rem;
-  background: #f8f9fb;
+  background: #1c1c1e; /* Apple dark base */
   font-family: "Segoe UI", sans-serif;
+  color: #f5f5f7;
 }
 
 .settings h1 {
   font-size: 2rem;
   margin-bottom: 0.2rem;
+  color: #ffffff;
 }
 
 .sub-text {
   font-size: 1rem;
-  color: #666;
+  color: #a1a1a6; /* Softer Apple gray */
   margin-bottom: 2rem;
 }
 
@@ -22,28 +24,31 @@
 }
 
 .setting-card {
-  background: #fff;
+  background: #2c2c2e; /* Dark card background */
   border-radius: 16px;
   padding: 1.5rem;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-  transition: transform 0.2s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  transition: transform 0.2s ease, background 0.3s ease;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  color: #f5f5f7;
 }
 
 .setting-card:hover {
   transform: translateY(-4px);
+  background: #3a3a3c; /* Slight hover lift */
 }
 
 .setting-card h2 {
   margin-bottom: 0.5rem;
   font-size: 1.2rem;
+  color: #ffffff;
 }
 
 .setting-card p {
   font-size: 0.95rem;
-  color: #555;
+  color: #a1a1a6; /* Softer gray for text */
   flex-grow: 1;
 }
 
@@ -52,7 +57,7 @@
   padding: 0.6rem 1rem;
   border: none;
   border-radius: 8px;
-  background: #007bff;
+  background: #0a84ff; /* Apple blue */
   color: white;
   font-weight: 500;
   cursor: pointer;
@@ -60,7 +65,7 @@
 }
 
 .setting-card button:hover {
-  background: #0056b3;
+  background: #0060df; /* Slightly darker blue */
 }
 
 @media (max-width: 768px) {

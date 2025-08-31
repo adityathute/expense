@@ -1,7 +1,7 @@
 // analytics/page.js
 "use client";
 import dynamic from "next/dynamic";
-// import "./analytics.css";
+import "./analytics.css";
 
 // Dynamically import with SSR disabled
 const ClientOnlyChart = dynamic(() => import("./ClientOnlyChart"), { ssr: false });
