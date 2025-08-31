@@ -18,22 +18,21 @@
 }
 
 .setting-card {
-  background: #2c2c2e;
-  /* Dark card background */
-  border-radius: 16px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-  transition: transform 0.2s ease, background 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  color: #f5f5f7;
+  border-radius: 8px;
+  padding: 0.6rem 0.9rem;
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: context-menu;
+  user-select: none;
 }
 
 .setting-card:hover {
-  transform: translateY(-4px);
-  background: #3a3a3c;
-  /* Slight hover lift */
+  transform: translateY(-3px);
+  box-shadow: 0 5px 20px rgba(51, 153, 255, 0.2);
 }
 
 .setting-card h2 {

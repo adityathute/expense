@@ -8,21 +8,22 @@
 
 /* Each category card */
 .category-card {
-  background-color: #2a2a2a;
   border-radius: 8px;
   padding: 0.6rem 0.9rem;
-  margin-bottom: 0.6rem;
-  transition: background 0.2s;
-  border: 1px solid #2f2f2f;
-  user-select: none;
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
   cursor: context-menu;
+  user-select: none;
 }
 
 /* Hover effect */
 .category-card:hover {
-  transform: translateY(-3px);
-  background-color: #1e1e1e;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(51, 153, 255, 0.2);
 }
 
 /* Selected category highlight */
@@ -34,14 +35,16 @@
 
 /* Total balance card */
 .total-balance-block {
-  background-color: #2a2a2a;
   border-radius: 8px;
   padding: 0.6rem 0.9rem;
-  margin-bottom: 0.6rem;
-  transition: background 0.2s;
-  border: 1px solid #2f2f2f;
-  user-select: none;
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(240, 98, 98, 0.06);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
   cursor: context-menu;
+  user-select: none;
 }
 
 /* Category name */
