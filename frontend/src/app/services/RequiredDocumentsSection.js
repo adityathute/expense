@@ -112,10 +112,10 @@ export default function RequiredDocumentsSection({
                             (typeof docItem === "object" ? docItem.document : docItem) === d.id
                     )
             ).length > 0 && (
-                    <Select
-                        value={documents.find((d) => d.id === parseInt(newDocSelectValue)) || null}
-                        onChange={(selectedOption) => {
-                            const docId = selectedOption?.value;
+                    <select
+                        value={newDocSelectValue}
+                        onChange={(e) => {
+                            const docId = parseInt(e.target.value);
                             if (!isNaN(docId)) {
                                 setNewService((prev) => ({
                                     ...prev,
@@ -127,86 +127,87 @@ export default function RequiredDocumentsSection({
                                 setNewDocSelectValue("");
                             }
                         }}
-                        options={documents
-                            .filter(
-                                (doc) =>
-                                    !(newService.required_documents || []).some(
-                                        (docItem) =>
-                                            (typeof docItem === "object" ? docItem.document : docItem) === doc.id
-                                    )
-                            )
-                            .map((doc) => ({
-                                value: doc.id,
-                                label: doc.name,
-                            }))}
-                        placeholder="Search and select a document..."
                         className={styles.modalFormSelect}
-                    />
+                    >
+                        <option value="" disabled>Select a document...</option>
+                        {documents.filter(
+                            (doc) =>
+                                !(newService.required_documents || []).some(
+                                    (docItem) =>
+                                        (typeof docItem === "object" ? docItem.document : docItem) === doc.id
+                                )
+                        )
+                                  .map((doc) => (
+                                <option key={doc.id} value={doc.id}>
+                                    {doc.name}
+                                </option>
+                            ))}
+                    </select>
                 )}
 
-            {/* Add New Document Button */}
-            <button
-                type="button"
-                onClick={() => setShowNewDocForm(true)}
-                className={styles.buttonAddLink}
-            >
-                + Add New Document
-            </button>
+                        {/* Add New Document Button */}
+                        <button
+                            type="button"
+                            onClick={() => setShowNewDocForm(true)}
+                            className={styles.buttonAddLink}
+                        >
+                            + Add New Document
+                        </button>
 
-            {/* === New Document Form === */}
-            {showNewDocForm && (
-                <div className={styles.modalFormGroup} style={{ marginTop: "1rem" }}>
-                    <input
-                        type="text"
-                        placeholder="Document Name"
-                        value={newDocData.name}
-                        onChange={(e) => setNewDocData({ ...newDocData, name: e.target.value })}
-                        className={styles.modalFormInput}
-                    />
-                    <input
-                        type="text"
-                        placeholder="Categories (comma separated)"
-                        value={newDocData.categories}
-                        onChange={(e) =>
-                            setNewDocData({ ...newDocData, categories: e.target.value })
-                        }
-                        className={styles.modalFormInput}
-                    />
-                    <textarea
-                        placeholder="Additional Details"
-                        value={newDocData.additional_details}
-                        onChange={(e) =>
-                            setNewDocData({ ...newDocData, additional_details: e.target.value })
-                        }
-                        className={styles.modalFormTextarea}
-                    />
+                        {/* === New Document Form === */}
+                        {showNewDocForm && (
+                            <div className={styles.modalFormGroup} style={{ marginTop: "1rem" }}>
+                                <input
+                                    type="text"
+                                    placeholder="Document Name"
+                                    value={newDocData.name}
+                                    onChange={(e) => setNewDocData({ ...newDocData, name: e.target.value })}
+                                    className={styles.modalFormInput}
+                                />
+                                <input
+                                    type="text"
+                                    placeholder="Categories (comma separated)"
+                                    value={newDocData.categories}
+                                    onChange={(e) =>
+                                        setNewDocData({ ...newDocData, categories: e.target.value })
+                                    }
+                                    className={styles.modalFormInput}
+                                />
+                                <textarea
+                                    placeholder="Additional Details"
+                                    value={newDocData.additional_details}
+                                    onChange={(e) =>
+                                        setNewDocData({ ...newDocData, additional_details: e.target.value })
+                                    }
+                                    className={styles.modalFormTextarea}
+                                />
 
-                    {/* Requirement Type Dropdown */}
-                    <select
-                        value={newDocData.requirement_type}
-                        onChange={(e) =>
-                            setNewDocData({ ...newDocData, requirement_type: e.target.value })
-                        }
-                        className={styles.modalFormSelectDocs}
-                        style={{ marginLeft: "auto" }}
-                    >
-                        <option value="original">Original</option>
-                        <option value="xerox">Xerox</option>
-                        <option value="both">Both</option>
-                    </select>
+                                {/* Requirement Type Dropdown */}
+                                <select
+                                    value={newDocData.requirement_type}
+                                    onChange={(e) =>
+                                        setNewDocData({ ...newDocData, requirement_type: e.target.value })
+                                    }
+                                    className={styles.modalFormSelectDocs}
+                                    style={{ marginLeft: "auto" }}
+                                >
+                                    <option value="original">Original</option>
+                                    <option value="xerox">Xerox</option>
+                                    <option value="both">Both</option>
+                                </select>
 
-                    <button
-                        type="button"
-                        className={styles.buttonSubmit}
-                        style={{ marginLeft: "0.7rem" }}
-                        onClick={handleNewDocSubmit}
-                        disabled={docSubmitting}
-                    >
-                        {docSubmitting ? "Saving..." : "Save Document"}
-                    </button>
-                </div>
-            )}
+                                <button
+                                    type="button"
+                                    className={styles.buttonSubmit}
+                                    style={{ marginLeft: "0.7rem" }}
+                                    onClick={handleNewDocSubmit}
+                                    disabled={docSubmitting}
+                                >
+                                    {docSubmitting ? "Saving..." : "Save Document"}
+                                </button>
+                            </div>
+                        )}
 
-        </div>
-    );
+                    </div>
+                );
 }

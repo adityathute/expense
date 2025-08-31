@@ -5,6 +5,7 @@ import SearchBar from "../components/SearchBar"; // ✅ Add this line
 import StyledTable from "../components/StyledTable"; // adjust the path if needed
 import Modal from "../components/Modal";
 import DeleteCategoryModal from "./DeleteCategoryModal";
+import styles from "../styles/components/modalForm.module.css";
 
 export default function Categories() {
   const [showCategoryModal, setShowCategoryModal] = useState(false);
@@ -196,20 +197,23 @@ export default function Categories() {
         onClose={closeModal}
         title={editingCategory ? "Edit Category" : "Add Category"}
       >
-        <div className="space-y-4">
+        <div className={styles.modalFormGroup}>
           <input
             type="text"
             placeholder="Category Name"
             value={newCategory.name}
             onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
-            className="modal-input"
+            className={styles.modalFormInput}
           />
           <input
             type="text"
             placeholder="Description"
             value={newCategory.description}
             onChange={(e) => setNewCategory({ ...newCategory, description: e.target.value })}
-            className="modal-input"
+            className={styles.modalFormTextarea}
+              style={{
+              marginBottom: "0.9rem",
+            }}
           />
 
           <select
@@ -222,7 +226,7 @@ export default function Categories() {
                 hierarchy: [],
               });
             }}
-            className="modal-select"
+            className={styles.modalFormInput}
           >
             <option value="">Select Core Category</option>
             {coreCategories.map((core) => (
@@ -291,12 +295,11 @@ export default function Categories() {
 
           <div className="modal-actions">
             <button
-              className="modal-save-btn"
+              className={styles.buttonSubmit}
               onClick={editingCategory ? handleUpdateCategory : handleAddCategory}
             >
               {editingCategory ? "Update Category" : "Add Category"}
             </button>
-            <button className="modal-cancel-btn" onClick={closeModal}>Cancel</button>
           </div>
         </div>
       </Modal>
