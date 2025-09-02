@@ -8,7 +8,7 @@ import AddUserForm from "./components/AddUserForm";
 import StyledTable from "../components/StyledTable";
 import HeaderWithNewButton from "../components/common/HeaderWithNewButton";
 import Modal from "../components/Modal";
-import Pagination from "../components/Pagination"; // ✅ Import Pagination
+import Pagination from "../components/Pagination";
 
 export default function Users() {
   const [services, setServices] = useState([]);
@@ -41,25 +41,42 @@ export default function Users() {
     fetchUsers();
   }, []);
 
-  const handleSaveEdit = async () => {
+  const handleSaveEdit = async (userData) => {
     if (!editingUser) return;
 
     try {
       const payload = {
-        name: editingUser.name,
-        mobile_number: editingUser.mobile_number,
-        // include other backend-accepted fields only
+        name: userData.name,
+        mobile_number: userData.mobile_number,
+        gender: userData.gender,
+        user_type: userData.user_type,
+        identifications: userData.identifications?.map(id => ({
+          id: id.id,
+          id_type: id.id_type,
+          id_number: id.id_number,
+          other_doc_name: id.other_doc_name,
+        })) || [],
       };
 
-      const response = await fetch(`http://127.0.0.1:8001/api/users/${editingUser.id}/`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const response = await fetch(
+        `http://127.0.0.1:8001/api/users/${editingUser.id}/`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
 
       if (response.ok) {
         const updatedUser = await response.json();
-        setUsers(users.map((u) => (u.id === updatedUser.id ? updatedUser : u)));
+
+        setUsers((prev) =>
+          prev.map((u) => (u.id === updatedUser.id ? updatedUser : u))
+        );
+        setFilteredUsers((prev) =>
+          prev.map((u) => (u.id === updatedUser.id ? updatedUser : u))
+        );
+
         setEditingUser(null);
         setSelectedUser(null);
         setShowModal(false);
