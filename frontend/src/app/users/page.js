@@ -48,7 +48,6 @@ export default function Users() {
       const payload = {
         name: editingUser.name,
         mobile_number: editingUser.mobile_number,
-        // include other backend-accepted fields only
       };
 
       const response = await fetch(`http://127.0.0.1:8001/api/users/${editingUser.id}/`, {
