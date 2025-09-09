@@ -50,13 +50,21 @@ export default function Users() {
         mobile_number: userData.mobile_number,
         gender: userData.gender,
         user_type: userData.user_type,
-        identifications: userData.identifications?.map(id => ({
-          id: id.id,
-          id_type: id.id_type,
-          id_number: id.id_number,
-          other_doc_name: id.other_doc_name,
-        })) || [],
+        identifications: userData.identifications?.map(id => {
+          const obj = {
+            id_type: id.id_type,
+            id_number: id.id_number,
+            other_doc_name: id.other_doc_name,
+          };
+          if (id.id) {
+            obj.id = id.id;  // include only for existing
+          }
+          return obj;
+        }) || [],
       };
+      console.log("Editing IDs:", userData.identifications);
+
+      console.log("Update payload:", JSON.stringify(payload, null, 2));
 
       const response = await fetch(
         `http://127.0.0.1:8001/api/users/${editingUser.id}/`,
