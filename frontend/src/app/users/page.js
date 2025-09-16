@@ -200,14 +200,6 @@ export default function Users() {
         </div>
       )}
 
-      {selectedUser && (
-        <UserDetailsPopup
-          selectedUser={selectedUser}
-          onClose={() => setSelectedUser(null)}
-          onSave={handleSaveEdit}
-        />
-      )}
-
       {showModal && (
         <Modal
           isOpen={showModal}
@@ -217,11 +209,18 @@ export default function Users() {
           <AddUserForm
             initialData={editingUser} // null for add, user object for edit
             onClose={() => setShowModal(false)}
-            onAddUser={editingUser ? handleSaveEdit : handleAddUser} // ✅ use proper handler
+            onAddUser={editingUser ? handleSaveEdit : handleAddUser}
           />
-
         </Modal>
       )}
+
+      {selectedUser && !editingUser && ( // ✅ details only
+        <UserDetailsPopup
+          selectedUser={selectedUser}
+          onClose={() => setSelectedUser(null)}
+        />
+      )}
+
     </div>
   );
 }
