@@ -1,12 +1,18 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import Modal from "../../components/Modal";
+import { DeleteIcon } from "../../components/Icons";
+import DeleteUserModal from "./DeleteUserModal"; // your reusable modal
+import styles from "../../styles/components/modalForm.module.css";
 
-export default function UserDetailsPopup({ selectedUser, onClose, onSave }) {
+export default function UserDetailsPopup({ selectedUser, onClose, onSave, onDelete }) {
   const [isEditing, setIsEditing] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [editedUser, setEditedUser] = useState({
     name: "",
     mobile_number: "",
+    gender: "",
     identifications: [{ id_name: "", id_number: "" }],
   });
 
@@ -14,12 +20,12 @@ export default function UserDetailsPopup({ selectedUser, onClose, onSave }) {
     if (selectedUser) {
       setEditedUser({
         ...selectedUser,
-        identifications:
-          selectedUser.identifications?.map((id) => ({
-            id_name: id.id_name || "",
-            id_number: id.id_number || "",
-          })) || [{ id_name: "", id_number: "" }],
+        identifications: selectedUser.identifications?.map((id) => ({
+          id_name: id.id_name || "",
+          id_number: id.id_number || "",
+        })) || [{ id_name: "", id_number: "" }],
       });
+      setIsEditing(false);
     }
   }, [selectedUser]);
 
@@ -33,10 +39,7 @@ export default function UserDetailsPopup({ selectedUser, onClose, onSave }) {
   const handleIDChange = (index, field, value) => {
     setEditedUser((prev) => {
       const updatedIDs = [...prev.identifications];
-      updatedIDs[index] = {
-        ...updatedIDs[index],
-        [field]: value,
-      };
+      updatedIDs[index] = { ...updatedIDs[index], [field]: value };
       return { ...prev, identifications: updatedIDs };
     });
   };
@@ -56,81 +59,138 @@ export default function UserDetailsPopup({ selectedUser, onClose, onSave }) {
     });
   };
 
+  const handleSave = () => {
+    onSave(editedUser);
+    setIsEditing(false);
+  };
+
   return (
-    <div className="modal">
-      <div className="modal-content">
-        <span className="close-button" onClick={onClose}>
-          &times;
-        </span>
+    <>
+      {/* Main User Modal */}
+      <Modal
+        isOpen={!!selectedUser}
+        onClose={onClose}
+        title={isEditing ? "Edit User" : selectedUser.name}
+      >
+        <div className="space-y-4">
+          {/* Basic Info */}
+          <div className="flex flex-col gap-2">
+            {isEditing ? (
+              <>
+                <input
+                  type="text"
+                  name="name"
+                  value={editedUser.name}
+                  onChange={handleInputChange}
+                  placeholder="Full Name"
+                  className={styles.modalFormInput}
+                />
+                <input
+                  type="text"
+                  name="mobile_number"
+                  value={editedUser.mobile_number}
+                  onChange={handleInputChange}
+                  placeholder="Mobile Number"
+                  className={styles.modalFormInput}
+                />
+                <select
+                  name="gender"
+                  value={editedUser.gender}
+                  onChange={handleInputChange}
+                  className={styles.modalFormInput}
+                >
+                  <option value="">Select Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </>
+            ) : (
+              <>
+                <p><strong>Name:</strong> {selectedUser.name}</p>
+                <p><strong>Mobile:</strong> {selectedUser.mobile_number || "N/A"}</p>
+                <p><strong>Gender:</strong> {selectedUser.gender || "N/A"}</p>
+              </>
+            )}
+          </div>
 
-        {isEditing ? (
-          <>
-            <h2>Edit User</h2>
-            <input
-              type="text"
-              name="name"
-              value={editedUser.name || ""}
-              onChange={handleInputChange}
-            />
-            <input
-              type="text"
-              name="mobile_number"
-              value={editedUser.mobile_number || ""}
-              onChange={handleInputChange}
-            />
-
-            <h3>Identifications</h3>
+          {/* Identifications */}
+          <div>
+            <h4 className="font-semibold mb-2">Identifications:</h4>
             {editedUser.identifications.map((id, index) => (
-              <div key={index} className="id-input-group">
-                <input
-                  type="text"
-                  placeholder="ID Name"
-                  value={id.id_name || ""}
-                  onChange={(e) => handleIDChange(index, "id_name", e.target.value)}
-                />
-                <input
-                  type="text"
-                  placeholder="ID Number"
-                  value={id.id_number || ""}
-                  onChange={(e) => handleIDChange(index, "id_number", e.target.value)}
-                />
-                {editedUser.identifications.length > 1 && (
-                  <button onClick={() => handleRemoveID(index)}>Remove</button>
+              <div key={index} className="flex gap-2 items-center mb-2">
+                {isEditing ? (
+                  <>
+                    <input
+                      type="text"
+                      placeholder="ID Name"
+                      value={id.id_name}
+                      onChange={(e) => handleIDChange(index, "id_name", e.target.value)}
+                      className={styles.modalFormInput}
+                    />
+                    <input
+                      type="text"
+                      placeholder="ID Number"
+                      value={id.id_number}
+                      onChange={(e) => handleIDChange(index, "id_number", e.target.value)}
+                      className={styles.modalFormInput}
+                    />
+                    {editedUser.identifications.length > 1 && (
+                      <button onClick={() => handleRemoveID(index)}>
+                        <DeleteIcon className={styles.icon} />
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <p>{id.id_name || "N/A"}: {id.id_number || "N/A"}</p>
                 )}
               </div>
             ))}
-            <button onClick={handleAddID}>+ Add More ID</button>
+            {isEditing && (
+              <button type="button" onClick={handleAddID} className="service-edit-btn">
+                + Add More ID
+              </button>
+            )}
+          </div>
 
+          {/* Actions */}
+          <div className="flex gap-2 mt-4">
+            {isEditing ? (
+              <button onClick={handleSave} className="service-edit-btn">Save</button>
+            ) : (
+              <button
+                onClick={() => setIsEditing(true)}
+                className="service-edit-btn"
+                style={{ marginRight: "0.7rem" }}
+              >
+                ✎ Edit
+              </button>
+            )}
             <button
-              className="save-button"
-              onClick={() => {
-                onSave(editedUser);
-                setIsEditing(false);
-              }}
+              className="service-delete-btn"
+              onClick={() => setShowDeleteModal(true)}
             >
-              Save
+              🗑 Delete
             </button>
-          </>
-        ) : (
-          <>
-            <h2>{selectedUser.name}</h2>
-            <p>
-              <strong>Mobile:</strong> {selectedUser.mobile_number}
-            </p>
-            <p>
-              <strong>ID:</strong>{" "}
-              {selectedUser.identifications?.length > 0
-                ? selectedUser.identifications
-                    .map((id) => `${id.id_name || "N/A"}: ${id.id_number || "N/A"}`)
-                    .join(", ")
-                : "N/A"}
-            </p>
-            <button className="edit-button" onClick={() => setIsEditing(true)}>
-              Edit
-            </button>
-          </>
-        )}
-      </div>
-    </div>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Soft Delete Modal */}
+      {showDeleteModal && (
+        <DeleteUserModal
+          isOpen={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          onDelete={(id) => {
+            onDelete(id); // soft delete handler from parent
+            setShowDeleteModal(false);
+            onClose();
+          }}
+          userId={selectedUser.id}
+          userName={selectedUser.name}
+          type="soft"
+        />
+      )}
+    </>
   );
 }

@@ -4,7 +4,7 @@ import StyledTable from "../components/StyledTable";
 import { DeleteIcon, RestoreIcon } from "../components/Icons";
 import DeleteServiceModal from "../services/DeleteServiceModal";
 import Pagination from "../components/Pagination";
-import SearchBar from "../components/SearchBar"; // ✅ Import SearchBar
+import SearchBar from "../components/SearchBar";
 
 export default function RecycleBinPage() {
   const [deletedItems, setDeletedItems] = useState([]);
@@ -20,9 +20,10 @@ export default function RecycleBinPage() {
     Promise.all([
       fetch("http://127.0.0.1:8001/api/services/?show_deleted=true").then(res => res.json()),
       fetch("http://127.0.0.1:8001/api/categories/?show_deleted=true").then(res => res.json()),
-      fetch("http://127.0.0.1:8001/api/accounts/?show_deleted=true").then(res => res.json()), // ✅ Add accounts
+      fetch("http://127.0.0.1:8001/api/accounts/?show_deleted=true").then(res => res.json()),
+      fetch("http://127.0.0.1:8001/api/users/?show_deleted=true").then(res => res.json()), // ✅ Users added
     ])
-      .then(([servicesData, categoriesData, accountsData]) => {
+      .then(([servicesData, categoriesData, accountsData, usersData]) => {
         const deletedServices = servicesData.filter(s => s.is_deleted);
         const servicesWithType = deletedServices.map(s => ({
           id: s.id,
@@ -44,10 +45,18 @@ export default function RecycleBinPage() {
           type: "Account"
         }));
 
+        const deletedUsers = usersData.filter(u => u.is_deleted);
+        const usersWithType = deletedUsers.map(u => ({
+          id: u.id,
+          name: u.name,
+          type: "User"
+        }));
+
         const combinedItems = [
           ...servicesWithType.map(s => ({ ...s, reactKey: `Service-${s.id}` })),
           ...categoriesWithType.map(c => ({ ...c, reactKey: `Category-${c.id}` })),
-          ...accountsWithType.map(a => ({ ...a, reactKey: `Account-${a.id}` })), // ✅ Add accounts
+          ...accountsWithType.map(a => ({ ...a, reactKey: `Account-${a.id}` })),
+          ...usersWithType.map(u => ({ ...u, reactKey: `User-${u.id}` })), // ✅ Users added
         ];
 
         setDeletedItems(combinedItems);
@@ -55,8 +64,6 @@ export default function RecycleBinPage() {
       .catch(err => console.error(err));
   }, []);
 
-
-  // Filter deletedItems based on searchTerm
   const filteredItems = deletedItems.filter(item =>
     item.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -70,7 +77,8 @@ export default function RecycleBinPage() {
       let url;
       if (type === "Service") url = `http://127.0.0.1:8001/api/services/${id}/restore/`;
       else if (type === "Category") url = `http://127.0.0.1:8001/api/categories/${id}/restore/`;
-      else if (type === "Account") url = `http://127.0.0.1:8001/api/accounts/${id}/restore/`; // ✅ Accounts restore
+      else if (type === "Account") url = `http://127.0.0.1:8001/api/accounts/${id}/restore/`;
+      else if (type === "User") url = `http://127.0.0.1:8001/api/users/${id}/restore/`; // ✅ Users restore
 
       const response = await fetch(url, { method: "POST" });
       if (response.ok) {
@@ -86,7 +94,8 @@ export default function RecycleBinPage() {
       let url;
       if (type === "Service") url = `http://127.0.0.1:8001/api/services/${id}/`;
       else if (type === "Category") url = `http://127.0.0.1:8001/api/categories/${id}/`;
-      if (type === "Account") url = `http://127.0.0.1:8001/api/accounts/${id}/hard-delete/`;
+      else if (type === "Account") url = `http://127.0.0.1:8001/api/accounts/${id}/hard-delete/`;
+      else if (type === "User") url = `http://127.0.0.1:8001/api/users/${id}/hard-delete/`; // ✅ Users hard delete
 
       const response = await fetch(url, { method: "DELETE" });
       if (response.ok) {
@@ -113,7 +122,7 @@ export default function RecycleBinPage() {
         value={searchTerm}
         onChange={(e) => {
           setSearchTerm(e.target.value);
-          setCurrentPage(1); // reset to first page when searching
+          setCurrentPage(1);
         }}
         placeholder="Search deleted items..."
       />

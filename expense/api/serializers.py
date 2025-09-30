@@ -62,8 +62,10 @@ class UserSerializer(serializers.ModelSerializer):
             "mobile_number",
             "gender",
             "user_type",
+            "is_deleted",  # <-- add this
             "identifications",
         ]
+        read_only_fields = ["id", "created_at", "updated_at"]
 
     def create(self, validated_data):
         identifications_data = validated_data.pop("identifications", [])

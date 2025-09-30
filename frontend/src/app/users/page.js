@@ -1,4 +1,3 @@
-// users/page.js
 "use client";
 
 import { useEffect, useState } from "react";
@@ -11,34 +10,67 @@ import Modal from "../components/Modal";
 import Pagination from "../components/Pagination";
 
 export default function Users() {
-  const [filteredUsers, setFilteredUsers] = useState([]);
   const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const entriesPerPage = 10;
 
-  const fetchUsers = async () => {
-    try {
-      const res = await fetch("http://127.0.0.1:8001/api/users/");
-      const data = await res.json();
-      const updatedUsers = data.map(user => ({
+const fetchUsers = async () => {
+  try {
+    const res = await fetch("http://127.0.0.1:8001/api/users/");
+    const data = await res.json();
+    const updatedUsers = data
+      .filter((u) => !u.is_deleted) // <-- ignore deleted users
+      .map((user) => ({
         ...user,
         identifications: user.identifications || [],
       }));
-      setFilteredUsers(updatedUsers);
-      setUsers(updatedUsers);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+    setUsers(updatedUsers);
+    setFilteredUsers(updatedUsers);
+  } catch (err) {
+    console.error(err);
+  }
+};
+
 
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  // Soft delete handler
+  const handleDeleteUser = async (userId) => {
+    try {
+      const response = await fetch(`http://127.0.0.1:8001/api/users/${userId}/`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ is_deleted: true }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Soft delete failed");
+      }
+
+      // Remove deleted user from displayed list
+      setUsers((prev) =>
+        prev.map((u) => (u.id === userId ? { ...u, is_deleted: true } : u))
+      );
+
+      // Filter out deleted users for display
+      setFilteredUsers((prev) =>
+        prev.filter((u) => u.id !== userId)
+      );
+
+      // Close the popup
+      setSelectedUser(null);
+    } catch (err) {
+      console.error("Error soft deleting user:", err);
+    }
+  };
 
   const handleSaveEdit = async (userData) => {
     if (!editingUser) return;
@@ -49,11 +81,11 @@ export default function Users() {
         mobile_number: userData.mobile_number,
         gender: userData.gender,
         user_type: userData.user_type,
-        identifications: userData.identifications.map(id => ({
-          id_name: id.id_name,  // make sure this is included
+        identifications: userData.identifications.map((id) => ({
+          id_name: id.id_name,
           id_number: id.id_number,
           is_deleted: id.is_deleted || false,
-          id: id.id || undefined, // for updates
+          id: id.id || undefined,
         })),
       };
 
@@ -76,7 +108,6 @@ export default function Users() {
         );
         setEditingUser(null);
         setSelectedUser(null);
-        setShowModal(false);
       } else {
         const errorData = await response.json();
         console.error("Failed to update user:", response.status, errorData);
@@ -108,22 +139,27 @@ export default function Users() {
     }
   };
 
-  const handleSearchChange = (e) => {
-    const query = e.target.value;
-    setSearchQuery(query);
+const handleSearchChange = (e) => {
+  const query = e.target.value;
+  setSearchQuery(query);
 
-    const filteredUsers = users.filter((user) => {
+  const filtered = users
+    .filter((u) => !u.is_deleted) // ignore deleted users
+    .filter((user) => {
       const lowerCaseQuery = query.toLowerCase();
       return (
         (user.name?.toLowerCase().includes(lowerCaseQuery) || false) ||
         (user.mobile_number?.includes(lowerCaseQuery) || false) ||
-        (user.identifications?.some((id) => id.id_number?.toLowerCase().includes(lowerCaseQuery)) || false)
+        (user.identifications?.some((id) =>
+          id.id_number?.toLowerCase().includes(lowerCaseQuery)
+        ) || false)
       );
     });
 
-    setFilteredUsers(filteredUsers);
-    setCurrentPage(1);
-  };
+  setFilteredUsers(filtered);
+  setCurrentPage(1);
+};
+
 
   const headers = ["Name", "Mobile", "ID"];
   const columns = ["name", "mobile_number", "id"];
@@ -137,7 +173,10 @@ export default function Users() {
       <HeaderWithNewButton
         title="Users"
         buttonLabel="Add User"
-        onClick={() => { setEditingUser(null); setShowModal(true); }}
+        onClick={() => {
+          setShowForm(true);
+          setSelectedUser(null);
+        }}
       />
 
       <SearchBar
@@ -146,7 +185,11 @@ export default function Users() {
         placeholder="Search users..."
       />
 
-      {showForm && <AddUserForm onClose={() => setShowForm(false)} onAddUser={handleAddUser} />}
+      {showForm && (
+        <Modal isOpen={showForm} onClose={() => setShowForm(false)} title="Add User">
+          <AddUserForm onClose={() => setShowForm(false)} onAddUser={handleAddUser} />
+        </Modal>
+      )}
 
       {paginatedUsers.length > 0 ? (
         <>
@@ -158,7 +201,10 @@ export default function Users() {
               if (col === "name") {
                 return (
                   <button
-                    onClick={() => { setEditingUser(user); setShowModal(true); }}
+                    onClick={() => {
+                      setSelectedUser(user);
+                      setShowForm(false);
+                    }}
                     className="text-blue-400 hover:underline"
                   >
                     {user.name}
@@ -189,24 +235,12 @@ export default function Users() {
         </div>
       )}
 
-      {showModal && (
-        <Modal
-          isOpen={showModal}
-          onClose={() => setShowModal(false)}
-          title={editingUser ? "Edit User" : "Add User"}
-        >
-          <AddUserForm
-            initialData={editingUser}
-            onClose={() => setShowModal(false)}
-            onAddUser={editingUser ? handleSaveEdit : handleAddUser}
-          />
-        </Modal>
-      )}
-
-      {selectedUser && !editingUser && (
+      {selectedUser && (
         <UserDetailsPopup
           selectedUser={selectedUser}
           onClose={() => setSelectedUser(null)}
+          onSave={handleSaveEdit}
+          onDelete={handleDeleteUser} // soft delete
         />
       )}
     </div>
