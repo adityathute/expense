@@ -44,7 +44,6 @@ class CategorySerializer(serializers.ModelSerializer):
         read_only_fields = ["subcategories"]
 
 # ---------------------- USER RELATED SERIALIZERS ---------------------- #
-
 class UserIDSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserID
@@ -97,40 +96,6 @@ class UserSerializer(serializers.ModelSerializer):
                 remaining_id.delete()
 
         return instance
-
-
-
-# class IdentificationDataSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = IdentificationData
-#         fields = ["id_type", "id_number"]
-
-# class IdentificationSerializer(serializers.ModelSerializer):
-#     identifications_data = IdentificationDataSerializer(many=True)
-
-#     class Meta:
-#         model = Identification
-#         fields = ["id", "mobile_number", "identifications_data"]
-
-#     def create(self, validated_data):
-#         ids_data = validated_data.pop("identifications_data", [])
-#         identification = Identification.objects.create(**validated_data)
-#         for id_item in ids_data:
-#             IdentificationData.objects.create(identification=identification, **id_item)
-#         return identification
-
-#     def update(self, instance, validated_data):
-#         ids_data = validated_data.pop("identifications_data", [])
-#         instance.mobile_number = validated_data.get("mobile_number", instance.mobile_number)
-#         instance.save()
-
-#         # Clear old IDs and create new
-#         instance.identifications_data.all().delete()
-#         for id_item in ids_data:
-#             IdentificationData.objects.create(identification=instance, **id_item)
-
-#         return instance
-
 
 # ---------------------- SERVICE RELATED SERIALIZER ---------------------- #
 class DocumentCategorySerializer(serializers.ModelSerializer):

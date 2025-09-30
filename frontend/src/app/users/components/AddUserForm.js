@@ -78,16 +78,15 @@ export default function AddUserForm({ onClose, onAddUser, initialData = null }) 
       return;
     }
 
-const cleanedUser = {
-  ...newUser,
-  identifications: newUser.identifications.filter(
-    id => id.id_name.trim() !== "" && id.id_number.trim() !== ""
-  ).map(id => ({
-    id_name: id.id_name,
-    id_number: id.id_number
-  })),
-};
-
+    const cleanedUser = {
+      ...newUser,
+      identifications: newUser.identifications.filter(
+        id => id.id_name.trim() !== "" && id.id_number.trim() !== ""
+      ).map(id => ({
+        id_name: id.id_name,
+        id_number: id.id_number
+      })),
+    };
 
     await onAddUser(cleanedUser);
     onClose();
@@ -157,7 +156,12 @@ const cleanedUser = {
         </div>
       ))}
 
-      <button type="button" onClick={handleAddID} className="service-edit-btn">
+      <button
+        type="button"
+        onClick={handleAddID}
+        className="service-edit-btn"
+        style={{ marginRight: "0.7rem" }}
+      >
         + Add More ID
       </button>
 
