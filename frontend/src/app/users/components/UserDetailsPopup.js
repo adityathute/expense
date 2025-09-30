@@ -4,14 +4,21 @@ import React, { useState, useEffect } from "react";
 
 export default function UserDetailsPopup({ selectedUser, onClose, onSave }) {
   const [isEditing, setIsEditing] = useState(false);
-  const [editedUser, setEditedUser] = useState(selectedUser);
+  const [editedUser, setEditedUser] = useState({
+    name: "",
+    mobile_number: "",
+    identifications: [{ id_name: "", id_number: "" }],
+  });
 
-  // Sync when user changes
   useEffect(() => {
     if (selectedUser) {
       setEditedUser({
         ...selectedUser,
-        identifications: selectedUser.identifications || [],
+        identifications:
+          selectedUser.identifications?.map((id) => ({
+            id_name: id.id_name || "",
+            id_number: id.id_number || "",
+          })) || [{ id_name: "", id_number: "" }],
       });
     }
   }, [selectedUser]);
@@ -28,8 +35,23 @@ export default function UserDetailsPopup({ selectedUser, onClose, onSave }) {
       const updatedIDs = [...prev.identifications];
       updatedIDs[index] = {
         ...updatedIDs[index],
-        [field]: value, // ✅ keep id, id_type, other_doc_name
+        [field]: value,
       };
+      return { ...prev, identifications: updatedIDs };
+    });
+  };
+
+  const handleAddID = () => {
+    setEditedUser((prev) => ({
+      ...prev,
+      identifications: [...prev.identifications, { id_name: "", id_number: "" }],
+    }));
+  };
+
+  const handleRemoveID = (index) => {
+    setEditedUser((prev) => {
+      const updatedIDs = [...prev.identifications];
+      updatedIDs.splice(index, 1);
       return { ...prev, identifications: updatedIDs };
     });
   };
@@ -59,27 +81,25 @@ export default function UserDetailsPopup({ selectedUser, onClose, onSave }) {
 
             <h3>Identifications</h3>
             {editedUser.identifications.map((id, index) => (
-              <div key={id.id || index}>
-                <label>{id.id_type}</label>
+              <div key={index} className="id-input-group">
                 <input
                   type="text"
-                  value={id.id_number || ""}
-                  onChange={(e) =>
-                    handleIDChange(index, "id_number", e.target.value)
-                  }
+                  placeholder="ID Name"
+                  value={id.id_name || ""}
+                  onChange={(e) => handleIDChange(index, "id_name", e.target.value)}
                 />
-                {id.other_doc_name !== null && (
-                  <input
-                    type="text"
-                    placeholder="Other doc name"
-                    value={id.other_doc_name || ""}
-                    onChange={(e) =>
-                      handleIDChange(index, "other_doc_name", e.target.value)
-                    }
-                  />
+                <input
+                  type="text"
+                  placeholder="ID Number"
+                  value={id.id_number || ""}
+                  onChange={(e) => handleIDChange(index, "id_number", e.target.value)}
+                />
+                {editedUser.identifications.length > 1 && (
+                  <button onClick={() => handleRemoveID(index)}>Remove</button>
                 )}
               </div>
             ))}
+            <button onClick={handleAddID}>+ Add More ID</button>
 
             <button
               className="save-button"
@@ -101,19 +121,11 @@ export default function UserDetailsPopup({ selectedUser, onClose, onSave }) {
               <strong>ID:</strong>{" "}
               {selectedUser.identifications?.length > 0
                 ? selectedUser.identifications
-                    .map(
-                      (id) =>
-                        `${id.id_type}: ${id.id_number}${
-                          id.other_doc_name ? ` (${id.other_doc_name})` : ""
-                        }`
-                    )
+                    .map((id) => `${id.id_name || "N/A"}: ${id.id_number || "N/A"}`)
                     .join(", ")
                 : "N/A"}
             </p>
-            <button
-              className="edit-button"
-              onClick={() => setIsEditing(true)}
-            >
+            <button className="edit-button" onClick={() => setIsEditing(true)}>
               Edit
             </button>
           </>

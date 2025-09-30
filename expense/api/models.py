@@ -20,11 +20,8 @@ class User(models.Model):
     ]
 
     name = models.CharField(max_length=255)
-    old_name = models.CharField(max_length=255, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
-    old_email = models.EmailField(blank=True, null=True)
     date_of_birth = models.DateField(blank=True, null=True)
-    old_date_of_birth = models.DateField(blank=True, null=True)
     mobile_number = models.CharField(max_length=10, blank=True, null=True)
     user_type = models.JSONField(default=list)  # Example: ["Customer", "Agent"]
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES, blank=True, null=True)
@@ -40,36 +37,35 @@ class User(models.Model):
     def __str__(self):
         return self.name
 
-class Address(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="address")
-    house_number = models.CharField(max_length=10, blank=True, null=True)
-    street = models.CharField(max_length=255, blank=True, null=True)
-    landmark = models.CharField(max_length=510, blank=True, null=True)
-    area = models.CharField(max_length=510, blank=True, null=True)
-    village = models.CharField(max_length=255, blank=True, null=True)
-    post_office = models.CharField(max_length=255, blank=True, null=True)
-    sub_dist = models.CharField(max_length=255, blank=True, null=True)
-    district = models.CharField(max_length=255, blank=True, null=True)
-    state = models.CharField(max_length=255, blank=True, null=True)
-    pincode = models.CharField(max_length=6, blank=True, null=True)
-    is_deleted = models.BooleanField(default=False, verbose_name="Is Deleted")
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f"{self.user.name}"
-
 class UserID(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="identifications")
-    id_type = models.CharField(max_length=20, choices=ID_TYPES, blank=True, null=True)
-    id_number = models.CharField(max_length=20, unique=True, blank=True, null=True)
-    other_doc_name = models.CharField(max_length=255, blank=True, null=True)
+    id_name = models.CharField(max_length=255)
+    id_number = models.CharField(max_length=20, blank=True, null=True)
     is_deleted = models.BooleanField(default=False, verbose_name="Is Deleted")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.user.name} - {self.id_type}: {self.id_number}" if self.id_number else f"{self.user.name} - No ID"
+        return f"{self.user.name}: {self.id_number}" if self.id_number else f"{self.user.name} - No ID"
+
+# class Address(models.Model):
+#     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="address")
+#     house_number = models.CharField(max_length=10, blank=True, null=True)
+#     street = models.CharField(max_length=255, blank=True, null=True)
+#     landmark = models.CharField(max_length=510, blank=True, null=True)
+#     area = models.CharField(max_length=510, blank=True, null=True)
+#     village = models.CharField(max_length=255, blank=True, null=True)
+#     post_office = models.CharField(max_length=255, blank=True, null=True)
+#     sub_dist = models.CharField(max_length=255, blank=True, null=True)
+#     district = models.CharField(max_length=255, blank=True, null=True)
+#     state = models.CharField(max_length=255, blank=True, null=True)
+#     pincode = models.CharField(max_length=6, blank=True, null=True)
+#     is_deleted = models.BooleanField(default=False, verbose_name="Is Deleted")
+#     created_at = models.DateTimeField(auto_now_add=True)
+#     updated_at = models.DateTimeField(auto_now=True)
+
+#     def __str__(self):
+#         return f"{self.user.name}"
 
 # ---------------------- CATEGORY RELATED MODEL ---------------------- #
 

@@ -43,15 +43,13 @@ class CategorySerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["subcategories"]
 
-
 # ---------------------- USER RELATED SERIALIZERS ---------------------- #
-
 
 class UserIDSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserID
-        fields = ["id", "id_type", "id_number", "other_doc_name"]  # ✅ include id
-        read_only_fields = ["id"]
+        fields = ["id", "id_name", "id_number", "is_deleted", "created_at", "updated_at"]
+        read_only_fields = ["id", "created_at", "updated_at"]
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -71,7 +69,6 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         identifications_data = validated_data.pop("identifications", [])
         user = User.objects.create(**validated_data)
-
         for id_data in identifications_data:
             if id_data.get("id_number"):
                 UserID.objects.create(user=user, **id_data)
@@ -79,32 +76,29 @@ class UserSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         identifications_data = validated_data.pop("identifications", None)
-
-        # update user fields first
         instance = super().update(instance, validated_data)
 
         if identifications_data is not None:
             existing_ids = {id.id: id for id in instance.identifications.all()}
 
             for id_data in identifications_data:
-                id_obj = None
                 id_pk = id_data.get("id")
-
                 if id_pk and id_pk in existing_ids:
-                    # ✅ Update existing
                     id_obj = existing_ids.pop(id_pk)
-                    for attr, value in id_data.items():
-                        setattr(id_obj, attr, value)
+                    id_obj.id_number = id_data.get("id_number", id_obj.id_number)
+                    id_obj.is_deleted = id_data.get("is_deleted", id_obj.is_deleted)
                     id_obj.save()
                 else:
-                    # ✅ Create new
-                    UserID.objects.create(user=instance, **id_data)
+                    if id_data.get("id_number"):
+                        UserID.objects.create(user=instance, **id_data)
 
-            # ✅ Delete IDs not sent anymore
+            # Delete leftover IDs
             for remaining_id in existing_ids.values():
                 remaining_id.delete()
 
         return instance
+
+
 
 # class IdentificationDataSerializer(serializers.ModelSerializer):
 #     class Meta:
