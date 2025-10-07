@@ -19,22 +19,22 @@ export default function Users() {
   const [currentPage, setCurrentPage] = useState(1);
   const entriesPerPage = 10;
 
-const fetchUsers = async () => {
-  try {
-    const res = await fetch("http://127.0.0.1:8001/api/users/");
-    const data = await res.json();
-    const updatedUsers = data
-      .filter((u) => !u.is_deleted) // <-- ignore deleted users
-      .map((user) => ({
-        ...user,
-        identifications: user.identifications || [],
-      }));
-    setUsers(updatedUsers);
-    setFilteredUsers(updatedUsers);
-  } catch (err) {
-    console.error(err);
-  }
-};
+  const fetchUsers = async () => {
+    try {
+      const res = await fetch("http://127.0.0.1:8001/api/users/");
+      const data = await res.json();
+      const updatedUsers = data
+        .filter((u) => !u.is_deleted) // <-- ignore deleted users
+        .map((user) => ({
+          ...user,
+          identifications: user.identifications || [],
+        }));
+      setUsers(updatedUsers);
+      setFilteredUsers(updatedUsers);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
 
   useEffect(() => {
@@ -100,14 +100,21 @@ const fetchUsers = async () => {
 
       if (response.ok) {
         const updatedUser = await response.json();
-        setUsers((prev) =>
-          prev.map((u) => (u.id === updatedUser.id ? updatedUser : u))
-        );
-        setFilteredUsers((prev) =>
-          prev.map((u) => (u.id === updatedUser.id ? updatedUser : u))
-        );
+        setUsers((prev) => {
+          const updated = prev.map((u) =>
+            u.id === updatedUser.id ? updatedUser : u
+          );
+          return [...updated]; // ensures new reference
+        });
+
+        setFilteredUsers((prev) => {
+          const updated = prev.map((u) =>
+            u.id === updatedUser.id ? updatedUser : u
+          );
+          return [...updated];
+        });
         setEditingUser(null);
-        setSelectedUser(null);
+        // setSelectedUser(null);
       } else {
         const errorData = await response.json();
         console.error("Failed to update user:", response.status, errorData);
@@ -139,26 +146,26 @@ const fetchUsers = async () => {
     }
   };
 
-const handleSearchChange = (e) => {
-  const query = e.target.value;
-  setSearchQuery(query);
+  const handleSearchChange = (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
 
-  const filtered = users
-    .filter((u) => !u.is_deleted) // ignore deleted users
-    .filter((user) => {
-      const lowerCaseQuery = query.toLowerCase();
-      return (
-        (user.name?.toLowerCase().includes(lowerCaseQuery) || false) ||
-        (user.mobile_number?.includes(lowerCaseQuery) || false) ||
-        (user.identifications?.some((id) =>
-          id.id_number?.toLowerCase().includes(lowerCaseQuery)
-        ) || false)
-      );
-    });
+    const filtered = users
+      .filter((u) => !u.is_deleted) // ignore deleted users
+      .filter((user) => {
+        const lowerCaseQuery = query.toLowerCase();
+        return (
+          (user.name?.toLowerCase().includes(lowerCaseQuery) || false) ||
+          (user.mobile_number?.includes(lowerCaseQuery) || false) ||
+          (user.identifications?.some((id) =>
+            id.id_number?.toLowerCase().includes(lowerCaseQuery)
+          ) || false)
+        );
+      });
 
-  setFilteredUsers(filtered);
-  setCurrentPage(1);
-};
+    setFilteredUsers(filtered);
+    setCurrentPage(1);
+  };
 
 
   const headers = ["Name", "Mobile", "ID"];
@@ -203,6 +210,7 @@ const handleSearchChange = (e) => {
                   <button
                     onClick={() => {
                       setSelectedUser(user);
+                      setEditingUser(user);  // ✅ Add this
                       setShowForm(false);
                     }}
                     className="text-blue-400 hover:underline"

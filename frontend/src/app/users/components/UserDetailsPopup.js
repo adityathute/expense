@@ -116,9 +116,9 @@ export default function UserDetailsPopup({ selectedUser, onClose, onSave, onDele
 
           {/* Identifications */}
           <div>
-            <h4 className="font-semibold mb-2">Identifications:</h4>
+            <h4 style={{ marginBottom: "0.5rem", marginLeft: "0.2rem" }}>Identifications:</h4>
             {editedUser.identifications.map((id, index) => (
-              <div key={index} className="flex gap-2 items-center mb-2">
+              <div key={index} className={styles.linkRow}>
                 {isEditing ? (
                   <>
                     <input
@@ -126,17 +126,17 @@ export default function UserDetailsPopup({ selectedUser, onClose, onSave, onDele
                       placeholder="ID Name"
                       value={id.id_name}
                       onChange={(e) => handleIDChange(index, "id_name", e.target.value)}
-                      className={styles.modalFormInput}
+                      className={styles.linkUrlInput}
                     />
                     <input
                       type="text"
                       placeholder="ID Number"
                       value={id.id_number}
                       onChange={(e) => handleIDChange(index, "id_number", e.target.value)}
-                      className={styles.modalFormInput}
+                      className={styles.linkUrlInput}
                     />
                     {editedUser.identifications.length > 1 && (
-                      <button onClick={() => handleRemoveID(index)}>
+                      <button onClick={() => handleRemoveID(index)} className={styles.removeButton}>
                         <DeleteIcon className={styles.icon} />
                       </button>
                     )}
@@ -146,6 +146,7 @@ export default function UserDetailsPopup({ selectedUser, onClose, onSave, onDele
                 )}
               </div>
             ))}
+
             {isEditing && (
               <button type="button" onClick={handleAddID} className="service-edit-btn">
                 + Add More ID
@@ -156,23 +157,34 @@ export default function UserDetailsPopup({ selectedUser, onClose, onSave, onDele
           {/* Actions */}
           <div className="flex gap-2 mt-4">
             {isEditing ? (
-              <button onClick={handleSave} className="service-edit-btn">Save</button>
+              // When editing → only show Save
+              <div style={{ display: "flex", justifyContent: "center" }}>
+                <button onClick={handleSave} className={styles.buttonSubmit}>
+                  Update User
+                </button>
+              </div>
             ) : (
-              <button
-                onClick={() => setIsEditing(true)}
-                className="service-edit-btn"
-                style={{ marginRight: "0.7rem" }}
-              >
-                ✎ Edit
-              </button>
+              <>
+                {/* Edit button */}
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="service-edit-btn"
+                  style={{ marginRight: "0.7rem" }}
+                >
+                  ✎ Edit User
+                </button>
+
+                {/* Delete button */}
+                <button
+                  className="service-delete-btn"
+                  onClick={() => setShowDeleteModal(true)}
+                >
+                  🗑 Delete
+                </button>
+              </>
             )}
-            <button
-              className="service-delete-btn"
-              onClick={() => setShowDeleteModal(true)}
-            >
-              🗑 Delete
-            </button>
           </div>
+
         </div>
       </Modal>
 
