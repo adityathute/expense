@@ -73,14 +73,14 @@ export default function Users() {
   };
 
   const handleSaveEdit = async (userData) => {
-    if (!editingUser) return;
+    if (!userData?.id) return; // ✅ ensure ID present
 
     try {
       const payload = {
         name: userData.name,
         mobile_number: userData.mobile_number,
         gender: userData.gender,
-        user_type: userData.user_type,
+        user_type: userData.user_type || "",
         identifications: userData.identifications.map((id) => ({
           id_name: id.id_name,
           id_number: id.id_number,
@@ -89,40 +89,32 @@ export default function Users() {
         })),
       };
 
-      const response = await fetch(
-        `http://127.0.0.1:8001/api/users/${editingUser.id}/`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        }
-      );
+      const response = await fetch(`http://127.0.0.1:8001/api/users/${userData.id}/`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
       if (response.ok) {
         const updatedUser = await response.json();
-        setUsers((prev) => {
-          const updated = prev.map((u) =>
-            u.id === updatedUser.id ? updatedUser : u
-          );
-          return [...updated]; // ensures new reference
-        });
 
-        setFilteredUsers((prev) => {
-          const updated = prev.map((u) =>
-            u.id === updatedUser.id ? updatedUser : u
-          );
-          return [...updated];
-        });
-        setEditingUser(null);
-        // setSelectedUser(null);
+        setUsers((prev) =>
+          prev.map((u) => (u.id === updatedUser.id ? updatedUser : u))
+        );
+        setFilteredUsers((prev) =>
+          prev.map((u) => (u.id === updatedUser.id ? updatedUser : u))
+        );
+
+        setSelectedUser(updatedUser); // ✅ keep popup open with new data
       } else {
-        const errorData = await response.json();
-        console.error("Failed to update user:", response.status, errorData);
+        const err = await response.json();
+        console.error("Failed to update user:", err);
       }
     } catch (error) {
       console.error("Error updating user:", error);
     }
   };
+
 
   const handleAddUser = async (userData) => {
     try {

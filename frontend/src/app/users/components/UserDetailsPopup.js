@@ -60,7 +60,7 @@ export default function UserDetailsPopup({ selectedUser, onClose, onSave, onDele
   };
 
   const handleSave = () => {
-    onSave(editedUser);
+    onSave({ ...selectedUser, ...editedUser }); // ✅ ensures the ID and base user info are passed
     setIsEditing(false);
   };
 
