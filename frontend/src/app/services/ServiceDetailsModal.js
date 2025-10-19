@@ -198,7 +198,7 @@ export default function ServiceDetailsModal({
           <button
             className="service-delete-btn"
             onClick={() => {
-              onDelete(service);
+              onDelete();
               onClose();
             }}
           >

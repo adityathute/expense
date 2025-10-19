@@ -88,12 +88,36 @@ def category_detail(request, category_id):
 # ---------------------- USER RELATED VIEWS ---------------------- #
 
 class UserListCreateView(generics.ListCreateAPIView):
-    queryset = User.objects.all()
     serializer_class = UserSerializer
 
+    def get_queryset(self):
+        show_deleted = self.request.query_params.get("show_deleted") == "true"
+        if show_deleted:
+            return User.objects.filter(is_deleted=True)
+        return User.objects.filter(is_deleted=False)
+
 class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = User.objects.all()
+    queryset = User.objects.filter(is_deleted=False)
     serializer_class = UserSerializer
+
+@api_view(['POST'])
+def user_restore(request, user_id):
+    try:
+        user = User.objects.get(id=user_id, is_deleted=True)
+        user.is_deleted = False
+        user.save()
+        return Response({"success": True})
+    except User.DoesNotExist:
+        return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['DELETE'])
+def user_hard_delete(request, user_id):
+    try:
+        user = User.objects.get(id=user_id, is_deleted=True)
+        user.delete()  # permanently remove
+        return Response({"success": True})
+    except User.DoesNotExist:
+        return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
     
 # --------- SERVICE RELATED VIEWS --------- #
 
