@@ -151,7 +151,13 @@ export default function UidTransactions() {
       <Modal
         isOpen={isOpen}
         onClose={handleClose}
-        title={isEditing ? "Edit Transaction" : "Transaction Details"}
+        title={
+          modalMode === "new"
+            ? "Add New Transaction"
+            : isEditing
+              ? "Edit Transaction"
+              : "Transaction Details"
+        }
       >
         {modalMode === "new" && <NewTransactionForm onSubmit={handleSaveNew} />}
 

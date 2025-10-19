@@ -26,7 +26,9 @@ export default function EditTransactionForm({ existing, onSubmit, onCancel }) {
                 className={styles.modalFormInput}
                 onChange={(e) => setData({ ...data, amount: e.target.value })}
             />
-            <button type="submit" className={styles.buttonSubmit}>Update</button>
+            <div style={{ display: "flex", justifyContent: "center" }}>
+                <button type="submit" className={styles.buttonSubmit}>Update</button>
+            </div>
             {onCancel && (
                 <button type="button" onClick={onCancel}>
                     Cancel
