@@ -7,9 +7,10 @@ import StyledTable from "../components/StyledTable";
 import Pagination from "../components/Pagination";
 import BalanceCell from "../components/BalanceCell";
 // import "./transactions.css";
+import styles from "../styles/components/modalForm.module.css";
+import HeaderWithNewButton from "../components/common/HeaderWithNewButton";
 
 export default function UidTransactions() {
-  const [loading, setLoading] = useState(false);
   const [entries, setEntries] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -20,7 +21,6 @@ export default function UidTransactions() {
   }, []);
 
   const fetchEntries = async () => {
-    setLoading(true);
     try {
       const response = await fetch("http://127.0.0.1:8001/api/uid-entries/");
       if (response.ok) {
@@ -32,8 +32,6 @@ export default function UidTransactions() {
       }
     } catch (error) {
       console.error("Error fetching entries:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -70,29 +68,33 @@ export default function UidTransactions() {
 
   return (
     <div>
-      <h1>Transactions</h1>
-      {loading ? (
-        <p>Loading...</p>
-      ) : (
-        <>
-          <SearchBar
-            value={searchQuery}
-            onChange={handleSearch}
-            placeholder="Search by Name, Mobile, Aadhaar"
-          />
-          <StyledTable
-            headers={headers}
-            columns={columns}
-            data={currentEntries}
-            renderCell={renderCell}
-          />
-          <Pagination
-            currentPage={currentPage}
-            totalPages={Math.ceil(filteredEntries.length / entriesPerPage)}
-            onPageChange={paginate}
-          />
-        </>
-      )}
+      <HeaderWithNewButton
+        title="Transactions"
+        buttonLabel="Add Transaction"
+        onClick={() => {
+          resetForm();
+          setShowForm(true);
+          setShowLinksSection(false);
+        }}
+      />
+      <>
+        <SearchBar
+          value={searchQuery}
+          onChange={handleSearch}
+          placeholder="Search transactions..."
+        />
+        <StyledTable
+          headers={headers}
+          columns={columns}
+          data={currentEntries}
+          renderCell={renderCell}
+        />
+        <Pagination
+          currentPage={currentPage}
+          totalPages={Math.ceil(filteredEntries.length / entriesPerPage)}
+          onPageChange={paginate}
+        />
+      </>
     </div>
   );
 }
