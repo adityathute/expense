@@ -77,10 +77,6 @@ export default function Users() {
 
     try {
       const payload = {
-<<<<<<< HEAD
-        name: editingUser.name,
-        mobile_number: editingUser.mobile_number,
-=======
         name: userData.name,
         mobile_number: userData.mobile_number,
         gender: userData.gender,
