@@ -1,7 +1,7 @@
 // login/page.js
 "use client";
 import Link from "next/link";
-// import "./login.css";
+import "./login.css";
 
 export default function Login() {
     return (
