@@ -15,6 +15,8 @@ from .models import (
     ServiceDocumentRequirement,
     SupportingDocument,
     ServiceSupportingDocument,
+    ServiceTransaction, 
+    FinanceTransaction
 )
 
 # ---------------------- CATEGORY RELATED SERIALIZER ---------------------- #
@@ -350,4 +352,13 @@ class AccountSerializer(serializers.ModelSerializer):
         }
 
 
-# ---------------------- UID SERVICE RELATED SERIALIZER ---------------------- #
+# ---------------------- TRANSACTIONS RELATED SERIALIZER ---------------------- #
+class ServiceTransactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ServiceTransaction
+        fields = "__all__"
+
+class FinanceTransactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FinanceTransaction
+        fields = "__all__"

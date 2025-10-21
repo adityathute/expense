@@ -1,8 +1,8 @@
 from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 from rest_framework import generics, status, viewsets
-from .models import Category, Service, User, Account, Document, ServiceDocumentRequirement, DocumentCategory, SupportingDocument, ServiceSupportingDocument
-from .serializers import CategorySerializer, UserSerializer, ServiceSerializer, AccountSerializer, DocumentSerializer, ServiceDocumentRequirementSerializer, SupportingDocumentSerializer, ServiceSupportingDocumentSerializer
+from .models import Category, Service, User, Account, Document, ServiceDocumentRequirement, DocumentCategory, SupportingDocument, ServiceSupportingDocument, ServiceTransaction, FinanceTransaction
+from .serializers import CategorySerializer, UserSerializer, ServiceSerializer, AccountSerializer, DocumentSerializer, ServiceDocumentRequirementSerializer, SupportingDocumentSerializer, ServiceSupportingDocumentSerializer, ServiceTransactionSerializer, FinanceTransactionSerializer
 from rest_framework.generics import DestroyAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
@@ -23,7 +23,13 @@ pdfmetrics.registerFont(TTFont('Gotham', os.path.join('static', 'fonts', 'Gotham
 @api_view(['GET', 'POST'])
 def category_list(request):
     category_type = request.GET.get('type')
-    show_deleted = request.GET.get('show_deleted') == 'true'  # ✅
+    show_deleted = request.GET.get('show_deleted') == 'true'
+
+    if category_type is not None:
+        if category_type.lower() in ["true", "1"]:
+            category_type = True
+        else:
+            category_type = False
 
     if request.method == "POST":
         serializer = CategorySerializer(data=request.data)
@@ -33,13 +39,13 @@ def category_list(request):
         return Response(serializer.errors, status=400)
 
     core_category_names = [c[0] for c in CORE_CATEGORIES]
-    
+
     if show_deleted:
         categories = Category.objects.exclude(name__in=core_category_names)
     else:
         categories = Category.objects.filter(is_deleted=False).exclude(name__in=core_category_names)
 
-    if category_type:  # Only filter if provided
+    if category_type is not None:  # Only filter if provided
         categories = categories.filter(category_type=category_type)
 
     return Response({
@@ -408,3 +414,13 @@ def generate_pdf(request):
     final_buffer.seek(0)
 
     return FileResponse(final_buffer, as_attachment=True, filename="aadhaar_form_filled.pdf")
+
+# ---------------------- TRANSACTIONS RELATED VIEWS ---------------------- #
+
+class ServiceTransactionViewSet(viewsets.ModelViewSet):
+    queryset = ServiceTransaction.objects.all().order_by('-date_created')
+    serializer_class = ServiceTransactionSerializer
+
+class FinanceTransactionViewSet(viewsets.ModelViewSet):
+    queryset = FinanceTransaction.objects.all().order_by('-date_created')
+    serializer_class = FinanceTransactionSerializer

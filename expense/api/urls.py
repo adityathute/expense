@@ -9,6 +9,8 @@ router.register(r'documents', views.DocumentViewSet, basename='document')
 router.register(r'service-document-requirements', views.ServiceDocumentRequirementViewSet, basename='service-document-requirement')  # ✅ New line
 router.register(r'supporting-documents', views.SupportingDocumentViewSet)
 router.register(r'service-supporting-documents', views.ServiceSupportingDocumentViewSet, basename='service-supporting-document')
+router.register(r'service-transactions', views.ServiceTransactionViewSet, basename='service-transaction')
+router.register(r'finance-transactions', views.FinanceTransactionViewSet, basename='finance-transaction')
 
 urlpatterns = [
     path('api/', include(router.urls)),
@@ -24,7 +26,7 @@ urlpatterns = [
     path('api/documents/create/', views.create_document, name='create_document'),
     path('api/users/<int:user_id>/restore/', views.user_restore, name='user-restore'),
     path('api/users/<int:user_id>/hard-delete/', views.user_hard_delete, name='user-hard-delete'),
-    
+
     # Accounts
     path('api/accounts/', views.AccountListView.as_view(), name='account-list'),
     path('api/accounts/<int:account_id>/restore/', views.account_restore, name='account-restore'),

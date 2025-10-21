@@ -1,8 +1,8 @@
 # api/choices.py
 
 CATEGORY_TYPES = [
-    ("Home", "Home"),
-    ("Shop", "Shop"),
+    ("persoanl", "Persoanl"),
+    ("shop", "Shop"),
 ]
 
 CORE_CATEGORIES = [
@@ -76,6 +76,7 @@ STATUS_CHOICES = [
 PAYMENT_TYPE_CHOICES = [
     ("cash", "Cash"),
     ("online", "Online"),
+    ("mixed", "Mixed"),
 ]
 
 ACCOUNT_TYPE_CHOICES = [
@@ -91,4 +92,11 @@ CATEGORY_CHOICES = [
     ('Personal', 'Personal'),
     ('Home', 'Home'),
     ('Business', 'Business'),
+]
+
+FREQUENCY_CHOICES = [
+    ('daily', 'Daily'),
+    ('weekly', 'Weekly'),
+    ('monthly', 'Monthly'),
+    ('yearly', 'Yearly'),
 ]

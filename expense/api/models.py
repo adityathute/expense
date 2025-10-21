@@ -2,7 +2,7 @@ from django.db import models
 from django.conf import settings
 from decouple import config
 from django.core.exceptions import ValidationError
-from .choices import CATEGORY_TYPES, CORE_CATEGORIES, GENDER_CHOICES, ID_TYPES, DOCUMENT_TYPE_CHOICES, ENTRY_TYPE_CHOICES, UID_TYPE_CHOICES,  UPDATE_TYPE_CHOICES, ENTRY_TYPE_CHOICES, STATUS_CHOICES, UID_TYPE_CHOICES, UPDATE_TYPE_CHOICES, PAYMENT_TYPE_CHOICES, ACCOUNT_TYPE_CHOICES, CATEGORY_CHOICES
+from .choices import CATEGORY_TYPES, CORE_CATEGORIES, GENDER_CHOICES, ID_TYPES, DOCUMENT_TYPE_CHOICES, ENTRY_TYPE_CHOICES, UID_TYPE_CHOICES,  UPDATE_TYPE_CHOICES, ENTRY_TYPE_CHOICES, STATUS_CHOICES, UID_TYPE_CHOICES, UPDATE_TYPE_CHOICES, PAYMENT_TYPE_CHOICES, ACCOUNT_TYPE_CHOICES, CATEGORY_CHOICES, FREQUENCY_CHOICES
 import os
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
@@ -72,15 +72,9 @@ class UserID(models.Model):
 class Category(models.Model):
     name = models.CharField(max_length=255, unique=True)
     description = models.TextField(blank=True)
-    parent = models.ForeignKey(
-        "self", on_delete=models.CASCADE, null=True, blank=True, related_name="subcategories"
-    )
-    core_category = models.CharField(
-        max_length=20, choices=CORE_CATEGORIES, null=True, blank=True
-    )
-    category_type = models.CharField(
-        max_length=10, choices=CATEGORY_TYPES, blank=True, null=True
-    )
+    parent = models.ForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="subcategories")
+    core_category = models.CharField(max_length=20, choices=CORE_CATEGORIES, null=True, blank=True)
+    category_type = models.BooleanField(default=False, verbose_name="Is Personal")  # False = Shop, True = Personal
     is_deleted = models.BooleanField(default=False, verbose_name="Is Deleted")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -240,51 +234,61 @@ class Account(models.Model):
         ]
 
 # ---------------------- TRANSACTION RELATED MODELS ---------------------- #
-class Transactions(models.Model):
+class Transaction(models.Model):
+    category_type = models.CharField(max_length=20, choices=CATEGORY_TYPES, blank=True, null=True)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
-    service = models.ForeignKey(Service, on_delete=models.SET_NULL, null=True, blank=True)
-    account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True)
+    account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True)  # Default account
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    transaction_type = models.CharField(max_length=10, choices=CORE_CATEGORIES)
-    payment_method = models.CharField(max_length=10, choices=PAYMENT_TYPE_CHOICES)
+    payment_method = models.CharField(max_length=10, choices=PAYMENT_TYPE_CHOICES, blank=True, null=True)  # cash, online, mixed
     description = models.TextField(blank=True, null=True)
+    due_date = models.DateField(null=True, blank=True)
+    reminder_date = models.DateField(null=True, blank=True)
+    is_cleared = models.BooleanField(default=True)
+    is_recurring = models.BooleanField(default=False)
+    recurring_frequency = models.CharField(max_length=10, choices=FREQUENCY_CHOICES, blank=True, null=True)  
+    recurring_count = models.PositiveIntegerField(blank=True, null=True)  
+    next_due_date = models.DateField(null=True, blank=True)
+    is_deleted = models.BooleanField(default=False, verbose_name="Is Deleted")
+    split_details = models.JSONField(default=list, blank=True) # Split payment details (for mixed payments)
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
 
-# ---------------------- ENTRY RELATED MODELS ---------------------- #
+    class Meta:
+        abstract = True
 
-# Fetch the enrollment prefix from the environment
-ENROLLMENT_PREFIX = config("ENROLLMENT_PREFIX", default="085528018")
+    # Helper method to add a split payment
+    def add_split_payment(self, payment_method, amount, account=None, cash_counter=None):
+        entry = {
+            "payment_method": payment_method,
+            "amount": float(amount)
+        }
+        if account:
+            entry["account_id"] = account.id
+        if cash_counter:
+            entry["cash_counter"] = cash_counter
 
-class ServiceTempEntry(models.Model):
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    service = models.ForeignKey(Service, on_delete=models.CASCADE)
-    service_type = models.CharField(max_length=20, choices=UPDATE_TYPE_CHOICES, blank=True, null=True)
-    mobile_number = models.CharField(max_length=10)
-    update_type = models.CharField(max_length=15, choices=UID_TYPE_CHOICES, default="offline")
-    entry_type = models.CharField(max_length=10, choices=ENTRY_TYPE_CHOICES, default="update")
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+        # Always append, allow multiple splits of same type
+        self.split_details.append(entry)
+        self.save()
 
-    def __str__(self):
-        return f"{self.user}"
-
-class ServiceEntry(models.Model):
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    service = models.ForeignKey(Service, on_delete=models.CASCADE)
-    service_type = models.CharField(max_length=20, choices=UPDATE_TYPE_CHOICES, blank=True, null=True)
-    mobile_number = models.CharField(max_length=10)
-    is_miscellaneous = models.BooleanField(default=False, help_text="True if this is a non-standard or walk-in transaction.")
-    update_type = models.CharField(max_length=15, choices=UID_TYPE_CHOICES, default="offline")
-    entry_type = models.CharField(max_length=10, choices=ENTRY_TYPE_CHOICES, default="update")
-    account = models.ForeignKey(Account, on_delete=models.CASCADE, blank=True, null=True)
-    service_charge = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    payment_type = models.CharField(max_length=20, choices=PAYMENT_TYPE_CHOICES, blank=True, null=True)
+class ServiceTransaction(Transaction):
+    service = models.ForeignKey(Service, on_delete=models.SET_NULL, null=True, blank=True)
+    acknowledgement_number = models.CharField(max_length=255, blank=True, null=True)
     enrollment_number = models.CharField(max_length=50, blank=True, null=True)
+    tracking_id = models.CharField(max_length=255, blank=True, null=True)
+    mobile_number = models.CharField(max_length=10)
+    entry_type = models.CharField(max_length=10, choices=ENTRY_TYPE_CHOICES, default="update")
+    service_charge = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="pending")
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.user}"
+        return f"Service {self.user or ''} ({self.service})"
+
+class FinanceTransaction(Transaction):
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
+    is_transfer = models.BooleanField(default=False)
+    from_account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='transfers_from')
+    to_account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='transfers_to')
+
+    def __str__(self):
+        return f"Finance {self.user}"

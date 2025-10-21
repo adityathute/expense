@@ -28,60 +28,82 @@ export default function NewTransactionForm({ onSubmit }) {
     fetchServices();
   }, []);
 
-  // Fetch categories whenever categoryType changes or Finance is selected
+  // Fetch all categories once and filter later
   useEffect(() => {
-    if (type !== "finance") return;
-
     const fetchCategories = async () => {
       try {
-        // Send type param to backend to filter categories by Shop/Personal
-        const res = await fetch(
-          `http://127.0.0.1:8001/api/categories/?type=${categoryType}`
-        );
+        const res = await fetch("http://127.0.0.1:8001/api/categories/");
         const data = await res.json();
-        setCategoryOptions(data.categories || []);
+        setCategoryOptions(Array.isArray(data) ? data : data.categories || []);
       } catch (err) {
         console.error(err);
         setCategoryOptions([]);
       }
     };
-
     fetchCategories();
-  }, [type, categoryType]);
+  }, []);
 
-  const handleSubmit = (e) => {
+  // Reset selected category when toggle changes
+  useEffect(() => {
+    setSelectedCategory("");
+  }, [categoryType]);
+
+  // Filter categories based on toggle
+  const filteredCategories = categoryOptions.filter(
+    (c) => c.type === (categoryType ? "personal" : "shop")
+  );
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const payload = type === "service"
-      ? {
-        user: parseInt(user),
-        amount: parseFloat(amount),
-        service: parseInt(selectedService)
-      }
-      : {
-        user: parseInt(user),
-        amount: parseFloat(amount),
-        category: parseInt(selectedCategory)  // only this field
-      };
+    // Basic validation
+    if (!user || !amount || (type === "service" && !selectedService) || (type === "finance" && !selectedCategory)) {
+      alert("Please fill all required fields");
+      return;
+    }
 
-    const endpoint = type === "service"
-      ? "http://127.0.0.1:8001/api/service-transactions/"
-      : "http://127.0.0.1:8001/api/finance-transactions/";
+    const payload =
+      type === "service"
+        ? {
+            user: parseInt(user),
+            amount: parseFloat(amount),
+            service: parseInt(selectedService),
+          }
+        : {
+            user: parseInt(user),
+            amount: parseFloat(amount),
+            category: parseInt(selectedCategory),
+            category_type: categoryType ? "personal" : "shop",
+          };
 
-    fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    })
-      .then(res => {
-        if (!res.ok) throw res; // Throw if 400/500
-        return res.json();
-      })
-      .then(data => onSubmit(data))
-      .catch(async err => {
-        const text = await err.text();
-        console.error("FinanceTransaction POST error:", text);
+    const endpoint =
+      type === "service"
+        ? "http://127.0.0.1:8001/api/service-transactions/"
+        : "http://127.0.0.1:8001/api/finance-transactions/";
+
+    try {
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || "Unknown error");
+      }
+
+      const data = await res.json();
+      onSubmit(data);
+
+      // Reset form
+      setAmount("");
+      setSelectedCategory("");
+      setSelectedService("");
+    } catch (err) {
+      console.error("Transaction POST error:", err);
+      alert("Failed to save transaction. Check console for details.");
+    }
   };
 
   return (
@@ -116,7 +138,7 @@ export default function NewTransactionForm({ onSubmit }) {
 
       {type === "finance" && (
         <>
-          {/* Category Type Switch on top */}
+          {/* Category Type Switch */}
           <div className="switch-container" style={{ margin: "0.5rem 0" }}>
             <label className="switch">
               <input
@@ -138,7 +160,7 @@ export default function NewTransactionForm({ onSubmit }) {
             onChange={(e) => setSelectedCategory(e.target.value)}
           >
             <option value="">--Select--</option>
-            {categoryOptions.map((c) => (
+            {filteredCategories.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
               </option>

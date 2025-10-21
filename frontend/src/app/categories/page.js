@@ -11,7 +11,7 @@ import Pagination from "../components/Pagination";
 export default function Categories() {
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [categories, setCategories] = useState([]);
-  const [categoryType, setCategoryType] = useState("Shop");
+  const [categoryType, setCategoryType] = useState(false); // false = Shop, true = Personal
   const [coreCategories, setCoreCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -44,14 +44,13 @@ export default function Categories() {
 
   async function fetchCategories() {
     try {
+      // Send boolean to backend: false = shop, true = personal
       const response = await fetch(`http://127.0.0.1:8001/api/categories/?type=${categoryType}`);
-
       if (!response.ok) throw new Error("Failed to fetch categories");
       const data = await response.json();
 
       if (Array.isArray(data)) {
-        setCategories(data); // API returns an array
-        setCategories(data.categories);
+        setCategories(data);
       } else {
         setCategories(data.categories || []);
         setCoreCategories(data.core_categories || []);
@@ -62,6 +61,7 @@ export default function Categories() {
       setLoading(false);
     }
   }
+
 
   async function handleAddCategory() {
     if (!newCategory.core_category) return alert("Please select a Core Category!");
@@ -186,15 +186,13 @@ export default function Categories() {
           <label className="switch">
             <input
               type="checkbox"
-              checked={categoryType === "Shop"}
-              onChange={() => {
-                if (!loading) setCategoryType(categoryType === "Home" ? "Shop" : "Home");
-              }}
+              checked={categoryType} // true = Personal, false = Shop
+              onChange={() => setCategoryType(!categoryType)}
             />
             <span className="slider"></span>
           </label>
 
-          <span className="switch-text">{categoryType}</span>
+          <span className="switch-text">{categoryType ? "Personal" : "Shop"}</span>
         </div>
 
         {/* Add Button */}
