@@ -21,11 +21,16 @@ export default function Transactions() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [services, setServices] = useState([]);
+  const [categories, setCategories] = useState([]);
+
   const entriesPerPage = 10;
   const serviceEndpoint = "http://127.0.0.1:8001/api/service-transactions/";
   const financeEndpoint = "http://127.0.0.1:8001/api/finance-transactions/";
+  const servicesApi = "http://127.0.0.1:8001/api/services/";
+  const categoriesApi = "http://127.0.0.1:8001/api/categories/";
 
-  // ✅ Fetch function outside useEffect so others can call it
+  // Fetch transactions
   const fetchTransactions = async () => {
     try {
       const [serviceRes, financeRes] = await Promise.all([
@@ -47,7 +52,6 @@ export default function Transactions() {
       ].sort((a, b) => new Date(b.date_created) - new Date(a.date_created));
 
       setTransactions(combinedData);
-
     } catch (err) {
       console.error(err);
     } finally {
@@ -55,21 +59,37 @@ export default function Transactions() {
     }
   };
 
-  // ✅ Call once on mount
+  // Fetch services and categories for mapping ID → Name
+  const fetchServicesAndCategories = async () => {
+    try {
+      const [servicesRes, categoriesRes] = await Promise.all([
+        fetch(servicesApi),
+        fetch(categoriesApi),
+      ]);
+      if (!servicesRes.ok || !categoriesRes.ok) throw new Error("Failed to fetch mapping");
+      const [servicesData, categoriesData] = await Promise.all([
+        servicesRes.json(),
+        categoriesRes.json(),
+      ]);
+      setServices(servicesData);
+      setCategories(categoriesData);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     fetchTransactions();
+    fetchServicesAndCategories();
   }, []);
 
-  // ✅ Called after save new
   const handleSaveNew = async () => {
-    await fetchTransactions(); // refresh table
-    handleClose(); // close modal
+    await fetchTransactions();
+    handleClose();
   };
 
   const filteredTransactions = transactions.filter((t) =>
-    (t.user?.username || "")
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase())
+    (t.user?.username || "").toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const totalPages = Math.ceil(filteredTransactions.length / entriesPerPage);
@@ -99,7 +119,13 @@ export default function Transactions() {
   };
 
   const openView = (entry) => {
-    setSelectedData(entry);
+    const fullEntry = {
+      ...entry,
+      service_fee: entry.service_fee || entry.service?.fee || 0, // fallback if needed
+      service_name: entry.service_name || getName(entry.service, "Service"),
+      category_name: entry.category_name || getName(entry.category, "Finance"),
+    };
+    setSelectedData(fullEntry);
     setIsEditing(false);
     setModalMode("view");
     setIsOpen(true);
@@ -111,15 +137,24 @@ export default function Transactions() {
     setIsOpen(true);
   };
 
+  // Ensure services/categories are arrays
+  const getName = (id, type) => {
+    if (!id) return "-";
+    if (!Array.isArray(services)) return id;
+    if (!Array.isArray(categories)) return id;
+
+    if (type === "Service") return services.find((s) => s.id === id)?.name || id;
+    return categories.find((c) => c.id === id)?.name || id;
+  };
+
   const headers = ["TransID", "Type", "User", "Service / Category", "Amount", "Date"];
   const columns = ["global_id", "transaction_type", "user.username", "service_or_category", "amount", "date_created"];
 
   const tableData = paginatedTransactions.map((t) => ({
     ...t,
-    service_or_category:
-      t.transaction_type === "Service"
-        ? t.service?.name || "-"
-        : t.category?.name || "-",
+    service_or_category: t.transaction_type === "Service" ? t.service_name : t.category_name,
+    service_or_category_id: t.transaction_type === "Service" ? t.service : t.category_id,
+    service_fee: t.service_fee,
   }));
 
   return (
@@ -145,39 +180,18 @@ export default function Transactions() {
           data={tableData}
           renderCell={(row, col) => {
             if (col === "amount") return <BalanceCell value={row[col]} />;
-
-            // Only make Global ID clickable
-            if (col === "global_id") {
-              return (
-                <button
-                  onClick={() => openView(row)}
-                  style={{
-                    fontWeight: 600,
-                    color: "#38bdf8",
-                    background: "transparent",
-                    outline: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    fontSize: ".9rem",
-                  }}                >
-                  {row[col]}
-                </button>
-              );
-            }
-
-            if (col === "user.username" || col === "service_or_category") {
-              // just display text, no click
-              return row[col] || "-";
-            }
-
-            if (col === "date_created") {
-              const date = new Date(row[col]);
-              return date.toLocaleDateString("en-GB"); // DD/MM/YYYY
-            }
-
+            if (col === "global_id") return (
+              <button onClick={() => openView(row)} style={{ fontWeight: 600, color: "#38bdf8", background: "transparent", outline: "none", border: "none", cursor: "pointer", fontSize: ".9rem" }}>
+                {row.global_id}
+              </button>
+            );
+            if (col === "user.username") return row.user?.username || "-";
+            if (col === "service_or_category") return row.service_or_category || "-";
+            if (col === "date_created") return new Date(row.date_created).toLocaleDateString("en-GB");
             return row[col];
           }}
-          getRowKey={(row) => `${row.transaction_type}-${row.global_id}`}
+          getRowKey={(row) => `${row.transaction_type}-${row.id}`}
+
         />
       ) : (
         <div style={{ padding: "1rem", textAlign: "center", color: "#888" }}>
@@ -205,19 +219,17 @@ export default function Transactions() {
         }
       >
         {modalMode === "new" && <NewTransactionForm onSubmit={handleSaveNew} />}
-
         {modalMode === "view" && !isEditing && (
           <ViewTransactionForm
             data={selectedData}
+            getName={getName}
             onEdit={() => openEditFromView(selectedData)}
             onClose={handleClose}
           />
         )}
-
         {modalMode === "view" && isEditing && (
           <EditTransactionForm existing={selectedData} onSubmit={() => { }} />
         )}
-
         {modalMode === "edit" && (
           <EditTransactionForm existing={selectedData} onSubmit={() => { }} />
         )}

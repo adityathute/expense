@@ -52,43 +52,43 @@ export default function NewTransactionForm({ onSubmit }) {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const payload = type === "service"
-      ? {
-        user: parseInt(user),
-        amount: parseFloat(amount),
-        service: parseInt(selectedService)
-      }
-      : {
-        user: parseInt(user),
-        amount: parseFloat(amount),
-        category: parseInt(selectedCategory)  // only this field
-      };
+    // Validate
+    if (type === "service" && !selectedService) {
+      alert("Please select a service");
+      return;
+    }
+    if (type === "finance" && !selectedCategory) {
+      alert("Please select a category");
+      return;
+    }
 
-    const endpoint = type === "service"
-      ? "http://127.0.0.1:8001/api/service-transactions/"
-      : "http://127.0.0.1:8001/api/finance-transactions/";
+    const payload = type === "service"
+      ? { user, amount, service: selectedService }
+      : { user, amount, category: selectedCategory };
+
+    const endpoint =
+      type === "service"
+        ? "http://127.0.0.1:8001/api/service-transactions/"
+        : "http://127.0.0.1:8001/api/finance-transactions/";
 
     fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     })
-      .then(res => {
-        if (!res.ok) throw res; // Throw if 400/500
+      .then((res) => {
+        if (!res.ok) throw res;
         return res.json();
       })
       .then(() => onSubmit())
       .catch(async (err) => {
         if (err instanceof Response) {
-          // Backend returned HTTP error with text body
           const text = await err.text();
           console.error("POST error response:", text);
         } else {
-          // JS error (network/logic)
           console.error("POST error:", err);
         }
       });
-
   };
 
   return (

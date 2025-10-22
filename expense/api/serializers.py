@@ -354,11 +354,18 @@ class AccountSerializer(serializers.ModelSerializer):
 
 # ---------------------- TRANSACTIONS RELATED SERIALIZER ---------------------- #
 class ServiceTransactionSerializer(serializers.ModelSerializer):
+    service_name = serializers.CharField(source='service.name', read_only=True)
+    service_fee = serializers.DecimalField(source='service.service_fee', max_digits=10, decimal_places=2, read_only=True)
+    global_id = serializers.CharField(read_only=True)
+
     class Meta:
         model = ServiceTransaction
-        fields = "__all__"
+        fields = ["id", "global_id", "user", "amount", "service", "service_name", "service_fee", "date_created"]
 
 class FinanceTransactionSerializer(serializers.ModelSerializer):
+    category_name = serializers.CharField(source='category.name', read_only=True)
+    global_id = serializers.CharField(read_only=True)  # display only
+
     class Meta:
         model = FinanceTransaction
-        fields = "__all__"
+        fields = ["id", "global_id", "user", "amount", "category", "category_name", "date_created"]
