@@ -124,15 +124,16 @@ export default function NewTransactionForm({ onSubmit }) {
       return;
     }
 
-    if (type === "finance" && (!selectedCore || !selectedLeaf)) {
-      alert("Please select a category");
-      return;
-    }
+if (type === "finance" && (!selectedCore || !selectedLeaf)) {
+  alert("Please select a category");
+  return;
+}
 
-    const payload =
-      type === "service"
-        ? { user, amount, service: selectedService }
-        : { user, amount, category_path: categoryPath };
+const payload =
+  type === "service"
+    ? { user, amount, service: selectedService }
+    : { user, amount, category: parseInt(selectedLeaf, 10) }; // <-- send ID
+
 
     const endpoint =
       type === "service"
