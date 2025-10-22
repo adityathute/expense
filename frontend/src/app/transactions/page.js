@@ -17,47 +17,54 @@ export default function Transactions() {
   const [selectedData, setSelectedData] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const entriesPerPage = 10;
   const [isEditing, setIsEditing] = useState(false);
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const entriesPerPage = 10;
   const serviceEndpoint = "http://127.0.0.1:8001/api/service-transactions/";
   const financeEndpoint = "http://127.0.0.1:8001/api/finance-transactions/";
 
-  // Fetch both Service and Finance transactions
+  // ✅ Fetch function outside useEffect so others can call it
+  const fetchTransactions = async () => {
+    try {
+      const [serviceRes, financeRes] = await Promise.all([
+        fetch(serviceEndpoint),
+        fetch(financeEndpoint),
+      ]);
+
+      if (!serviceRes.ok || !financeRes.ok)
+        throw new Error("Failed to fetch transactions");
+
+      const [serviceData, financeData] = await Promise.all([
+        serviceRes.json(),
+        financeRes.json(),
+      ]);
+
+      const combinedData = [
+        ...serviceData.map((t) => ({ ...t, transaction_type: "Service" })),
+        ...financeData.map((t) => ({ ...t, transaction_type: "Finance" })),
+      ].sort((a, b) => new Date(b.date_created) - new Date(a.date_created));
+
+      setTransactions(combinedData);
+
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ✅ Call once on mount
   useEffect(() => {
-    const fetchTransactions = async () => {
-      try {
-        const [serviceRes, financeRes] = await Promise.all([
-          fetch(serviceEndpoint),
-          fetch(financeEndpoint),
-        ]);
-
-        if (!serviceRes.ok || !financeRes.ok)
-          throw new Error("Failed to fetch transactions");
-
-        const [serviceData, financeData] = await Promise.all([
-          serviceRes.json(),
-          financeRes.json(),
-        ]);
-
-        // Add a "type" field to distinguish rows
-        const combinedData = [
-          ...serviceData.map((t) => ({ ...t, transaction_type: "Service" })),
-          ...financeData.map((t) => ({ ...t, transaction_type: "Finance" })),
-        ];
-
-        setTransactions(combinedData);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchTransactions();
   }, []);
+
+  // ✅ Called after save new
+  const handleSaveNew = async () => {
+    await fetchTransactions(); // refresh table
+    handleClose(); // close modal
+  };
 
   const filteredTransactions = transactions.filter((t) =>
     (t.user?.username || "")
@@ -84,50 +91,35 @@ export default function Transactions() {
     setIsOpen(true);
   };
 
+  const openEditFromView = (entry) => {
+    setSelectedData(entry);
+    setIsEditing(true);
+    setModalMode("view");
+    setIsOpen(true);
+  };
+
+  const openView = (entry) => {
+    setSelectedData(entry);
+    setIsEditing(false);
+    setModalMode("view");
+    setIsOpen(true);
+  };
+
   const openEdit = (entry) => {
     setSelectedData(entry);
     setModalMode("edit");
     setIsOpen(true);
   };
 
-  const openEditFromView = (entry) => {
-    setSelectedData(entry);
-    setIsEditing(true);
-    setIsOpen(true);
-    setModalMode("view");
-  };
+  const headers = ["TransID", "Type", "User", "Service / Category", "Amount", "Date"];
+  const columns = ["global_id", "transaction_type", "user.username", "service_or_category", "amount", "date_created"];
 
-  const openView = (entry) => {
-    setSelectedData(entry);
-    setModalMode("view");
-    setIsEditing(false);
-    setIsOpen(true);
-  };
-
-  const headers = [
-    "ID",
-    "Type",
-    "User",
-    "Service / Category",
-    "Amount",
-    "Date",
-  ];
-
-  const columns = [
-    "id",
-    "transaction_type",
-    "user.username",
-    "service_or_category",
-    "amount",
-    "date_created",
-  ];
-
-  // Map service or finance name dynamically
   const tableData = paginatedTransactions.map((t) => ({
     ...t,
-    service_or_category: t.transaction_type === "Service"
-      ? t.service?.name || "-"
-      : t.category?.name || "-",
+    service_or_category:
+      t.transaction_type === "Service"
+        ? t.service?.name || "-"
+        : t.category?.name || "-",
   }));
 
   return (
@@ -153,13 +145,39 @@ export default function Transactions() {
           data={tableData}
           renderCell={(row, col) => {
             if (col === "amount") return <BalanceCell value={row[col]} />;
-            if (col === "user.username" || col === "service_or_category") {
-              const value = row[col] || "-";
-              return <button onClick={() => openView(row)}>{value}</button>;
+
+            // Only make Global ID clickable
+            if (col === "global_id") {
+              return (
+                <button
+                  onClick={() => openView(row)}
+                  style={{
+                    fontWeight: 600,
+                    color: "#38bdf8",
+                    background: "transparent",
+                    outline: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    fontSize: ".9rem",
+                  }}                >
+                  {row[col]}
+                </button>
+              );
             }
+
+            if (col === "user.username" || col === "service_or_category") {
+              // just display text, no click
+              return row[col] || "-";
+            }
+
+            if (col === "date_created") {
+              const date = new Date(row[col]);
+              return date.toLocaleDateString("en-GB"); // DD/MM/YYYY
+            }
+
             return row[col];
           }}
-          getRowKey={(row) => `${row.transaction_type}-${row.id}`}
+          getRowKey={(row) => `${row.transaction_type}-${row.global_id}`}
         />
       ) : (
         <div style={{ padding: "1rem", textAlign: "center", color: "#888" }}>
@@ -182,11 +200,11 @@ export default function Transactions() {
           modalMode === "new"
             ? "Add New Transaction"
             : isEditing
-            ? "Edit Transaction"
-            : "Transaction Details"
+              ? "Edit Transaction"
+              : "Transaction Details"
         }
       >
-        {modalMode === "new" && <NewTransactionForm onSubmit={() => {}} />}
+        {modalMode === "new" && <NewTransactionForm onSubmit={handleSaveNew} />}
 
         {modalMode === "view" && !isEditing && (
           <ViewTransactionForm
@@ -197,17 +215,11 @@ export default function Transactions() {
         )}
 
         {modalMode === "view" && isEditing && (
-          <EditTransactionForm
-            existing={selectedData}
-            onSubmit={() => {}}
-          />
+          <EditTransactionForm existing={selectedData} onSubmit={() => { }} />
         )}
 
         {modalMode === "edit" && (
-          <EditTransactionForm
-            existing={selectedData}
-            onSubmit={() => {}}
-          />
+          <EditTransactionForm existing={selectedData} onSubmit={() => { }} />
         )}
       </Modal>
     </div>

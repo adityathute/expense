@@ -6,9 +6,9 @@ from .choices import CATEGORY_TYPES, CORE_CATEGORIES, GENDER_CHOICES, ID_TYPES, 
 import os
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
+from django.db import transaction as db_transaction
 
 # ---------------------- USER RELATED MODELS ---------------------- #
-
 class User(models.Model):
     USER_TYPES = [
         ("Customer", "Customer"),
@@ -234,7 +234,11 @@ class Account(models.Model):
         ]
 
 # ---------------------- TRANSACTION RELATED MODELS ---------------------- #
+class GlobalTransactionCounter(models.Model):
+    last_id = models.PositiveIntegerField(default=0)
+
 class Transaction(models.Model):
+    global_id = models.PositiveIntegerField(unique=True, null=True, blank=True)
     category_type = models.CharField(max_length=20, choices=CATEGORY_TYPES, blank=True, null=True)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True)  # Default account
@@ -252,9 +256,17 @@ class Transaction(models.Model):
     split_details = models.JSONField(default=list, blank=True) # Split payment details (for mixed payments)
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
-
     class Meta:
         abstract = True
+
+    def save(self, *args, **kwargs):
+        if not self.global_id:
+            with db_transaction.atomic():
+                counter, _ = GlobalTransactionCounter.objects.select_for_update().get_or_create(id=1)
+                counter.last_id += 1
+                counter.save()
+                self.global_id = counter.last_id
+        super().save(*args, **kwargs)
 
     # Helper method to add a split payment
     def add_split_payment(self, payment_method, amount, account=None, cash_counter=None):
@@ -276,10 +288,10 @@ class ServiceTransaction(Transaction):
     acknowledgement_number = models.CharField(max_length=255, blank=True, null=True)
     enrollment_number = models.CharField(max_length=50, blank=True, null=True)
     tracking_id = models.CharField(max_length=255, blank=True, null=True)
-    mobile_number = models.CharField(max_length=10)
-    entry_type = models.CharField(max_length=10, choices=ENTRY_TYPE_CHOICES, default="update")
+    mobile_number = models.CharField(max_length=10, blank=True, null=True)
+    entry_type = models.CharField(max_length=10, choices=ENTRY_TYPE_CHOICES, default="update", blank=True, null=True)
     service_charge = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="pending")
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="pending", blank=True, null=True)
 
     def __str__(self):
         return f"Service {self.user or ''} ({self.service})"

@@ -77,11 +77,18 @@ export default function NewTransactionForm({ onSubmit }) {
         if (!res.ok) throw res; // Throw if 400/500
         return res.json();
       })
-      .then(data => onSubmit(data))
-      .catch(async err => {
-        const text = await err.text();
-        console.error("FinanceTransaction POST error:", text);
+      .then(() => onSubmit())
+      .catch(async (err) => {
+        if (err instanceof Response) {
+          // Backend returned HTTP error with text body
+          const text = await err.text();
+          console.error("POST error response:", text);
+        } else {
+          // JS error (network/logic)
+          console.error("POST error:", err);
+        }
       });
+
   };
 
   return (
