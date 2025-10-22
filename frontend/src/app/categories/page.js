@@ -202,7 +202,6 @@ export default function Categories() {
   }
 
   async function submitAddCategory() {
-    // selectedNode: either "core-<NAME>" or "<id>"
     if (!newCategory.name?.trim()) return alert("Category name required");
     if (!newCategory.selectedNode) return alert("Please select a place in hierarchy (core or parent category)");
 
@@ -210,15 +209,19 @@ export default function Categories() {
     let core_category = "";
 
     if (newCategory.selectedNode.startsWith("core-")) {
+      // Top-level category under a core
       core_category = newCategory.selectedNode.replace("core-", "");
       parent = null;
     } else {
-      // DB node selected as parent
-      const parentId = parseInt(newCategory.selectedNode, 10);
-      const parentObj = categories.find((c) => c.id === parentId);
-      if (!parentObj) return alert("Selected parent category not found");
-      core_category = parentObj.core_category;
-      parent = parentId;
+      // Subcategory: send parent id directly
+      parent = parseInt(newCategory.selectedNode, 10);
+
+      // Traverse up to find the top-level core category
+      let parentNode = categories.find(c => c.id === parent);
+      while (parentNode?.parent) {
+        parentNode = categories.find(c => c.id === parentNode.parent);
+      }
+      core_category = parentNode ? parentNode.core_category : "";
     }
 
     try {
@@ -233,10 +236,12 @@ export default function Categories() {
           category_type: categoryType,
         }),
       });
+
       if (!res.ok) {
         const text = await res.text();
         throw new Error(text || "Failed to add");
       }
+
       await fetchCategories();
       closeModal();
     } catch (err) {

@@ -23,8 +23,10 @@ export default function Transactions() {
 
   const [services, setServices] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [categoryMap, setCategoryMap] = useState({});
 
   const entriesPerPage = 10;
+
   const serviceEndpoint = "http://127.0.0.1:8001/api/service-transactions/";
   const financeEndpoint = "http://127.0.0.1:8001/api/finance-transactions/";
   const servicesApi = "http://127.0.0.1:8001/api/services/";
@@ -33,6 +35,7 @@ export default function Transactions() {
   // Fetch transactions
   const fetchTransactions = async () => {
     try {
+      setLoading(true);
       const [serviceRes, financeRes] = await Promise.all([
         fetch(serviceEndpoint),
         fetch(financeEndpoint),
@@ -47,9 +50,13 @@ export default function Transactions() {
       ]);
 
       const combinedData = [
-        ...serviceData.map((t) => ({ ...t, transaction_type: "Service" })),
-        ...financeData.map((t) => ({ ...t, transaction_type: "Finance" })),
-      ].sort((a, b) => new Date(b.date_created) - new Date(a.date_created));
+        ...(Array.isArray(serviceData) ? serviceData : serviceData.results || []),
+        ...(Array.isArray(financeData) ? financeData : financeData.results || []),
+      ].map((t) => ({
+        ...t,
+        transaction_type: t.service ? "Service" : "Finance",
+      }))
+        .sort((a, b) => new Date(b.date_created) - new Date(a.date_created));
 
       setTransactions(combinedData);
     } catch (err) {
@@ -59,20 +66,37 @@ export default function Transactions() {
     }
   };
 
-  // Fetch services and categories for mapping ID → Name
+  // Fetch services and categories
   const fetchServicesAndCategories = async () => {
     try {
       const [servicesRes, categoriesRes] = await Promise.all([
         fetch(servicesApi),
         fetch(categoriesApi),
       ]);
+
       if (!servicesRes.ok || !categoriesRes.ok) throw new Error("Failed to fetch mapping");
-      const [servicesData, categoriesData] = await Promise.all([
+
+      const [servicesData, categoriesDataRaw] = await Promise.all([
         servicesRes.json(),
         categoriesRes.json(),
       ]);
-      setServices(servicesData);
-      setCategories(categoriesData);
+
+      const servicesArray = Array.isArray(servicesData)
+        ? servicesData
+        : servicesData.results || [];
+      setServices(servicesArray);
+
+      const categoriesArray = Array.isArray(categoriesDataRaw)
+        ? categoriesDataRaw
+        : categoriesDataRaw.results || categoriesDataRaw.categories || [];
+      setCategories(categoriesArray);
+
+      // Build category map for hierarchy
+      const map = {};
+      categoriesArray.forEach((c) => {
+        map[c.id] = c;
+      });
+      setCategoryMap(map);
     } catch (err) {
       console.error(err);
     }
@@ -88,17 +112,6 @@ export default function Transactions() {
     handleClose();
   };
 
-  const filteredTransactions = transactions.filter((t) =>
-    (t.user?.username || "").toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const totalPages = Math.ceil(filteredTransactions.length / entriesPerPage);
-  const startIndex = (currentPage - 1) * entriesPerPage;
-  const paginatedTransactions = filteredTransactions.slice(
-    startIndex,
-    startIndex + entriesPerPage
-  );
-
   const handleClose = () => {
     setIsOpen(false);
     setSelectedData(null);
@@ -111,22 +124,22 @@ export default function Transactions() {
     setIsOpen(true);
   };
 
-  const openEditFromView = (entry) => {
-    setSelectedData(entry);
-    setIsEditing(true);
+  const openView = (entry) => {
+    const fullEntry = {
+      ...entry,
+      service_name: entry.service_name || services.find(s => s.id === entry.service)?.name || "-",
+      category_name: entry.category_name || getCategoryPath(entry.category) || "-",
+      service_fee: entry.service_fee || entry.service?.fee || 0,
+    };
+    setSelectedData(fullEntry);
+    setIsEditing(false);
     setModalMode("view");
     setIsOpen(true);
   };
 
-  const openView = (entry) => {
-    const fullEntry = {
-      ...entry,
-      service_fee: entry.service_fee || entry.service?.fee || 0, // fallback if needed
-      service_name: entry.service_name || getName(entry.service, "Service"),
-      category_name: entry.category_name || getName(entry.category, "Finance"),
-    };
-    setSelectedData(fullEntry);
-    setIsEditing(false);
+  const openEditFromView = (entry) => {
+    setSelectedData(entry);
+    setIsEditing(true);
     setModalMode("view");
     setIsOpen(true);
   };
@@ -137,25 +150,52 @@ export default function Transactions() {
     setIsOpen(true);
   };
 
-  // Ensure services/categories are arrays
-  const getName = (id, type) => {
-    if (!id) return "-";
-    if (!Array.isArray(services)) return id;
-    if (!Array.isArray(categories)) return id;
+  // Search filter
+  const filteredTransactions = transactions.filter((t) =>
+    (t.user?.username || "").toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
-    if (type === "Service") return services.find((s) => s.id === id)?.name || id;
-    return categories.find((c) => c.id === id)?.name || id;
-  };  
+  const totalPages = Math.ceil(filteredTransactions.length / entriesPerPage);
+  const startIndex = (currentPage - 1) * entriesPerPage;
+  const paginatedTransactions = filteredTransactions.slice(
+    startIndex,
+    startIndex + entriesPerPage
+  );
+
+  // Helper: get category full path
+  const getCategoryPath = (catId) => {
+    if (!catId) return "-";
+    const path = [];
+    let current = categoryMap[catId];
+    while (current) {
+      path.unshift(current.name);
+      if (!current.parent) break;
+      current = categoryMap[current.parent];
+    }
+    // Prepend core_category if exists
+    if (current?.core_category) {
+      path.unshift(current.core_category);
+    }
+    return path.join(" > ");
+  };
 
   const headers = ["TransID", "Type", "User", "Service / Category", "Amount", "Date"];
   const columns = ["global_id", "transaction_type", "user.username", "service_or_category", "amount", "date_created"];
 
-  const tableData = paginatedTransactions.map((t) => ({
-    ...t,
-    service_or_category: t.transaction_type === "Service" ? t.service_name : t.category_name,
-    service_or_category_id: t.transaction_type === "Service" ? t.service : t.category_id,
-    service_fee: t.service_fee,
-  }));
+  // Prepare table data with full hierarchy
+  const tableData = paginatedTransactions.map((t) => {
+    let name = "-";
+    if (t.transaction_type === "Service") {
+      name = t.service_name || services.find(s => s.id === t.service)?.name || "-";
+    } else if (t.transaction_type === "Finance") {
+      name = getCategoryPath(t.category) || "-";
+    }
+    return {
+      ...t,
+      service_or_category: name,
+      service_or_category_id: t.transaction_type === "Service" ? t.service : t.category,
+    };
+  });
 
   return (
     <div>
@@ -181,7 +221,18 @@ export default function Transactions() {
           renderCell={(row, col) => {
             if (col === "amount") return <BalanceCell value={row[col]} />;
             if (col === "global_id") return (
-              <button onClick={() => openView(row)} style={{ fontWeight: 600, color: "#38bdf8", background: "transparent", outline: "none", border: "none", cursor: "pointer", fontSize: ".9rem" }}>
+              <button
+                onClick={() => openView(row)}
+                style={{
+                  fontWeight: 600,
+                  color: "#38bdf8",
+                  background: "transparent",
+                  outline: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: ".9rem",
+                }}
+              >
                 {row.global_id}
               </button>
             );
@@ -191,7 +242,6 @@ export default function Transactions() {
             return row[col];
           }}
           getRowKey={(row) => `${row.transaction_type}-${row.id}`}
-
         />
       ) : (
         <div style={{ padding: "1rem", textAlign: "center", color: "#888" }}>
@@ -222,7 +272,7 @@ export default function Transactions() {
         {modalMode === "view" && !isEditing && (
           <ViewTransactionForm
             data={selectedData}
-            getName={getName}
+            getName={(id, type) => type === "Service" ? services.find(s => s.id === id)?.name || id : getCategoryPath(id)}
             onEdit={() => openEditFromView(selectedData)}
             onClose={handleClose}
           />

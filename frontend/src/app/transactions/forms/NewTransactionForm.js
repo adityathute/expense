@@ -7,8 +7,10 @@ export default function NewTransactionForm({ onSubmit }) {
   const [type, setType] = useState("service"); // "service" or "finance"
   const [user, setUser] = useState("");
   const [amount, setAmount] = useState("");
+
   const [serviceOptions, setServiceOptions] = useState([]);
-  const [categories, setCategories] = useState([]); // hierarchical categories
+  const [allCategories, setAllCategories] = useState([]); // all categories from API
+  const [categories, setCategories] = useState([]); // categories under selected core
   const [coreCategories, setCoreCategories] = useState([
     "Income",
     "Expense",
@@ -40,7 +42,7 @@ export default function NewTransactionForm({ onSubmit }) {
     fetchServices();
   }, []);
 
-  // Fetch categories on type=finance or categoryType change
+  // Fetch all categories
   useEffect(() => {
     if (type !== "finance") return;
 
@@ -50,47 +52,57 @@ export default function NewTransactionForm({ onSubmit }) {
           `http://127.0.0.1:8001/api/categories/?type=${categoryType}`
         );
         const data = await res.json();
-        const allCategories = data.categories || [];
+        const allCats = data.categories || [];
+        setAllCategories(allCats);
 
-        // Filter only categories under selected core
-        const filteredByCore = allCategories.filter(
-          (cat) => cat.core_category === selectedCore
-        );
+        if (selectedCore) {
+          const filteredByCore = allCats.filter(
+            (cat) => cat.core_category === selectedCore
+          );
 
-        // Build tree
-        const buildTree = (items, parentId = null) =>
-          items
-            .filter((i) => i.parent === parentId)
-            .map((i) => ({
-              ...i,
-              children: buildTree(items, i.id),
-            }));
+          const buildTree = (items, parentId = null) =>
+            items
+              .filter((i) => i.parent === parentId)
+              .map((i) => ({
+                ...i,
+                children: buildTree(items, i.id),
+              }));
 
-        setCategories(buildTree(filteredByCore));
-        setSelectedLeaf("");
-        setCategoryPath(selectedCore ? [selectedCore] : []);
+          setCategories(buildTree(filteredByCore));
+          setSelectedLeaf("");
+          setCategoryPath(selectedCore ? [selectedCore] : []);
+        } else {
+          setCategories([]);
+        }
       } catch (err) {
         console.error(err);
         setCategories([]);
       }
     };
 
-    if (selectedCore) fetchCategories();
-    else setCategories([]);
+    fetchCategories();
   }, [type, categoryType, selectedCore]);
 
-  // Render hierarchy options recursively
-  const renderOptions = (nodes, path = [], level = 0) =>
+  // Compute available core categories (only cores with at least one leaf)
+  const availableCoreCategories = coreCategories.filter((core) => {
+    const cats = allCategories.filter((c) => c.core_category === core);
+    // has at least one leaf (category that is not a parent)
+    return cats.some((c) => !cats.some((child) => child.parent === c.id));
+  });
+
+  // Render hierarchy options recursively (leaf selectable, indentation)
+  const renderOptions = (nodes, level = 0) =>
     nodes.map((node) => {
-      const currentPath = [...path, node.name];
       const hasChildren = node.children && node.children.length > 0;
+      const indent = "\u00A0\u00A0".repeat(level); // 2 non-breaking spaces per level
 
       return (
         <React.Fragment key={node.id}>
           <option value={node.id} disabled={hasChildren}>
-            {"-".repeat(level)} {node.name}
+            {indent}
+            {node.name}
           </option>
-          {hasChildren && renderOptions(node.children, currentPath, level + 1)}
+          {hasChildren && renderOptions(node.children, level + 1)}
         </React.Fragment>
       );
     });
@@ -124,16 +136,15 @@ export default function NewTransactionForm({ onSubmit }) {
       return;
     }
 
-if (type === "finance" && (!selectedCore || !selectedLeaf)) {
-  alert("Please select a category");
-  return;
-}
+    if (type === "finance" && (!selectedCore || !selectedLeaf)) {
+      alert("Please select a category");
+      return;
+    }
 
-const payload =
-  type === "service"
-    ? { user, amount, service: selectedService }
-    : { user, amount, category: parseInt(selectedLeaf, 10) }; // <-- send ID
-
+    const payload =
+      type === "service"
+        ? { user, amount, service: selectedService }
+        : { user, amount, category: parseInt(selectedLeaf, 10) };
 
     const endpoint =
       type === "service"
@@ -217,7 +228,7 @@ const payload =
             onChange={(e) => setSelectedCore(e.target.value)}
           >
             <option value="">--Select Core Category--</option>
-            {coreCategories.map((core) => (
+            {availableCoreCategories.map((core) => (
               <option key={core} value={core}>
                 {core}
               </option>
