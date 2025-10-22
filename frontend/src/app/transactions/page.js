@@ -145,7 +145,7 @@ export default function Transactions() {
 
     if (type === "Service") return services.find((s) => s.id === id)?.name || id;
     return categories.find((c) => c.id === id)?.name || id;
-  };
+  };  
 
   const headers = ["TransID", "Type", "User", "Service / Category", "Amount", "Date"];
   const columns = ["global_id", "transaction_type", "user.username", "service_or_category", "amount", "date_created"];
