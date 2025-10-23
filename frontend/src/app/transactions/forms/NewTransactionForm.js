@@ -103,20 +103,38 @@ export default function NewTransactionForm({ onSubmit }) {
 
   // Split helpers
   const addSplitRow = () => setSplits([...splits, { account: "", amount: "" }]);
-  // Split helpers
-  const updateSplitRow = (index, field, value) => {
-    const newSplits = [...splits];
+
+// Update split row
+const updateSplitRow = (index, field, value) => {
+  const newSplits = [...splits];
+
+  if (field === "amount") {
+    // Remove non-digit characters except dot
+    let sanitized = value.replace(/[^0-9.]/g, "");
+    // Prevent multiple dots
+    const parts = sanitized.split(".");
+    if (parts.length > 2) sanitized = parts[0] + "." + parts[1];
+
+    newSplits[index][field] = sanitized;
+  } else {
     newSplits[index][field] = value;
-    setSplits(newSplits);
+  }
 
-    // Update total amount automatically for Income
-    if (selectedCategory?.core_category === "Income") {
-      const total = newSplits.reduce((sum, s) => sum + Number(s.amount || 0), 0);
-      setAmount(total);
-    }
-  };
+  setSplits(newSplits);
+};
 
-  const removeSplitRow = (index) => setSplits([...splits.slice(0, index), ...splits.slice(index + 1)]);
+// Remove split row
+const removeSplitRow = (index) => {
+  const newSplits = splits.filter((_, i) => i !== index);
+  setSplits(newSplits); // only update splits
+};
+
+// Auto-calculate total whenever splits change
+useEffect(() => {
+  const total = splits.reduce((sum, s) => sum + Number(s.amount || 0), 0);
+  setAmount(total);
+}, [splits]);
+
   const getTotalSplitAmount = () => splits.reduce((total, s) => total + Number(s.amount || 0), 0);
 
   const handleSubmit = async (e) => {

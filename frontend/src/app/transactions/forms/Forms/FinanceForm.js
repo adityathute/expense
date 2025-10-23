@@ -99,7 +99,7 @@ export default function FinanceForm({
               </select>
 
               <input
-                type="number"
+                type="text"
                 placeholder="Amount"
                 value={split.amount}
                 onChange={(e) => updateSplitRow(i, "amount", e.target.value)}
@@ -121,7 +121,7 @@ export default function FinanceForm({
               className={styles.buttonAddLink}
               style={{ marginTop: "0.25rem" }}
             >
-              Add Account
+              Add More Account
             </button>
           )}
         </div>
