@@ -252,7 +252,9 @@ class Transaction(models.Model):
     next_due_date = models.DateField(null=True, blank=True)
     is_deleted = models.BooleanField(default=False, verbose_name="Is Deleted")
     is_split = models.BooleanField(default=False, verbose_name="Is Split Payment")
-    split_details = models.JSONField(default=list, blank=True) # Split payment details (for mixed payments)
+    split_details = models.JSONField(default=list, blank=True)
+    last_payment_date = models.DateField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=[("planned", "Planned"), ("paid", "Paid"), ("skipped", "Skipped")], default="planned")
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
     class Meta:

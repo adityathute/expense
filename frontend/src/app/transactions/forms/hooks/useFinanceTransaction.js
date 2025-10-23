@@ -12,6 +12,9 @@ export default function useFinanceTransaction() {
   const [accounts, setAccounts] = useState([]);
   const [splits, setSplits] = useState([{ account: "", amount: "" }]);
   const [totalAmount, setTotalAmount] = useState("");
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [frequency, setFrequency] = useState("daily"); // default
+  const [nextDueDate, setNextDueDate] = useState(""); // optional
 
   // Fetch categories
   useEffect(() => {
@@ -111,5 +114,11 @@ export default function useFinanceTransaction() {
     removeSplitRow,
     getTotalSplitAmount,
     handleLeafChange,
+    isRecurring,
+    setIsRecurring,
+    frequency,
+    setFrequency,
+    nextDueDate,
+    setNextDueDate,
   };
 }

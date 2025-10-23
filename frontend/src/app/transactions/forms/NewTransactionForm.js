@@ -61,6 +61,10 @@ export default function NewTransactionForm({ onSubmit }) {
         }))
         : [],
       account: isSplit ? null : parseInt(finance.splits[0].account),
+      is_recurring: finance.isRecurring,
+      recurring_frequency: finance.frequency,
+      next_due_date: finance.nextDueDate || null,
+      status: "planned"
     };
 
     const endpoint =
@@ -115,6 +119,10 @@ export default function NewTransactionForm({ onSubmit }) {
           updateSplitRow={finance.updateSplitRow}
           removeSplitRow={finance.removeSplitRow}
           getTotalSplitAmount={finance.getTotalSplitAmount}
+          isRecurring={finance.isRecurring}
+          setIsRecurring={finance.setIsRecurring}
+          frequency={finance.frequency}
+          setFrequency={finance.setFrequency}
         />
       )}
 

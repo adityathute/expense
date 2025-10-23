@@ -19,7 +19,11 @@ export default function FinanceForm({
   addSplitRow,
   updateSplitRow,
   removeSplitRow,
-  getTotalSplitAmount
+  getTotalSplitAmount,
+  isRecurring,
+  setIsRecurring,
+  frequency,
+  setFrequency
 }) {
   const renderOptions = (nodes, level = 0) =>
     nodes.map((node) => {
@@ -98,7 +102,6 @@ export default function FinanceForm({
                 }
               </select>
 
-
               <input
                 type="text"
                 placeholder="Amount"
@@ -125,6 +128,22 @@ export default function FinanceForm({
           )}
         </div>
       )}
+
+      <label>
+        <input type="checkbox" checked={isRecurring} onChange={() => setIsRecurring(!isRecurring)} />
+        Recurring Transaction
+      </label>
+
+      {isRecurring && (
+        <select value={frequency} onChange={e => setFrequency(e.target.value)}>
+          <option value="daily">Daily</option>
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+          <option value="6monthly">Every 6 Months</option>
+          <option value="28days">Every 28 Days</option>
+        </select>
+      )}
+
     </>
   );
 }

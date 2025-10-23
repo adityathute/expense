@@ -367,7 +367,7 @@ class ServiceTransactionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ServiceTransaction
-        fields = ["id", "global_id", "user", "amount", "service", "service_name", "service_fee", "date_created"]
+        fields = ["id", "global_id", "user", "amount", "service", "service_name", "service_fee", "date_created", "is_recurring", "recurring_frequency", "next_due_date", "status"]
 
 class FinanceTransactionSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source='category.name', read_only=True)
@@ -385,17 +385,29 @@ class FinanceTransactionSerializer(serializers.ModelSerializer):
         allow_empty=True,
     )
 
-    is_split = serializers.BooleanField(default=False)  # <-- add this
+    is_split = serializers.BooleanField(default=False)
+    
+    # Add recurring fields
+    is_recurring = serializers.BooleanField(default=False)
+    recurring_frequency = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    next_due_date = serializers.DateField(required=False, allow_null=True)
 
     class Meta:
         model = FinanceTransaction
         fields = [
             "id", "global_id", "user", "amount", "category", "category_name",
-            "account", "split_details", "is_split", "date_created"
+            "account", "split_details", "is_split", "is_recurring", "recurring_frequency", "next_due_date",
+            "date_created"
         ]
 
     def create(self, validated_data):
         split_details = validated_data.pop("split_details", [])
+        
+        # Extract recurring fields
+        is_recurring = validated_data.pop("is_recurring", False)
+        recurring_frequency = validated_data.pop("recurring_frequency", None)
+        next_due_date = validated_data.pop("next_due_date", None)
+
         account = validated_data.get("account", None)
         category = validated_data.get("category", None)
         amount_raw = validated_data.get("amount", "0")
@@ -407,8 +419,13 @@ class FinanceTransactionSerializer(serializers.ModelSerializer):
             amount = Decimal("0")
 
         with transaction.atomic():
-            tx = FinanceTransaction.objects.create(**validated_data)
-
+            tx = FinanceTransaction.objects.create(
+                **validated_data,
+                is_recurring=is_recurring,
+                recurring_frequency=recurring_frequency,
+                next_due_date=next_due_date
+            )
+            
             # Ensure amount is positive
             amount = abs(amount)
 
