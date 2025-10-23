@@ -239,11 +239,9 @@ class GlobalTransactionCounter(models.Model):
 
 class Transaction(models.Model):
     global_id = models.PositiveIntegerField(unique=True, null=True, blank=True)
-    category_type = models.CharField(max_length=20, choices=CATEGORY_TYPES, blank=True, null=True)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True)  # Default account
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    payment_method = models.CharField(max_length=10, choices=PAYMENT_TYPE_CHOICES, blank=True, null=True)  # cash, online, mixed
     description = models.TextField(blank=True, null=True)
     due_date = models.DateField(null=True, blank=True)
     reminder_date = models.DateField(null=True, blank=True)
