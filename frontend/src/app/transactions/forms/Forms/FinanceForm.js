@@ -129,13 +129,20 @@ export default function FinanceForm({
         </div>
       )}
 
-      <label>
-        <input type="checkbox" checked={isRecurring} onChange={() => setIsRecurring(!isRecurring)} />
+      <label className={styles.uiCheckbox}>
+        <input
+          type="checkbox"
+          checked={isRecurring}
+          onChange={() => setIsRecurring(!isRecurring)}
+        />
+        <span></span>
         Recurring Transaction
       </label>
 
       {isRecurring && (
-        <select value={frequency} onChange={e => setFrequency(e.target.value)}>
+        <select value={frequency} onChange={e => setFrequency(e.target.value)}
+          className={`${styles.modalFormInput} ${styles.linkLabelInput}`}
+          >
           <option value="daily">Daily</option>
           <option value="weekly">Weekly</option>
           <option value="monthly">Monthly</option>
@@ -143,7 +150,6 @@ export default function FinanceForm({
           <option value="28days">Every 28 Days</option>
         </select>
       )}
-
     </>
   );
 }

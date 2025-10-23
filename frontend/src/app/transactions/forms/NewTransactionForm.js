@@ -126,7 +126,7 @@ export default function NewTransactionForm({ onSubmit }) {
         />
       )}
 
-      <label>Total Amount</label>
+      <label style={{ marginTop: "0.25rem", display: "block" }}>Total Amount</label>
       <input type="number" value={finance.totalAmount.toString()} className={styles.modalFormInput} readOnly />
 
       <button type="submit" className={styles.buttonSubmit}>Save</button>
