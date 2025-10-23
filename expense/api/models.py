@@ -253,6 +253,7 @@ class Transaction(models.Model):
     recurring_count = models.PositiveIntegerField(blank=True, null=True)  
     next_due_date = models.DateField(null=True, blank=True)
     is_deleted = models.BooleanField(default=False, verbose_name="Is Deleted")
+    is_split = models.BooleanField(default=False, verbose_name="Is Split Payment")
     split_details = models.JSONField(default=list, blank=True) # Split payment details (for mixed payments)
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)

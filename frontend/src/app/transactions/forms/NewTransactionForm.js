@@ -2,33 +2,35 @@
 
 import React, { useState, useEffect } from "react";
 import styles from "../../styles/components/modalForm.module.css";
+import ServiceForm from "./Forms/ServiceForm";
+import FinanceForm from "./Forms/FinanceForm";
 
 export default function NewTransactionForm({ onSubmit }) {
-  const [type, setType] = useState("service"); // "service" or "finance"
+  const [type, setType] = useState("service");
   const [user, setUser] = useState("");
-  const [amount, setAmount] = useState("");
+  const [amount, setAmount] = useState(""); // total amount
 
+  // Services
   const [serviceOptions, setServiceOptions] = useState([]);
-  const [allCategories, setAllCategories] = useState([]); // all categories from API
-  const [categories, setCategories] = useState([]); // categories under selected core
-  const [coreCategories, setCoreCategories] = useState([
-    "Income",
-    "Expense",
-    "Money",
-    "Debt",
-    "Invest",
-    "Saving",
-  ]);
-
   const [selectedService, setSelectedService] = useState("");
+
+  // Finance
+  const [categoryType, setCategoryType] = useState(false);
+  const [allCategories, setAllCategories] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [coreCategories] = useState(["Income", "Expense", "Money", "Debt", "Invest", "Saving"]);
   const [selectedCore, setSelectedCore] = useState("");
   const [selectedLeaf, setSelectedLeaf] = useState("");
-  const [categoryPath, setCategoryPath] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [accounts, setAccounts] = useState([]);
+  const [selectedAccount, setSelectedAccount] = useState("");
 
-  const [categoryType, setCategoryType] = useState(false); // false=Shop, true=Personal
+  // Split payment state
+  const [splits, setSplits] = useState([{ account: "", amount: "" }]);
 
   // Fetch services
   useEffect(() => {
+    if (type !== "service") return;
     const fetchServices = async () => {
       try {
         const res = await fetch("http://127.0.0.1:8001/api/services/");
@@ -40,93 +42,82 @@ export default function NewTransactionForm({ onSubmit }) {
       }
     };
     fetchServices();
-  }, []);
+  }, [type]);
 
-  // Fetch all categories
+  // Fetch categories
   useEffect(() => {
     if (type !== "finance") return;
-
     const fetchCategories = async () => {
       try {
-        const res = await fetch(
-          `http://127.0.0.1:8001/api/categories/?type=${categoryType}`
-        );
+        const res = await fetch(`http://127.0.0.1:8001/api/categories/?type=${categoryType}`);
         const data = await res.json();
         const allCats = data.categories || [];
         setAllCategories(allCats);
 
         if (selectedCore) {
-          const filteredByCore = allCats.filter(
-            (cat) => cat.core_category === selectedCore
-          );
-
+          const filteredByCore = allCats.filter(cat => cat.core_category === selectedCore);
           const buildTree = (items, parentId = null) =>
-            items
-              .filter((i) => i.parent === parentId)
-              .map((i) => ({
-                ...i,
-                children: buildTree(items, i.id),
-              }));
-
+            items.filter(i => i.parent === parentId).map(i => ({ ...i, children: buildTree(items, i.id) }));
           setCategories(buildTree(filteredByCore));
           setSelectedLeaf("");
-          setCategoryPath(selectedCore ? [selectedCore] : []);
+          setSelectedCategory(null);
         } else {
           setCategories([]);
+          setSelectedCategory(null);
         }
       } catch (err) {
         console.error(err);
         setCategories([]);
       }
     };
-
     fetchCategories();
   }, [type, categoryType, selectedCore]);
 
-  // Compute available core categories (only cores with at least one leaf)
-  const availableCoreCategories = coreCategories.filter((core) => {
-    const cats = allCategories.filter((c) => c.core_category === core);
-    // has at least one leaf (category that is not a parent)
-    return cats.some((c) => !cats.some((child) => child.parent === c.id));
+  // Fetch accounts
+  useEffect(() => {
+    if (type !== "finance") return;
+    const fetchAccounts = async () => {
+      try {
+        const res = await fetch("http://127.0.0.1:8001/api/accounts/");
+        const data = await res.json();
+        setAccounts(Array.isArray(data) ? data : data.results || []);
+      } catch (err) {
+        console.error(err);
+        setAccounts([]);
+      }
+    };
+    fetchAccounts();
+  }, [type]);
+
+  const availableCoreCategories = coreCategories.filter(core => {
+    const cats = allCategories.filter(c => c.core_category === core);
+    return cats.some(c => !cats.some(child => child.parent === c.id));
   });
 
-  // Render hierarchy options recursively (leaf selectable, indentation)
-  const renderOptions = (nodes, level = 0) =>
-    nodes.map((node) => {
-      const hasChildren = node.children && node.children.length > 0;
-      const indent = "\u00A0\u00A0".repeat(level); // 2 non-breaking spaces per level
-
-      return (
-        <React.Fragment key={node.id}>
-          <option value={node.id} disabled={hasChildren}>
-            {indent}
-            {node.name}
-          </option>
-          {hasChildren && renderOptions(node.children, level + 1)}
-        </React.Fragment>
-      );
-    });
-
-  // Update selected leaf and category path
   const handleLeafChange = (e) => {
     const leafId = e.target.value;
     setSelectedLeaf(leafId);
-
-    const findPath = (nodes, targetId, path = []) => {
-      for (let node of nodes) {
-        const newPath = [...path, node.name];
-        if (node.id == targetId) return newPath;
-        if (node.children) {
-          const childPath = findPath(node.children, targetId, newPath);
-          if (childPath) return childPath;
-        }
-      }
-      return null;
-    };
-
-    const path = findPath(categories, leafId);
-    setCategoryPath([selectedCore, ...(path ? path.slice(1) : [])]);
+    const catObj = allCategories.find(c => String(c.id) === String(leafId)) || null;
+    setSelectedCategory(catObj);
   };
+
+  // Split helpers
+  const addSplitRow = () => setSplits([...splits, { account: "", amount: "" }]);
+  // Split helpers
+  const updateSplitRow = (index, field, value) => {
+    const newSplits = [...splits];
+    newSplits[index][field] = value;
+    setSplits(newSplits);
+
+    // Update total amount automatically for Income
+    if (selectedCategory?.core_category === "Income") {
+      const total = newSplits.reduce((sum, s) => sum + Number(s.amount || 0), 0);
+      setAmount(total);
+    }
+  };
+
+  const removeSplitRow = (index) => setSplits([...splits.slice(0, index), ...splits.slice(index + 1)]);
+  const getTotalSplitAmount = () => splits.reduce((total, s) => total + Number(s.amount || 0), 0);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -135,16 +126,35 @@ export default function NewTransactionForm({ onSubmit }) {
       alert("Please select a service");
       return;
     }
-
     if (type === "finance" && (!selectedCore || !selectedLeaf)) {
       alert("Please select a category");
       return;
     }
 
-    const payload =
-      type === "service"
-        ? { user, amount, service: selectedService }
-        : { user, amount, category: parseInt(selectedLeaf, 10) };
+    let isSplit = splits.length > 1;
+    let payload = {};
+
+    if (type === "service") {
+      payload = { user, amount: Number(amount), service: selectedService };
+    } else {
+      payload = {
+        user,
+        amount: Number(amount),
+        category: parseInt(selectedLeaf, 10),
+        is_split: isSplit
+      };
+
+      if (isSplit) {
+        payload.split_details = splits.map(s => ({
+          account_id: parseInt(s.account),
+          amount: Number(s.amount)
+        }));
+        payload.account = null; // no default account
+      } else {
+        payload.account = parseInt(splits[0].account); // single account
+        payload.split_details = []; // clear split details
+      }
+    }
 
     const endpoint =
       type === "service"
@@ -157,12 +167,7 @@ export default function NewTransactionForm({ onSubmit }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text);
-      }
-
+      if (!res.ok) throw new Error(await res.text());
       onSubmit();
     } catch (err) {
       console.error("Submit error:", err);
@@ -172,7 +177,6 @@ export default function NewTransactionForm({ onSubmit }) {
 
   return (
     <form onSubmit={handleSubmit} className={styles.modalForm}>
-      {/* Transaction Type */}
       <label>Transaction Type</label>
       <select
         value={type}
@@ -183,83 +187,42 @@ export default function NewTransactionForm({ onSubmit }) {
         <option value="finance">Finance</option>
       </select>
 
-      {/* Service Selection */}
       {type === "service" && (
-        <>
-          <label>Select Service</label>
-          <select
-            value={selectedService}
-            className={styles.modalFormInput}
-            onChange={(e) => setSelectedService(e.target.value)}
-          >
-            <option value="">--Select Service--</option>
-            {serviceOptions.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
-        </>
+        <ServiceForm
+          serviceOptions={serviceOptions}
+          selectedService={selectedService}
+          setSelectedService={setSelectedService}
+        />
       )}
 
-      {/* Finance Selection */}
       {type === "finance" && (
-        <>
-          {/* Category Type Switch */}
-          <div className="switch-container" style={{ margin: "0.5rem 0" }}>
-            <label className="switch">
-              <input
-                type="checkbox"
-                checked={categoryType}
-                onChange={() => setCategoryType(!categoryType)}
-              />
-              <span className="slider"></span>
-            </label>
-            <span style={{ marginLeft: "0.5rem" }}>
-              {categoryType ? "Personal" : "Shop"}
-            </span>
-          </div>
+        <FinanceForm
+          categoryType={categoryType}
+          setCategoryType={setCategoryType}
+          selectedCore={selectedCore}
+          setSelectedCore={setSelectedCore}
+          availableCoreCategories={availableCoreCategories}
+          categories={categories}
+          selectedLeaf={selectedLeaf}
+          onLeafChange={handleLeafChange}
+          selectedCategory={selectedCategory}
+          accounts={accounts}
 
-          {/* Core Category */}
-          <label>Select Core Category</label>
-          <select
-            value={selectedCore}
-            className={styles.modalFormInput}
-            onChange={(e) => setSelectedCore(e.target.value)}
-          >
-            <option value="">--Select Core Category--</option>
-            {availableCoreCategories.map((core) => (
-              <option key={core} value={core}>
-                {core}
-              </option>
-            ))}
-          </select>
-
-          {/* Hierarchy Dropdown */}
-          {selectedCore && categories.length > 0 && (
-            <>
-              <label>Select Category</label>
-              <select
-                value={selectedLeaf}
-                className={styles.modalFormInput}
-                onChange={handleLeafChange}
-              >
-                <option value="">--Select--</option>
-                {renderOptions(categories)}
-              </select>
-            </>
-          )}
-        </>
+          // Split props
+          splits={splits}
+          addSplitRow={addSplitRow}
+          updateSplitRow={updateSplitRow}
+          removeSplitRow={removeSplitRow}
+          getTotalSplitAmount={getTotalSplitAmount}
+        />
       )}
 
-      {/* Amount */}
-      <label>Amount</label>
+      <label>Total Amount</label>
       <input
         type="number"
         value={amount}
         className={styles.modalFormInput}
-        onChange={(e) => setAmount(e.target.value)}
-        placeholder="Enter amount"
+        readOnly
       />
 
       <button type="submit" className={styles.buttonSubmit}>

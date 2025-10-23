@@ -1,4 +1,7 @@
 from rest_framework import serializers
+from decimal import Decimal
+from django.db import transaction
+from django.db.models import F
 from .models import (
     Category,
     Service,
@@ -368,8 +371,68 @@ class ServiceTransactionSerializer(serializers.ModelSerializer):
 
 class FinanceTransactionSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source='category.name', read_only=True)
-    global_id = serializers.CharField(read_only=True)  # display only
+    global_id = serializers.CharField(read_only=True)
+    
+    account = serializers.PrimaryKeyRelatedField(
+        queryset=Account.objects.filter(is_deleted=False),
+        required=False,
+        allow_null=True,
+    )
+    
+    split_details = serializers.ListField(
+        child=serializers.DictField(),
+        required=False,
+        allow_empty=True,
+    )
+
+    is_split = serializers.BooleanField(default=False)  # <-- add this
 
     class Meta:
         model = FinanceTransaction
-        fields = ["id", "global_id", "user", "amount", "category", "category_name", "date_created"]
+        fields = [
+            "id", "global_id", "user", "amount", "category", "category_name",
+            "account", "split_details", "is_split", "date_created"
+        ]
+
+    def create(self, validated_data):
+        split_details = validated_data.pop("split_details", [])
+        account = validated_data.get("account", None)
+        category = validated_data.get("category", None)
+        amount_raw = validated_data.get("amount", "0")
+
+        # Convert amount string to Decimal
+        try:
+            amount = Decimal(str(amount_raw))
+        except Exception:
+            amount = Decimal("0")
+
+        with transaction.atomic():
+            tx = FinanceTransaction.objects.create(**validated_data)
+
+            # Single account update if no splits
+            if not split_details and account is not None and getattr(category, "core_category", None) == "Income":
+                Account.objects.filter(pk=account.pk).update(balance=F('balance') + amount)
+                account.refresh_from_db()
+
+            # Process split payments
+            for split in split_details:
+                split_amount = Decimal(str(split.get("amount", 0)))
+                split_account_id = split.get("account_id")
+                split_account = None
+                if split_account_id:
+                    split_account = Account.objects.get(pk=split_account_id)
+
+                # Update account balance for Income category
+                if split_account and getattr(category, "core_category", None) == "Income":
+                    Account.objects.filter(pk=split_account.pk).update(balance=F('balance') + split_amount)
+                    split_account.refresh_from_db()
+
+                # Save split in transaction
+                tx.add_split_payment(
+                    payment_method=split.get("payment_method"),
+                    amount=split_amount,
+                    account=split_account,
+                    cash_counter=split.get("cash_counter")
+                )
+
+            return tx

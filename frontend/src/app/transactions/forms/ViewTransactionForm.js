@@ -16,7 +16,16 @@ export default function ViewTransactionForm({ data, getName, onEdit, onDelete, o
                 {data.global_id && <p><strong>Transaction ID:</strong> {data.global_id}</p>}
                 {data.transaction_type && <p><strong>Type:</strong> {data.transaction_type}</p>}
                 {data.user?.username && <p><strong>User:</strong> {data.user.username}</p>}
-                <p><strong>{isService ? "Service Name" : "Category Name"}:</strong> {name}</p>
+                {!isService && data.category_type_flag !== undefined && (
+                    <p><strong>Category Type:</strong> {data.category_type_flag ? "Personal" : "Shop"}</p>
+                )}
+
+                <p>
+                    <strong>{isService ? "Service Name" : "Category"}:</strong>{" "}
+                    {Array.isArray(data.category_hierarchy)
+                        ? data.category_hierarchy.join(" > ")
+                        : name}
+                </p>
                 {/* Show both amounts */}
                 {data.amount && <p><strong>Transaction Amount:</strong> ₹{data.amount}</p>}
                 {isService && data.service_fee && (
