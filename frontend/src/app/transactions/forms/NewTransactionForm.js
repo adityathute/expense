@@ -42,22 +42,26 @@ export default function NewTransactionForm({ onSubmit }) {
       return alert("Please select a category");
 
     const isSplit = finance.splits.length > 1;
-    const total = Number(finance.totalAmount);
-    if (type === "finance" && total <= 0) return alert("Transaction amount must be > 0");
+    let total = Number(finance.totalAmount);
 
-    const payload =
-      type === "service"
-        ? { user, amount: Number(amount), service: selectedService }
-        : {
-            user,
-            amount: total,
-            category: parseInt(finance.selectedLeaf, 10),
-            is_split: isSplit,
-            split_details: isSplit
-              ? finance.splits.map(s => ({ account_id: parseInt(s.account), amount: Number(s.amount) }))
-              : [],
-            account: isSplit ? null : parseInt(finance.splits[0].account),
-          };
+    // For Expense, convert amount to negative
+    if (finance.selectedCategory?.core_category === "Expense") {
+      total = -Math.abs(total);
+    }
+
+    const payload = {
+      user,
+      amount: Number(finance.totalAmount),
+      category: parseInt(finance.selectedLeaf, 10),
+      is_split: isSplit,
+      split_details: isSplit
+        ? finance.splits.map(s => ({
+          account_id: parseInt(s.account),
+          amount: Number(s.amount) * (finance.selectedCategory?.core_category === "Expense" ? -1 : 1)
+        }))
+        : [],
+      account: isSplit ? null : parseInt(finance.splits[0].account),
+    };
 
     const endpoint =
       type === "service"

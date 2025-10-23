@@ -409,25 +409,32 @@ class FinanceTransactionSerializer(serializers.ModelSerializer):
         with transaction.atomic():
             tx = FinanceTransaction.objects.create(**validated_data)
 
+            # Ensure amount is positive
+            amount = abs(amount)
+
             # Single account update if no splits
-            if not split_details and account is not None and getattr(category, "core_category", None) == "Income":
-                Account.objects.filter(pk=account.pk).update(balance=F('balance') + amount)
+            if not split_details and account is not None:
+                if getattr(category, "core_category", None) == "Income":
+                    Account.objects.filter(pk=account.pk).update(balance=F('balance') + amount)
+                elif getattr(category, "core_category", None) == "Expense":
+                    Account.objects.filter(pk=account.pk).update(balance=F('balance') - amount)
                 account.refresh_from_db()
 
             # Process split payments
             for split in split_details:
-                split_amount = Decimal(str(split.get("amount", 0)))
+                split_amount = abs(Decimal(str(split.get("amount", 0))))
                 split_account_id = split.get("account_id")
                 split_account = None
                 if split_account_id:
                     split_account = Account.objects.get(pk=split_account_id)
 
-                # Update account balance for Income category
-                if split_account and getattr(category, "core_category", None) == "Income":
-                    Account.objects.filter(pk=split_account.pk).update(balance=F('balance') + split_amount)
+                if split_account:
+                    if getattr(category, "core_category", None) == "Income":
+                        Account.objects.filter(pk=split_account.pk).update(balance=F('balance') + split_amount)
+                    elif getattr(category, "core_category", None) == "Expense":
+                        Account.objects.filter(pk=split_account.pk).update(balance=F('balance') - split_amount)
                     split_account.refresh_from_db()
 
-                # Save split in transaction
                 tx.add_split_payment(
                     payment_method=split.get("payment_method"),
                     amount=split_amount,

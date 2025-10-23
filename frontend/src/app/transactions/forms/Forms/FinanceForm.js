@@ -2,6 +2,7 @@
 import React from "react";
 import styles from "../../../styles/components/modalForm.module.css";
 import { DeleteIcon } from "../../../components/Icons";
+import { formatAccountOption } from "../utils/accountFormat";
 
 export default function FinanceForm({
   categoryType,
@@ -77,7 +78,7 @@ export default function FinanceForm({
       )}
 
       {/* Income split */}
-      {selectedCategory && selectedCategory.core_category === "Income" && (
+      {selectedCategory && (selectedCategory.core_category === "Income" || selectedCategory.core_category === "Expense") && (
         <div>
           {splits.map((split, i) => (
             <div key={i} style={{ display: "flex", gap: "0.5rem", marginTop: ".25rem" }} className={styles.linkRow}>
@@ -89,12 +90,14 @@ export default function FinanceForm({
                 <option value="">--Select Account--</option>
                 {accounts
                   .filter(acc => !splits.some((s, idx) => s.account === String(acc.id) && idx !== i))
-                  .map((acc) => (
+                  .map(acc => (
                     <option key={acc.id} value={acc.id}>
-                      {acc.bank_service_name} [****{acc.account_number?.slice(-4)}]
+                      {formatAccountOption(acc)}
                     </option>
-                  ))}
+                  ))
+                }
               </select>
+
 
               <input
                 type="text"

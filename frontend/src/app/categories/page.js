@@ -7,6 +7,7 @@ import Modal from "../components/Modal";
 import DeleteCategoryModal from "./DeleteCategoryModal";
 import styles from "../styles/components/modalForm.module.css";
 import Pagination from "../components/Pagination";
+import { EditIcon, DeleteIcon } from "../components/Icons";
 
 /**
  * Categories page:
@@ -95,17 +96,7 @@ export default function Categories() {
 
     const pushNode = (node, level = 0, parentPath = "") => {
       // parentPath only for DB categories; core nodes will show their own name
-      if (node.isCore) {
-        rows.push({
-          _isCore: true,
-          id: node.id,
-          name: node.name,
-          description: "-",
-          core_category: node.name,
-          parentPath: "",
-          raw: node,
-        });
-      } else {
+      if (!node.isCore) {
         rows.push({
           _isCore: false,
           id: node.id,
@@ -415,25 +406,27 @@ export default function Categories() {
               }
               if (col === "actions") {
                 if (row._isCore) return "-";
+
                 return (
-                  <div style={{ display: "flex", gap: "0.5rem" }}>
+                  <div className="action-buttons">
                     <button
+                      className="action-btn action-btn--edit"
                       onClick={() => {
                         const dbCat = categories.find((c) => c.id === row.id);
                         if (dbCat) handleEditCategory(dbCat);
                       }}
-                      style={{ cursor: "pointer" }}
                     >
-                      Edit
+                      <EditIcon />
                     </button>
+
                     <button
+                      className="action-btn action-btn--delete"
                       onClick={() => {
                         setCategoryToDelete(row.id);
                         setShowDeleteModal(true);
                       }}
-                      style={{ cursor: "pointer" }}
                     >
-                      Delete
+                      <DeleteIcon />
                     </button>
                   </div>
                 );

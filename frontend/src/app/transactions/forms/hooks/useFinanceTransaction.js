@@ -85,9 +85,10 @@ export default function useFinanceTransaction() {
 
   // Auto-calculate total
   useEffect(() => {
-    const total = splits.reduce((sum, s) => sum + Number(s.amount || 0), 0);
-    setTotalAmount(total > 0 ? total : "");
-  }, [splits]);
+    const sign = selectedCategory?.core_category === "Expense" ? -1 : 1;
+    const total = splits.reduce((sum, s) => sum + Number(s.amount || 0) * sign, 0);
+    setTotalAmount(total !== 0 ? total : "");
+  }, [splits, selectedCategory]);
 
   const getTotalSplitAmount = () => splits.reduce((total, s) => total + Number(s.amount || 0), 0);
 
