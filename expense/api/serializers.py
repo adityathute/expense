@@ -372,13 +372,14 @@ class ServiceTransactionSerializer(serializers.ModelSerializer):
 class FinanceTransactionSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source='category.name', read_only=True)
     global_id = serializers.CharField(read_only=True)
-    
+    is_cleared = serializers.BooleanField(default=False)
+
     account = serializers.PrimaryKeyRelatedField(
         queryset=Account.objects.filter(is_deleted=False),
         required=False,
         allow_null=True,
     )
-    
+
     split_details = serializers.ListField(
         child=serializers.DictField(),
         required=False,
@@ -386,33 +387,49 @@ class FinanceTransactionSerializer(serializers.ModelSerializer):
     )
 
     is_split = serializers.BooleanField(default=False)
-    
-    # Add recurring fields
+
+    # Recurring fields
     is_recurring = serializers.BooleanField(default=False)
     recurring_frequency = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    recurring_count = serializers.IntegerField(required=False, allow_null=True)
     next_due_date = serializers.DateField(required=False, allow_null=True)
+    due_range_start = serializers.DateField(required=False, allow_null=True)
+    due_range_end = serializers.DateField(required=False, allow_null=True)
+    status = serializers.CharField(required=False, allow_blank=True, default="planned")
+    last_payment_date = serializers.DateField(required=False, allow_null=True)
+    group_id = serializers.UUIDField(read_only=True)
 
     class Meta:
         model = FinanceTransaction
         fields = [
             "id", "global_id", "user", "amount", "category", "category_name",
-            "account", "split_details", "is_split", "is_recurring", "recurring_frequency", "next_due_date",
-            "date_created"
+            "account", "split_details", "is_split", 
+            "is_recurring", "recurring_frequency", "recurring_count",
+            "next_due_date", "due_range_start", "due_range_end", "status",
+            "last_payment_date", "group_id",
+            "date_created", "is_cleared",
         ]
 
     def create(self, validated_data):
-        split_details = validated_data.pop("split_details", [])
-        
-        # Extract recurring fields
+        # Pop recurring & status info
         is_recurring = validated_data.pop("is_recurring", False)
-        recurring_frequency = validated_data.pop("recurring_frequency", None)
-        next_due_date = validated_data.pop("next_due_date", None)
+        status = validated_data.pop("status", "planned")
 
+        # Determine is_cleared based on your rules
+        if is_recurring:
+            is_cleared = False if status == "planned" else True
+        else:
+            is_cleared = True  # non-recurring transactions are cleared immediately
+
+        # Add it back to validated_data
+        validated_data["is_cleared"] = is_cleared
+
+        # Now call the usual create logic
+        split_details = validated_data.pop("split_details", [])
         account = validated_data.get("account", None)
         category = validated_data.get("category", None)
         amount_raw = validated_data.get("amount", "0")
 
-        # Convert amount string to Decimal
         try:
             amount = Decimal(str(amount_raw))
         except Exception:
@@ -422,41 +439,43 @@ class FinanceTransactionSerializer(serializers.ModelSerializer):
             tx = FinanceTransaction.objects.create(
                 **validated_data,
                 is_recurring=is_recurring,
-                recurring_frequency=recurring_frequency,
-                next_due_date=next_due_date
+                status=status,
             )
-            
+
             # Ensure amount is positive
             amount = abs(amount)
 
-            # Single account update if no splits
-            if not split_details and account is not None:
-                if getattr(category, "core_category", None) == "Income":
-                    Account.objects.filter(pk=account.pk).update(balance=F('balance') + amount)
-                elif getattr(category, "core_category", None) == "Expense":
-                    Account.objects.filter(pk=account.pk).update(balance=F('balance') - amount)
-                account.refresh_from_db()
-
-            # Process split payments
-            for split in split_details:
-                split_amount = abs(Decimal(str(split.get("amount", 0))))
-                split_account_id = split.get("account_id")
-                split_account = None
-                if split_account_id:
-                    split_account = Account.objects.get(pk=split_account_id)
-
-                if split_account:
+            # Only update account balance if the transaction is cleared
+            if tx.is_cleared:
+                # Single account update if no splits
+                if not split_details and account is not None:
                     if getattr(category, "core_category", None) == "Income":
-                        Account.objects.filter(pk=split_account.pk).update(balance=F('balance') + split_amount)
+                        Account.objects.filter(pk=account.pk).update(balance=F('balance') + amount)
                     elif getattr(category, "core_category", None) == "Expense":
-                        Account.objects.filter(pk=split_account.pk).update(balance=F('balance') - split_amount)
-                    split_account.refresh_from_db()
+                        Account.objects.filter(pk=account.pk).update(balance=F('balance') - amount)
+                    account.refresh_from_db()
 
-                tx.add_split_payment(
-                    payment_method=split.get("payment_method"),
-                    amount=split_amount,
-                    account=split_account,
-                    cash_counter=split.get("cash_counter")
-                )
+                # Process split payments
+                for split in split_details:
+                    split_amount = abs(Decimal(str(split.get("amount", 0))))
+                    split_account_id = split.get("account_id")
+                    split_account = None
+                    if split_account_id:
+                        split_account = Account.objects.get(pk=split_account_id)
+
+                    if split_account:
+                        if getattr(category, "core_category", None) == "Income":
+                            Account.objects.filter(pk=split_account.pk).update(balance=F('balance') + split_amount)
+                        elif getattr(category, "core_category", None) == "Expense":
+                            Account.objects.filter(pk=split_account.pk).update(balance=F('balance') - split_amount)
+                        split_account.refresh_from_db()
+
+                    tx.add_split_payment(
+                        payment_method=split.get("payment_method"),
+                        amount=split_amount,
+                        account=split_account,
+                        cash_counter=split.get("cash_counter")
+                    )
 
             return tx
+

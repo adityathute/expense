@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { v4 as uuidv4 } from "uuid";
 
 export default function useFinanceTransaction() {
   const [categoryType, setCategoryType] = useState(false);
@@ -12,9 +13,17 @@ export default function useFinanceTransaction() {
   const [accounts, setAccounts] = useState([]);
   const [splits, setSplits] = useState([{ account: "", amount: "" }]);
   const [totalAmount, setTotalAmount] = useState("");
+
+  // Recurring fields
   const [isRecurring, setIsRecurring] = useState(false);
-  const [frequency, setFrequency] = useState("daily"); // default
-  const [nextDueDate, setNextDueDate] = useState(""); // optional
+  const [frequency, setFrequency] = useState("daily");
+  const [recurringCount, setRecurringCount] = useState(null);
+  const [nextDueDate, setNextDueDate] = useState("");
+  const [dueRangeStart, setDueRangeStart] = useState("");
+  const [dueRangeEnd, setDueRangeEnd] = useState("");
+  const [lastPaymentDate, setLastPaymentDate] = useState("");
+  const [groupId, setGroupId] = useState(uuidv4());
+  const [status, setStatus] = useState("planned");
 
   // Fetch categories
   useEffect(() => {
@@ -28,7 +37,9 @@ export default function useFinanceTransaction() {
         if (selectedCore) {
           const filteredByCore = allCats.filter(c => c.core_category === selectedCore);
           const buildTree = (items, parentId = null) =>
-            items.filter(i => i.parent === parentId).map(i => ({ ...i, children: buildTree(items, i.id) }));
+            items
+              .filter(i => i.parent === parentId)
+              .map(i => ({ ...i, children: buildTree(items, i.id) }));
           setCategories(buildTree(filteredByCore));
           setSelectedLeaf("");
           setSelectedCategory(null);
@@ -118,7 +129,18 @@ export default function useFinanceTransaction() {
     setIsRecurring,
     frequency,
     setFrequency,
+    recurringCount,
+    setRecurringCount,
     nextDueDate,
     setNextDueDate,
+    dueRangeStart,
+    setDueRangeStart,
+    dueRangeEnd,
+    setDueRangeEnd,
+    status,
+    setStatus,
+    lastPaymentDate,
+    setLastPaymentDate,
+    groupId,
   };
 }

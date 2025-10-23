@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import styles from "../../../styles/components/modalForm.module.css";
 import { DeleteIcon } from "../../../components/Icons";
 import { formatAccountOption } from "../utils/accountFormat";
@@ -23,7 +23,20 @@ export default function FinanceForm({
   isRecurring,
   setIsRecurring,
   frequency,
-  setFrequency
+  setFrequency,
+  recurringCount,
+  setRecurringCount,
+  nextDueDate,
+  setNextDueDate,
+  dueRangeStart,
+  setDueRangeStart,
+  dueRangeEnd,
+  setDueRangeEnd,
+  status,
+  setStatus,
+  lastPaymentDate,
+  setLastPaymentDate,
+  groupId
 }) {
   const renderOptions = (nodes, level = 0) =>
     nodes.map((node) => {
@@ -41,6 +54,7 @@ export default function FinanceForm({
 
   return (
     <>
+      {/* Category Type Switch */}
       <div className="switch-container" style={{ margin: "0.5rem 0" }}>
         <label className="switch">
           <input
@@ -55,6 +69,7 @@ export default function FinanceForm({
         </span>
       </div>
 
+      {/* Core Category */}
       <label>Select Core Category</label>
       <select
         value={selectedCore}
@@ -67,6 +82,7 @@ export default function FinanceForm({
         ))}
       </select>
 
+      {/* Leaf Category */}
       {selectedCore && categories.length > 0 && (
         <>
           <label>Select Category</label>
@@ -81,7 +97,7 @@ export default function FinanceForm({
         </>
       )}
 
-      {/* Income split */}
+      {/* Income/Expense Split */}
       {selectedCategory && (selectedCategory.core_category === "Income" || selectedCategory.core_category === "Expense") && (
         <div>
           {splits.map((split, i) => (
@@ -98,8 +114,7 @@ export default function FinanceForm({
                     <option key={acc.id} value={acc.id}>
                       {formatAccountOption(acc)}
                     </option>
-                  ))
-                }
+                  ))}
               </select>
 
               <input
@@ -129,6 +144,7 @@ export default function FinanceForm({
         </div>
       )}
 
+      {/* Recurring Checkbox */}
       <label className={styles.uiCheckbox}>
         <input
           type="checkbox"
@@ -139,16 +155,83 @@ export default function FinanceForm({
         Recurring Transaction
       </label>
 
+      {/* Recurring Fields */}
       {isRecurring && (
-        <select value={frequency} onChange={e => setFrequency(e.target.value)}
-          className={`${styles.modalFormInput} ${styles.linkLabelInput}`}
+        <>
+          <label style={{ marginTop: "0.25rem", display: "block" }}>Recurring Frequency</label>
+          <select
+            value={frequency}
+            onChange={(e) => setFrequency(e.target.value)}
+            className={`${styles.modalFormInput} ${styles.linkLabelInput}`}
           >
-          <option value="daily">Daily</option>
-          <option value="weekly">Weekly</option>
-          <option value="monthly">Monthly</option>
-          <option value="6monthly">Every 6 Months</option>
-          <option value="28days">Every 28 Days</option>
-        </select>
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="yearly">Yearly</option>
+          </select>
+
+          <label>Recurring Count</label>
+          <input
+            type="number"
+            min={1}
+            value={recurringCount ?? ""}
+            onChange={(e) => setRecurringCount(e.target.value ? parseInt(e.target.value) : null)}
+            className={styles.modalFormInput}
+            placeholder="Number of Recurrences"
+          />
+
+
+          <label>Next Due Date</label>
+          <input
+            type="date"
+            value={nextDueDate || ""}
+            onChange={(e) => setNextDueDate(e.target.value)}
+            className={styles.modalFormInput}
+          />
+
+          <label>Due Range Start</label>
+          <input
+            type="date"
+            value={dueRangeStart || ""}
+            onChange={(e) => setDueRangeStart(e.target.value)}
+            className={styles.modalFormInput}
+          />
+
+          <label>Due Range End</label>
+          <input
+            type="date"
+            value={dueRangeEnd || ""}
+            onChange={(e) => setDueRangeEnd(e.target.value)}
+            className={styles.modalFormInput}
+          />
+
+          <label>Status</label>
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            className={styles.modalFormInput}
+          >
+            <option value="planned">Planned</option>
+            <option value="paid">Paid</option>
+            <option value="skipped">Skipped</option>
+          </select>
+
+          <label>Last Payment Date</label>
+          <input
+            type="date"
+            value={lastPaymentDate || ""}
+            onChange={(e) => setLastPaymentDate(e.target.value)}
+            className={styles.modalFormInput}
+          />
+
+          <label>Group ID</label>
+          <input
+            type="text"
+            value={groupId || ""}
+            readOnly
+            className={styles.modalFormInput}
+          />
+        </>
       )}
     </>
   );

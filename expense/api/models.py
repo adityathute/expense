@@ -7,6 +7,7 @@ import os
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 from django.db import transaction as db_transaction
+import uuid
 
 # ---------------------- USER RELATED MODELS ---------------------- #
 class User(models.Model):
@@ -246,15 +247,9 @@ class Transaction(models.Model):
     due_date = models.DateField(null=True, blank=True)
     reminder_date = models.DateField(null=True, blank=True)
     is_cleared = models.BooleanField(default=True)
-    is_recurring = models.BooleanField(default=False)
-    recurring_frequency = models.CharField(max_length=10, choices=FREQUENCY_CHOICES, blank=True, null=True)  
-    recurring_count = models.PositiveIntegerField(blank=True, null=True)  
-    next_due_date = models.DateField(null=True, blank=True)
     is_deleted = models.BooleanField(default=False, verbose_name="Is Deleted")
     is_split = models.BooleanField(default=False, verbose_name="Is Split Payment")
     split_details = models.JSONField(default=list, blank=True)
-    last_payment_date = models.DateField(null=True, blank=True)
-    status = models.CharField(max_length=20, choices=[("planned", "Planned"), ("paid", "Paid"), ("skipped", "Skipped")], default="planned")
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
     class Meta:
@@ -302,6 +297,15 @@ class FinanceTransaction(Transaction):
     is_transfer = models.BooleanField(default=False)
     from_account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='transfers_from')
     to_account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='transfers_to')
+    is_recurring = models.BooleanField(default=False)
+    recurring_frequency = models.CharField(max_length=10, choices=FREQUENCY_CHOICES, blank=True, null=True)  
+    recurring_count = models.PositiveIntegerField(blank=True, null=True)  
+    group_id = models.UUIDField(default=uuid.uuid4, editable=False)
+    next_due_date = models.DateField(null=True, blank=True)
+    due_range_start = models.DateField(null=True, blank=True)
+    due_range_end = models.DateField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=[("planned", "Planned"), ("paid", "Paid"), ("skipped", "Skipped")], default="planned")
+    last_payment_date = models.DateField(null=True, blank=True)
 
     def __str__(self):
         return f"Finance {self.user}"

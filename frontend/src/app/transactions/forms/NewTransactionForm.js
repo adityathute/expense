@@ -8,7 +8,6 @@ import useFinanceTransaction from "./hooks/useFinanceTransaction";
 export default function NewTransactionForm({ onSubmit }) {
   const [type, setType] = useState("service");
   const [user, setUser] = useState("");
-  const [amount, setAmount] = useState(""); // total amount
   const [serviceOptions, setServiceOptions] = useState([]);
   const [selectedService, setSelectedService] = useState("");
 
@@ -42,12 +41,11 @@ export default function NewTransactionForm({ onSubmit }) {
       return alert("Please select a category");
 
     const isSplit = finance.splits.length > 1;
-    let total = Number(finance.totalAmount);
-
-    // For Expense, convert amount to negative
-    if (finance.selectedCategory?.core_category === "Expense") {
-      total = -Math.abs(total);
-    }
+    const isCleared = finance.isRecurring
+      ? finance.status === "planned"
+        ? false
+        : true
+      : true; // non-recurring transactions are cleared immediately
 
     const payload = {
       user,
@@ -62,9 +60,14 @@ export default function NewTransactionForm({ onSubmit }) {
         : [],
       account: isSplit ? null : parseInt(finance.splits[0].account),
       is_recurring: finance.isRecurring,
-      recurring_frequency: finance.frequency,
+      is_cleared: isCleared,  // ✅ use the new conditional logic
+      recurring_frequency: finance.frequency || null,
+      recurring_count: finance.recurringCount ?? null,
       next_due_date: finance.nextDueDate || null,
-      status: "planned"
+      due_range_start: finance.dueRangeStart || null,
+      due_range_end: finance.dueRangeEnd || null,
+      status: finance.status || "planned",
+      last_payment_date: finance.lastPaymentDate || null,
     };
 
     const endpoint =
@@ -123,6 +126,19 @@ export default function NewTransactionForm({ onSubmit }) {
           setIsRecurring={finance.setIsRecurring}
           frequency={finance.frequency}
           setFrequency={finance.setFrequency}
+          recurringCount={finance.recurringCount}
+          setRecurringCount={finance.setRecurringCount}
+          nextDueDate={finance.nextDueDate}
+          setNextDueDate={finance.setNextDueDate}
+          dueRangeStart={finance.dueRangeStart}
+          setDueRangeStart={finance.setDueRangeStart}
+          dueRangeEnd={finance.dueRangeEnd}
+          setDueRangeEnd={finance.setDueRangeEnd}
+          status={finance.status}
+          setStatus={finance.setStatus}
+          lastPaymentDate={finance.lastPaymentDate}
+          setLastPaymentDate={finance.setLastPaymentDate}
+          groupId={finance.groupId}
         />
       )}
 
