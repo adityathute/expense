@@ -1,5 +1,4 @@
 "use client";
-
 import React from "react";
 import styles from "../../../styles/components/modalForm.module.css";
 import { DeleteIcon } from "../../../components/Icons";
@@ -77,7 +76,7 @@ export default function FinanceForm({
         </>
       )}
 
-      {/* Online-only split for Income */}
+      {/* Income split */}
       {selectedCategory && selectedCategory.core_category === "Income" && (
         <div>
           {splits.map((split, i) => (
@@ -94,8 +93,7 @@ export default function FinanceForm({
                     <option key={acc.id} value={acc.id}>
                       {acc.bank_service_name} [****{acc.account_number?.slice(-4)}]
                     </option>
-                  ))
-                }
+                  ))}
               </select>
 
               <input
@@ -106,14 +104,12 @@ export default function FinanceForm({
                 className={`${styles.modalFormInput} ${styles.linkUrlInput}`}
               />
 
-              <button type="button" onClick={() => removeSplitRow(i)}
-                className={styles.removeButton}>
+              <button type="button" onClick={() => removeSplitRow(i)} className={styles.removeButton}>
                 <DeleteIcon className={styles.icon} />
               </button>
             </div>
           ))}
 
-          {/* Show Add Account button only if unselected accounts remain */}
           {accounts.filter(acc => !splits.some(s => s.account === String(acc.id))).length > 0 && (
             <button
               type="button"
