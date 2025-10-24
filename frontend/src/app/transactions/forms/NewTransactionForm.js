@@ -62,12 +62,14 @@ export default function NewTransactionForm({ onSubmit }) {
       is_recurring: finance.isRecurring,
       is_cleared: isCleared,  // ✅ use the new conditional logic
       recurring_frequency: finance.frequency || null,
-      recurring_count: finance.recurringCount ?? null,
       next_due_date: finance.nextDueDate || null,
       due_range_start: finance.dueRangeStart || null,
       due_range_end: finance.dueRangeEnd || null,
       status: finance.status || "planned",
-      last_payment_date: finance.lastPaymentDate || null,
+      last_payment_date:
+        finance.isRecurring && finance.status === "paid"
+          ? finance.lastPaymentDate
+          : null,
     };
 
     const endpoint =
@@ -126,8 +128,6 @@ export default function NewTransactionForm({ onSubmit }) {
           setIsRecurring={finance.setIsRecurring}
           frequency={finance.frequency}
           setFrequency={finance.setFrequency}
-          recurringCount={finance.recurringCount}
-          setRecurringCount={finance.setRecurringCount}
           nextDueDate={finance.nextDueDate}
           setNextDueDate={finance.setNextDueDate}
           dueRangeStart={finance.dueRangeStart}

@@ -17,7 +17,6 @@ export default function useFinanceTransaction() {
   // Recurring fields
   const [isRecurring, setIsRecurring] = useState(false);
   const [frequency, setFrequency] = useState("daily");
-  const [recurringCount, setRecurringCount] = useState(null);
   const [nextDueDate, setNextDueDate] = useState("");
   const [dueRangeStart, setDueRangeStart] = useState("");
   const [dueRangeEnd, setDueRangeEnd] = useState("");
@@ -77,6 +76,14 @@ export default function useFinanceTransaction() {
     setSelectedCategory(catObj);
   };
 
+  useEffect(() => {
+    if (isRecurring && status === "paid") {
+      setLastPaymentDate(new Date().toISOString().split("T")[0]); // yyyy-mm-dd
+    } else {
+      setLastPaymentDate("");
+    }
+  }, [isRecurring, status]);
+
   // Split helpers
   const addSplitRow = () => setSplits([...splits, { account: "", amount: "" }]);
 
@@ -129,8 +136,6 @@ export default function useFinanceTransaction() {
     setIsRecurring,
     frequency,
     setFrequency,
-    recurringCount,
-    setRecurringCount,
     nextDueDate,
     setNextDueDate,
     dueRangeStart,

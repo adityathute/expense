@@ -299,7 +299,7 @@ class FinanceTransaction(Transaction):
     to_account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='transfers_to')
     is_recurring = models.BooleanField(default=False)
     recurring_frequency = models.CharField(max_length=10, choices=FREQUENCY_CHOICES, blank=True, null=True)  
-    recurring_count = models.PositiveIntegerField(blank=True, null=True)  
+    tenure = models.PositiveIntegerField(blank=True, null=True)  
     group_id = models.UUIDField(default=uuid.uuid4, editable=False)
     next_due_date = models.DateField(null=True, blank=True)
     due_range_start = models.DateField(null=True, blank=True)

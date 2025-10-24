@@ -391,7 +391,6 @@ class FinanceTransactionSerializer(serializers.ModelSerializer):
     # Recurring fields
     is_recurring = serializers.BooleanField(default=False)
     recurring_frequency = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    recurring_count = serializers.IntegerField(required=False, allow_null=True)
     next_due_date = serializers.DateField(required=False, allow_null=True)
     due_range_start = serializers.DateField(required=False, allow_null=True)
     due_range_end = serializers.DateField(required=False, allow_null=True)
@@ -404,7 +403,7 @@ class FinanceTransactionSerializer(serializers.ModelSerializer):
         fields = [
             "id", "global_id", "user", "amount", "category", "category_name",
             "account", "split_details", "is_split", 
-            "is_recurring", "recurring_frequency", "recurring_count",
+            "is_recurring", "recurring_frequency",
             "next_due_date", "due_range_start", "due_range_end", "status",
             "last_payment_date", "group_id",
             "date_created", "is_cleared",

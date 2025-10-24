@@ -24,7 +24,6 @@ export default function FinanceForm({
   setIsRecurring,
   frequency,
   setFrequency,
-  recurringCount,
   setRecurringCount,
   nextDueDate,
   setNextDueDate,
@@ -38,6 +37,8 @@ export default function FinanceForm({
   setLastPaymentDate,
   groupId
 }) {
+  const [useDueRange, setUseDueRange] = useState(false);
+
   const renderOptions = (nodes, level = 0) =>
     nodes.map((node) => {
       const hasChildren = node.children && node.children.length > 0;
@@ -170,17 +171,6 @@ export default function FinanceForm({
             <option value="yearly">Yearly</option>
           </select>
 
-          <label>Recurring Count</label>
-          <input
-            type="number"
-            min={1}
-            value={recurringCount ?? ""}
-            onChange={(e) => setRecurringCount(e.target.value ? parseInt(e.target.value) : null)}
-            className={styles.modalFormInput}
-            placeholder="Number of Recurrences"
-          />
-
-
           <label>Next Due Date</label>
           <input
             type="date"
@@ -189,23 +179,43 @@ export default function FinanceForm({
             className={styles.modalFormInput}
           />
 
-          <label>Due Range Start</label>
-          <input
-            type="date"
-            value={dueRangeStart || ""}
-            onChange={(e) => setDueRangeStart(e.target.value)}
-            className={styles.modalFormInput}
-          />
+          <label className={styles.uiCheckbox} style={{ marginTop: ".25rem" }}>
+            <input
+              type="checkbox"
+              checked={useDueRange}
+              onChange={(e) => {
+                setUseDueRange(e.target.checked);
+                if (!e.target.checked) {
+                  setDueRangeStart("");
+                  setDueRangeEnd("");
+                }
+              }}
+            />
+            <span></span>
+            Use Due Range
+          </label>
 
-          <label>Due Range End</label>
-          <input
-            type="date"
-            value={dueRangeEnd || ""}
-            onChange={(e) => setDueRangeEnd(e.target.value)}
-            className={styles.modalFormInput}
-          />
+          {useDueRange && (
+            <>
+              <label style={{ marginTop: "0.25rem", display: "block" }}>Due Range Start</label>
+              <input
+                type="date"
+                value={dueRangeStart || ""}
+                onChange={(e) => setDueRangeStart(e.target.value)}
+                className={styles.modalFormInput}
+              />
 
-          <label>Status</label>
+              <label>Due Range End</label>
+              <input
+                type="date"
+                value={dueRangeEnd || ""}
+                onChange={(e) => setDueRangeEnd(e.target.value)}
+                className={styles.modalFormInput}
+              />
+            </>
+          )}
+
+          <label style={{ marginTop: "0.25rem", display: "block" }}>Status</label>
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
@@ -213,24 +223,8 @@ export default function FinanceForm({
           >
             <option value="planned">Planned</option>
             <option value="paid">Paid</option>
-            <option value="skipped">Skipped</option>
           </select>
 
-          <label>Last Payment Date</label>
-          <input
-            type="date"
-            value={lastPaymentDate || ""}
-            onChange={(e) => setLastPaymentDate(e.target.value)}
-            className={styles.modalFormInput}
-          />
-
-          <label>Group ID</label>
-          <input
-            type="text"
-            value={groupId || ""}
-            readOnly
-            className={styles.modalFormInput}
-          />
         </>
       )}
     </>
