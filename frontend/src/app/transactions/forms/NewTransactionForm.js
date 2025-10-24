@@ -33,9 +33,19 @@ export default function NewTransactionForm({ onSubmit }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (type === "service" && !selectedService) return alert("Please select a service");
-    if (type === "finance" && (!finance.selectedCore || !finance.selectedLeaf))
-      return alert("Please select a category");
+    if (type === "service" && !selectedService) {
+      return alert("Please select a service");
+    }
+
+    if (type === "finance") {
+      // Only require leaf category if not Transfer
+      if (!finance.selectedCore) {
+        return alert("Please select a core category");
+      }
+      if (finance.selectedCore !== "Transfer" && !finance.selectedLeaf) {
+        return alert("Please select a category");
+      }
+    }
 
     const isSplit = finance.splits.length > 1;
     const isCleared = finance.isRecurring
@@ -68,6 +78,22 @@ export default function NewTransactionForm({ onSubmit }) {
           ? finance.lastPaymentDate
           : null,
     };
+    if (finance.isTransfer) {
+      const fromAccountId = parseInt(finance.splits[0]?.account);
+      const toAccountId = parseInt(finance.splits[1]?.account);
+      const amount = Number(finance.totalAmount);
+
+      payload.is_transfer = true;
+      payload.from_account = fromAccountId;
+      payload.to_account = toAccountId;
+      payload.amount = amount;
+
+      // Remove irrelevant fields
+      delete payload.account;
+      delete payload.category;
+      payload.is_split = false;
+      payload.split_details = [];
+    }
 
     const endpoint =
       type === "service"

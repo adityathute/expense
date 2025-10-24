@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import styles from "../../../styles/components/modalForm.module.css";
 import { DeleteIcon } from "../../../components/Icons";
 import { formatAccountOption } from "../utils/accountFormat";
@@ -24,7 +24,6 @@ export default function FinanceForm({
   setIsRecurring,
   frequency,
   setFrequency,
-  setRecurringCount,
   nextDueDate,
   setNextDueDate,
   dueRangeStart,
@@ -32,14 +31,11 @@ export default function FinanceForm({
   dueRangeEnd,
   setDueRangeEnd,
   status,
-  setStatus,
-  lastPaymentDate,
-  setLastPaymentDate,
-  groupId
+  setStatus
 }) {
   const [useDueRange, setUseDueRange] = useState(false);
 
-  const renderOptions = (nodes, level = 0) =>
+  const renderCategoryOptions = (nodes, level = 0) =>
     nodes.map((node) => {
       const hasChildren = node.children && node.children.length > 0;
       const indent = "\u00A0\u00A0".repeat(level);
@@ -48,28 +44,16 @@ export default function FinanceForm({
           <option value={node.id} disabled={hasChildren}>
             {indent}{node.name}
           </option>
-          {hasChildren && renderOptions(node.children, level + 1)}
+          {hasChildren && renderCategoryOptions(node.children, level + 1)}
         </React.Fragment>
       );
     });
 
+  const isTransfer = selectedCore === "Transfer";
+  const isIncomeExpense = selectedCore === "Income" || selectedCore === "Expense";
+
   return (
     <>
-      {/* Category Type Switch */}
-      <div className="switch-container" style={{ margin: "0.5rem 0" }}>
-        <label className="switch">
-          <input
-            type="checkbox"
-            checked={categoryType}
-            onChange={() => setCategoryType(!categoryType)}
-          />
-          <span className="slider"></span>
-        </label>
-        <span style={{ marginLeft: "0.5rem" }}>
-          {categoryType ? "Personal" : "Shop"}
-        </span>
-      </div>
-
       {/* Core Category */}
       <label>Select Core Category</label>
       <select
@@ -78,13 +62,63 @@ export default function FinanceForm({
         onChange={(e) => setSelectedCore(e.target.value)}
       >
         <option value="">--Select Core Category--</option>
-        {availableCoreCategories.map((core) => (
+        {availableCoreCategories.map(core => (
           <option key={core} value={core}>{core}</option>
         ))}
       </select>
 
-      {/* Leaf Category */}
-      {selectedCore && categories.length > 0 && (
+      {/* Transfer Section */}
+      {isTransfer && (
+        <div>
+          <label>From Account</label>
+          <select
+            value={splits[0]?.account || ""}
+            onChange={(e) => {
+              const val = e.target.value;
+              updateSplitRow(0, "account", val);
+
+              // Reset To Account if it equals the selected From Account
+              if (splits[1]?.account === val) {
+                updateSplitRow(1, "account", "");
+              }
+            }}
+            className={styles.modalFormInput}
+          >
+            <option value="">--Select From Account--</option>
+            {accounts.map(acc => (
+              <option key={acc.id} value={acc.id}>{formatAccountOption(acc)}</option>
+            ))}
+          </select>
+
+          <label>To Account</label>
+          <select
+            value={splits[1]?.account || ""}
+            onChange={(e) => updateSplitRow(1, "account", e.target.value)}
+            className={styles.modalFormInput}
+          >
+            <option value="">--Select To Account--</option>
+            {accounts
+              .filter(acc => acc.id !== Number(splits[0]?.account)) // exclude From Account only
+              .map(acc => (
+                <option key={acc.id} value={acc.id}>{formatAccountOption(acc)}</option>
+              ))}
+          </select>
+          <label>Amount</label>
+          <input
+            type="number"
+            value={splits[0]?.amount || ""}
+            onChange={(e) => {
+              const val = e.target.value;
+              updateSplitRow(0, "amount", val);
+              updateSplitRow(1, "amount", val); // sync second split
+            }}
+            className={styles.modalFormInput}
+          />
+        </div>
+      )}
+
+      {/* Income / Expense Section */}
+      {isIncomeExpense && categories.length > 0 && (
         <>
           <label>Select Category</label>
           <select
@@ -93,138 +127,97 @@ export default function FinanceForm({
             onChange={onLeafChange}
           >
             <option value="">--Select--</option>
-            {renderOptions(categories)}
+            {renderCategoryOptions(categories)}
           </select>
+
+          {selectedCategory && (
+            <div>
+              {splits.map((split, i) => (
+                <div key={i} style={{ display: "flex", gap: "0.5rem", marginTop: ".25rem" }}>
+                  <select
+                    value={split.account || ""}
+                    onChange={(e) => updateSplitRow(i, "account", e.target.value)}
+                    className={`${styles.modalFormInput}`}
+                  >
+                    <option value="">--Select Account--</option>
+                    {accounts
+                      .filter(acc => !splits.some((s, idx) => s.account === String(acc.id) && idx !== i))
+                      .map(acc => (
+                        <option key={acc.id} value={acc.id}>
+                          {formatAccountOption(acc)}
+                        </option>
+                      ))}
+                  </select>
+
+                  <input
+                    type="number"
+                    value={split.amount}
+                    onChange={(e) => updateSplitRow(i, "amount", e.target.value)}
+                    className={styles.modalFormInput}
+                  />
+
+                  <button type="button" onClick={() => removeSplitRow(i)} className={styles.removeButton}>
+                    <DeleteIcon className={styles.icon} />
+                  </button>
+                </div>
+              ))}
+
+              {accounts.filter(acc => !splits.some(s => s.account === String(acc.id))).length > 0 && (
+                <button type="button" onClick={addSplitRow} className={styles.buttonAddLink} style={{ marginTop: ".25rem" }}>
+                  Add More Account
+                </button>
+              )}
+            </div>
+          )}
         </>
       )}
 
-      {/* Income/Expense Split */}
-      {selectedCategory && (selectedCategory.core_category === "Income" || selectedCategory.core_category === "Expense") && (
-        <div>
-          {splits.map((split, i) => (
-            <div key={i} style={{ display: "flex", gap: "0.5rem", marginTop: ".25rem" }} className={styles.linkRow}>
-              <select
-                value={split.account || ""}
-                onChange={(e) => updateSplitRow(i, "account", e.target.value)}
-                className={`${styles.modalFormInput} ${styles.linkLabelInput}`}
-              >
-                <option value="">--Select Account--</option>
-                {accounts
-                  .filter(acc => !splits.some((s, idx) => s.account === String(acc.id) && idx !== i))
-                  .map(acc => (
-                    <option key={acc.id} value={acc.id}>
-                      {formatAccountOption(acc)}
-                    </option>
-                  ))}
-              </select>
-
-              <input
-                type="text"
-                placeholder="Amount"
-                value={split.amount}
-                onChange={(e) => updateSplitRow(i, "amount", e.target.value)}
-                className={`${styles.modalFormInput} ${styles.linkUrlInput}`}
-              />
-
-              <button type="button" onClick={() => removeSplitRow(i)} className={styles.removeButton}>
-                <DeleteIcon className={styles.icon} />
-              </button>
-            </div>
-          ))}
-
-          {accounts.filter(acc => !splits.some(s => s.account === String(acc.id))).length > 0 && (
-            <button
-              type="button"
-              onClick={addSplitRow}
-              className={styles.buttonAddLink}
-              style={{ marginTop: "0.25rem" }}
-            >
-              Add More Account
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* Recurring Checkbox */}
-      <label className={styles.uiCheckbox}>
-        <input
-          type="checkbox"
-          checked={isRecurring}
-          onChange={() => setIsRecurring(!isRecurring)}
-        />
-        <span></span>
-        Recurring Transaction
-      </label>
-
-      {/* Recurring Fields */}
-      {isRecurring && (
+      {/* Recurring Section */}
+      {!isTransfer && isIncomeExpense && (
         <>
-          <label style={{ marginTop: "0.25rem", display: "block" }}>Recurring Frequency</label>
-          <select
-            value={frequency}
-            onChange={(e) => setFrequency(e.target.value)}
-            className={`${styles.modalFormInput} ${styles.linkLabelInput}`}
-          >
-            <option value="daily">Daily</option>
-            <option value="weekly">Weekly</option>
-            <option value="monthly">Monthly</option>
-            <option value="yearly">Yearly</option>
-          </select>
-
-          <label>Next Due Date</label>
-          <input
-            type="date"
-            value={nextDueDate || ""}
-            onChange={(e) => setNextDueDate(e.target.value)}
-            className={styles.modalFormInput}
-          />
-
-          <label className={styles.uiCheckbox} style={{ marginTop: ".25rem" }}>
+          <label className={styles.uiCheckbox}>
             <input
               type="checkbox"
-              checked={useDueRange}
-              onChange={(e) => {
-                setUseDueRange(e.target.checked);
-                if (!e.target.checked) {
-                  setDueRangeStart("");
-                  setDueRangeEnd("");
-                }
-              }}
+              checked={isRecurring}
+              onChange={() => setIsRecurring(!isRecurring)}
             />
             <span></span>
-            Use Due Range
+            Recurring Transaction
           </label>
 
-          {useDueRange && (
+          {isRecurring && (
             <>
-              <label style={{ marginTop: "0.25rem", display: "block" }}>Due Range Start</label>
+              <label>Frequency</label>
+              <select
+                value={frequency}
+                onChange={(e) => setFrequency(e.target.value)}
+                className={styles.modalFormInput}
+              >
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+                <option value="yearly">Yearly</option>
+              </select>
+
+              <label>Next Due Date</label>
               <input
                 type="date"
-                value={dueRangeStart || ""}
-                onChange={(e) => setDueRangeStart(e.target.value)}
+                value={nextDueDate || ""}
+                onChange={(e) => setNextDueDate(e.target.value)}
                 className={styles.modalFormInput}
               />
 
-              <label>Due Range End</label>
-              <input
-                type="date"
-                value={dueRangeEnd || ""}
-                onChange={(e) => setDueRangeEnd(e.target.value)}
+              <label>Status</label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
                 className={styles.modalFormInput}
-              />
+              >
+                <option value="planned">Planned</option>
+                <option value="paid">Paid</option>
+              </select>
             </>
           )}
-
-          <label style={{ marginTop: "0.25rem", display: "block" }}>Status</label>
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            className={styles.modalFormInput}
-          >
-            <option value="planned">Planned</option>
-            <option value="paid">Paid</option>
-          </select>
-
         </>
       )}
     </>

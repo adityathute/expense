@@ -6,13 +6,14 @@ export default function useFinanceTransaction() {
   const [categoryType, setCategoryType] = useState(false);
   const [allCategories, setAllCategories] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [coreCategories] = useState(["Income", "Expense", "Savings", "Transfer", "Investment", "Loans", "Debts"]);
+  const [coreCategories] = useState(["Income", "Expense", "Savings", "Transfer", "Loans", "Debts"]);
   const [selectedCore, setSelectedCore] = useState("");
   const [selectedLeaf, setSelectedLeaf] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [accounts, setAccounts] = useState([]);
   const [splits, setSplits] = useState([{ account: "", amount: "" }]);
   const [totalAmount, setTotalAmount] = useState("");
+  const isTransfer = selectedCore === "Transfer";
 
   // Recurring fields
   const [isRecurring, setIsRecurring] = useState(false);
@@ -23,6 +24,15 @@ export default function useFinanceTransaction() {
   const [lastPaymentDate, setLastPaymentDate] = useState("");
   const [groupId, setGroupId] = useState(uuidv4());
   const [status, setStatus] = useState("planned");
+
+  // Reset splits when core category changes
+  useEffect(() => {
+    if (selectedCore === "Transfer") {
+      setSplits([{ account: "", amount: "" }, { account: "", amount: "" }]);
+    } else {
+      setSplits([{ account: "", amount: "" }]);
+    }
+  }, [selectedCore]);
 
   // Fetch categories
   useEffect(() => {
@@ -89,6 +99,10 @@ export default function useFinanceTransaction() {
 
   const updateSplitRow = (index, field, value) => {
     const newSplits = [...splits];
+
+    // Ensure row exists
+    if (!newSplits[index]) newSplits[index] = { account: "", amount: "" };
+
     if (field === "amount") {
       let sanitized = value.replace(/[^0-9.]/g, "");
       const parts = sanitized.split(".");
@@ -99,19 +113,28 @@ export default function useFinanceTransaction() {
     } else {
       newSplits[index][field] = value;
     }
+
     setSplits(newSplits);
   };
 
   const removeSplitRow = (index) => setSplits(splits.filter((_, i) => i !== index));
 
-  // Auto-calculate total
+  // Total calculation
   useEffect(() => {
+    if (isTransfer) {
+      setTotalAmount(splits[0]?.amount || "");
+      return;
+    }
+
     const sign = selectedCategory?.core_category === "Expense" ? -1 : 1;
     const total = splits.reduce((sum, s) => sum + Number(s.amount || 0) * sign, 0);
     setTotalAmount(total !== 0 ? total : "");
-  }, [splits, selectedCategory]);
+  }, [splits, selectedCategory, selectedCore]);
 
-  const getTotalSplitAmount = () => splits.reduce((total, s) => total + Number(s.amount || 0), 0);
+  const getTotalSplitAmount = () => {
+    if (isTransfer) return Number(splits[0]?.amount || 0);
+    return splits.reduce((total, s) => total + Number(s.amount || 0), 0);
+  };
 
   return {
     categoryType,
@@ -147,5 +170,6 @@ export default function useFinanceTransaction() {
     lastPaymentDate,
     setLastPaymentDate,
     groupId,
+    isTransfer,
   };
 }
