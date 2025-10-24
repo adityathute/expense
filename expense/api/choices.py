@@ -8,7 +8,11 @@ CATEGORY_TYPES = [
 CORE_CATEGORIES = [
     ("Income", "Income"),
     ("Expense", "Expense"),
+    ("Savings", "Savings"),
+    ("Transfer", "Transfer"),
     ("Investment", "Investment"),
+    ("Loans", "Loans"),
+    ("Debts", "Debts"),
 ]
 
 USER_TYPES = [
@@ -79,7 +83,8 @@ PAYMENT_TYPE_CHOICES = [
 ACCOUNT_TYPE_CHOICES = [
     ('Current', 'Current'),
     ('Saving', 'Saving'),
-    ('Pigme', 'Pigme'),
+    ('Personal', 'Personal'),
+    ('Investment', 'Investment'),
     ('Mutual Fund', 'Mutual Fund'),
     ('Digital Gold', 'Digital Gold'),
     ('Trading', 'Trading'),

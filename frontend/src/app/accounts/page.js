@@ -30,6 +30,21 @@ export default function Account() {
   const entriesPerPage = 10;
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [accountToDelete, setAccountToDelete] = useState(null);
+  const [accountTypes, setAccountTypes] = useState([]);
+
+  useEffect(() => {
+    const fetchAccountTypes = async () => {
+      try {
+        const res = await fetch("http://127.0.0.1:8001/api/account-type-choices/");
+        const data = await res.json();
+        setAccountTypes(data);
+      } catch (err) {
+        console.error("Failed to fetch account types:", err);
+      }
+    };
+
+    fetchAccountTypes();
+  }, []);
 
   useEffect(() => {
     fetch("http://127.0.0.1:8001/api/accounts/")
@@ -259,13 +274,11 @@ export default function Account() {
                   onChange={handleChange}
                 >
                   <option value="">Select Account Type</option>
-                  <option value="Current">Current</option>
-                  <option value="Saving">Saving</option>
-                  <option value="Pigme">Pigme</option>
-                  <option value="Fixed Deposit">Fixed Deposit</option>
-                  <option value="Mutual Fund">Mutual Fund</option>
-                  <option value="Digital Gold">Digital Gold</option>
-                  <option value="Trading">Trading</option>
+                  {accountTypes.map((type) => (
+                    <option key={type.value} value={type.value}>
+                      {type.label}
+                    </option>
+                  ))}
                 </select>
               </>
             )}
@@ -323,7 +336,7 @@ export default function Account() {
             </div>
           </div>
         </Modal>
-        
+
         <DeleteAccountModal
           isOpen={showDeleteModal}
           onClose={() => setShowDeleteModal(false)}

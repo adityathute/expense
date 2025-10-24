@@ -29,10 +29,7 @@ export default function NewTransactionForm({ onSubmit }) {
     fetchServices();
   }, [type]);
 
-  const availableCoreCategories = finance.coreCategories.filter(core => {
-    const cats = finance.allCategories.filter(c => c.core_category === core);
-    return cats.some(c => !cats.some(child => child.parent === c.id));
-  });
+  const availableCoreCategories = finance.coreCategories; // show all
 
   const handleSubmit = async (e) => {
     e.preventDefault();

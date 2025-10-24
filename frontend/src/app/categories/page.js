@@ -81,12 +81,16 @@ export default function Categories() {
         }));
     };
 
-    return coreCategories.map((coreName) => ({
-      id: `core-${coreName}`,
-      name: coreName,
-      isCore: true,
-      children: buildSubtree(coreName, null),
-    }));
+    // Only show Income and Expense cores
+    const allowedCores = ["Income", "Expense"];
+    return coreCategories
+      .filter(coreName => allowedCores.includes(coreName))
+      .map((coreName) => ({
+        id: `core-${coreName}`,
+        name: coreName,
+        isCore: true,
+        children: buildSubtree(coreName, null),
+      }));
   };
 
   // Flatten tree for table view (so we can paginate/search easily)
