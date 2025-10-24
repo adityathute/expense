@@ -71,7 +71,7 @@ class UserID(models.Model):
 # ---------------------- CATEGORY RELATED MODEL ---------------------- #
 
 class Category(models.Model):
-    name = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     parent = models.ForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="subcategories")
     core_category = models.CharField(max_length=20, choices=CORE_CATEGORIES, null=True, blank=True)
@@ -85,6 +85,7 @@ class Category(models.Model):
 
     class Meta:
         ordering = ["core_category", "name"]
+        unique_together = ("name", "category_type")
 
 # ---------------------- SERVICE RELATED MODELS ---------------------- #
 class DocumentCategory(models.Model):

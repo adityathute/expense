@@ -8,9 +8,7 @@ CATEGORY_TYPES = [
 CORE_CATEGORIES = [
     ("Income", "Income"),
     ("Expense", "Expense"),
-    ("Transfer", "Transfer"),
-    ("Saving", "Saving"),
-    ("Debt", "Debt"),
+    ("Investment", "Investment"),
 ]
 
 USER_TYPES = [
