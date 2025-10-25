@@ -10,7 +10,7 @@ export default function NewTransactionForm({ onSubmit }) {
   const [user, setUser] = useState("");
   const [serviceOptions, setServiceOptions] = useState([]);
   const [selectedService, setSelectedService] = useState("");
-
+  const [description, setDescription] = useState("");
   const finance = useFinanceTransaction();
 
   // Fetch services
@@ -69,8 +69,8 @@ export default function NewTransactionForm({ onSubmit }) {
         : [],
       account: isSplit ? null : parseInt(finance.splits[0].account),
       is_cleared: isCleared,
-      // VERY IMPORTANT — always send this explicitly
       is_recurring: finance.isRecurring,
+      description: description,
     };
 
     // ✅ Only add recurring fields when recurring is ON
@@ -88,7 +88,6 @@ export default function NewTransactionForm({ onSubmit }) {
       const fromAccountId = parseInt(finance.splits[0]?.account);
       const toAccountId = parseInt(finance.splits[1]?.account);
       const amount = Number(finance.totalAmount);
-
       payload.is_transfer = true;
       payload.from_account = fromAccountId;
       payload.to_account = toAccountId;
@@ -170,6 +169,16 @@ export default function NewTransactionForm({ onSubmit }) {
           groupId={finance.groupId}
         />
       )}
+
+      {/* Description */}
+      <label style={{ marginTop: "0.25rem", display: "block" }}>Description</label>
+      <textarea
+        value={description || ""}
+        onChange={(e) => setDescription(e.target.value)}
+        className={styles.modalFormInput}
+        placeholder="Enter description..."
+        rows={3}
+      />
 
       <label style={{ marginTop: "0.25rem", display: "block" }}>Total Amount</label>
       <input type="number" value={finance.totalAmount.toString()} className={styles.modalFormInput} readOnly />
