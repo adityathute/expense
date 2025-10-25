@@ -21,7 +21,7 @@ from .models import (
     ServiceTransaction, 
     FinanceTransaction
 )
-
+import uuid
 # ---------------------- CATEGORY RELATED SERIALIZER ---------------------- #
 
 
@@ -400,9 +400,9 @@ class FinanceTransactionSerializer(serializers.ModelSerializer):
     next_due_date = serializers.DateField(required=False, allow_null=True)
     due_range_start = serializers.DateField(required=False, allow_null=True)
     due_range_end = serializers.DateField(required=False, allow_null=True)
-    status = serializers.CharField(required=False, allow_blank=True, default="planned")
+    status = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    group_id = serializers.UUIDField(read_only=True, allow_null=True)
     last_payment_date = serializers.DateField(required=False, allow_null=True)
-    group_id = serializers.UUIDField(read_only=True)
     is_transfer = serializers.BooleanField(default=False)
     from_account = serializers.PrimaryKeyRelatedField(
         queryset=Account.objects.filter(is_deleted=False),
@@ -428,10 +428,32 @@ class FinanceTransactionSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         split_details = validated_data.pop("split_details", [])
         is_recurring = validated_data.pop("is_recurring", False)
-        status = validated_data.pop("status", "planned")
+        status = validated_data.pop("status", None)
+        group_id = validated_data.pop("group_id", None)
         is_transfer = validated_data.get("is_transfer", False)
 
-        # Determine is_cleared
+        # --- Handle Recurring / Non-Recurring Rules ---
+        if not is_recurring:
+            # remove recurring-only fields
+            validated_data.pop("recurring_frequency", None)
+            validated_data.pop("next_due_date", None)
+            validated_data.pop("due_range_start", None)
+            validated_data.pop("due_range_end", None)
+            validated_data.pop("last_payment_date", None)
+
+            # FORCE status & group_id = NULL
+            status = None
+            group_id = None
+        else:
+            # recurring: make sure status exists (fallback planned)
+            if not status:
+                status = "planned"
+
+            # recurring: first time? -> generate UUID
+            if not group_id:
+                group_id = uuid.uuid4()
+
+        # --- Now decide is_cleared based on final status ---
         if is_recurring and status == "planned":
             validated_data["is_cleared"] = False
         else:
@@ -468,7 +490,8 @@ class FinanceTransactionSerializer(serializers.ModelSerializer):
             tx = FinanceTransaction.objects.create(
                 **validated_data,
                 is_recurring=is_recurring,
-                status=status
+                status=status,
+                group_id=group_id
             )
 
             category = validated_data.get("category", None)

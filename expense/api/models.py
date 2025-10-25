@@ -301,11 +301,11 @@ class FinanceTransaction(Transaction):
     is_recurring = models.BooleanField(default=False)
     recurring_frequency = models.CharField(max_length=10, choices=FREQUENCY_CHOICES, blank=True, null=True)  
     tenure = models.PositiveIntegerField(blank=True, null=True)  
-    group_id = models.UUIDField(default=uuid.uuid4, editable=False)
+    group_id = models.UUIDField(null=True, blank=True)
     next_due_date = models.DateField(null=True, blank=True)
     due_range_start = models.DateField(null=True, blank=True)
     due_range_end = models.DateField(null=True, blank=True)
-    status = models.CharField(max_length=20, choices=[("planned", "Planned"), ("paid", "Paid"), ("skipped", "Skipped")], default="planned")
+    status = models.CharField(max_length=20, blank=True, null=True)
     last_payment_date = models.DateField(null=True, blank=True)
 
     def __str__(self):

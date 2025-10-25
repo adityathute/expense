@@ -138,6 +138,7 @@ export default function FinanceForm({
                     value={split.account || ""}
                     onChange={(e) => updateSplitRow(i, "account", e.target.value)}
                     className={`${styles.modalFormInput}`}
+                    style={{ width: "50%" }}
                   >
                     <option value="">--Select Account--</option>
                     {accounts
@@ -154,6 +155,7 @@ export default function FinanceForm({
                     value={split.amount}
                     onChange={(e) => updateSplitRow(i, "amount", e.target.value)}
                     className={styles.modalFormInput}
+                    style={{ width: "50%" }}
                   />
 
                   <button type="button" onClick={() => removeSplitRow(i)} className={styles.removeButton}>
@@ -172,21 +174,23 @@ export default function FinanceForm({
         </>
       )}
 
-      {/* Recurring Section */}
-      {!isTransfer && isIncomeExpense && (
-        <>
-          <label className={styles.uiCheckbox}>
-            <input
-              type="checkbox"
-              checked={isRecurring}
-              onChange={() => setIsRecurring(!isRecurring)}
-            />
-            <span></span>
-            Recurring Transaction
-          </label>
+      {/* Recurring Toggle */}
+      <label className={styles.uiCheckbox} style={{ marginTop: ".5rem" }}>
+        <input
+          type="checkbox"
+          checked={isRecurring}
+          onChange={() => setIsRecurring(!isRecurring)}
+        />
+        <span></span>
+        Is Recurring
+      </label>
 
-          {isRecurring && (
-            <>
+      {/* Recurring Section */}
+      {isRecurring && (
+        <>
+          <div style={{ display: "flex", gap: "1rem", alignItems: "flex-end", marginTop: ".25rem" }}>
+            {/* Frequency */}
+            <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
               <label>Frequency</label>
               <select
                 value={frequency}
@@ -198,15 +202,10 @@ export default function FinanceForm({
                 <option value="monthly">Monthly</option>
                 <option value="yearly">Yearly</option>
               </select>
+            </div>
 
-              <label>Next Due Date</label>
-              <input
-                type="date"
-                value={nextDueDate || ""}
-                onChange={(e) => setNextDueDate(e.target.value)}
-                className={styles.modalFormInput}
-              />
-
+            {/* Status */}
+            <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
               <label>Status</label>
               <select
                 value={status}
@@ -216,7 +215,53 @@ export default function FinanceForm({
                 <option value="planned">Planned</option>
                 <option value="paid">Paid</option>
               </select>
-            </>
+            </div>
+          </div>
+
+          {/* Next Due Date */}
+          <div style={{ marginTop: ".25rem" }}>
+            <label>Next Due Date</label>
+            <input
+              type="date"
+              value={nextDueDate || ""}
+              onChange={(e) => setNextDueDate(e.target.value)}
+              className={styles.modalFormInput}
+            />
+          </div>
+
+          {/* Checkbox to show/hide due range */}
+          <label className={styles.uiCheckbox} style={{ marginTop: ".5rem" }}>
+            <input
+              type="checkbox"
+              checked={useDueRange}
+              onChange={() => setUseDueRange(!useDueRange)}
+            />
+            <span></span>
+            Use Date Range
+          </label>
+
+          {useDueRange && (
+            <div style={{ display: "flex", gap: "0.5rem", marginTop: ".25rem" }}>
+              <div style={{ flex: 1 }}>
+                <label>Start Date</label>
+                <input
+                  type="date"
+                  value={dueRangeStart || ""}
+                  onChange={(e) => setDueRangeStart(e.target.value)}
+                  className={styles.modalFormInput}
+                />
+              </div>
+
+              <div style={{ flex: 1 }}>
+                <label>End Date</label>
+                <input
+                  type="date"
+                  value={dueRangeEnd || ""}
+                  onChange={(e) => setDueRangeEnd(e.target.value)}
+                  className={styles.modalFormInput}
+                />
+              </div>
+            </div>
           )}
         </>
       )}

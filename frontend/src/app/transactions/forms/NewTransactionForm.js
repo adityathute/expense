@@ -54,6 +54,7 @@ export default function NewTransactionForm({ onSubmit }) {
         : true
       : true; // non-recurring transactions are cleared immediately
 
+    // ---------- BASE PAYLOAD ----------
     const payload = {
       user,
       amount: Number(finance.totalAmount),
@@ -62,22 +63,27 @@ export default function NewTransactionForm({ onSubmit }) {
       split_details: isSplit
         ? finance.splits.map(s => ({
           account_id: parseInt(s.account),
-          amount: Number(s.amount) * (finance.selectedCategory?.core_category === "Expense" ? -1 : 1)
+          amount: Number(s.amount) *
+            (finance.selectedCategory?.core_category === "Expense" ? -1 : 1),
         }))
         : [],
       account: isSplit ? null : parseInt(finance.splits[0].account),
+      is_cleared: isCleared,
+      // VERY IMPORTANT — always send this explicitly
       is_recurring: finance.isRecurring,
-      is_cleared: isCleared,  // ✅ use the new conditional logic
-      recurring_frequency: finance.frequency || null,
-      next_due_date: finance.nextDueDate || null,
-      due_range_start: finance.dueRangeStart || null,
-      due_range_end: finance.dueRangeEnd || null,
-      status: finance.status || "planned",
-      last_payment_date:
-        finance.isRecurring && finance.status === "paid"
-          ? finance.lastPaymentDate
-          : null,
     };
+
+    // ✅ Only add recurring fields when recurring is ON
+    if (finance.isRecurring) {
+      payload.recurring_frequency = finance.frequency || null;
+      payload.next_due_date = finance.nextDueDate || null;
+      payload.due_range_start = finance.dueRangeStart || null;
+      payload.due_range_end = finance.dueRangeEnd || null;
+      payload.status = finance.status || "planned";
+      payload.last_payment_date =
+        finance.status === "paid" ? finance.lastPaymentDate : null;
+    }
+
     if (finance.isTransfer) {
       const fromAccountId = parseInt(finance.splits[0]?.account);
       const toAccountId = parseInt(finance.splits[1]?.account);
