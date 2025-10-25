@@ -6,7 +6,7 @@ export default function useFinanceTransaction() {
   const [categoryType, setCategoryType] = useState(false);
   const [allCategories, setAllCategories] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [coreCategories] = useState(["Income", "Expense", "Savings", "Transfer", "Loans", "Debts"]);
+  const [coreCategories] = useState(["Income", "Expense", "Savings", "Transfer", "Investments", "Loans", "Debts"]);
   const [selectedCore, setSelectedCore] = useState("");
   const [selectedLeaf, setSelectedLeaf] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(null);

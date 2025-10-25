@@ -245,8 +245,6 @@ class Transaction(models.Model):
     account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True)  # Default account
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     description = models.TextField(blank=True, null=True)
-    due_date = models.DateField(null=True, blank=True)
-    reminder_date = models.DateField(null=True, blank=True)
     is_cleared = models.BooleanField(default=True)
     is_deleted = models.BooleanField(default=False, verbose_name="Is Deleted")
     is_split = models.BooleanField(default=False, verbose_name="Is Split Payment")
