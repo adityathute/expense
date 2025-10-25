@@ -84,17 +84,44 @@ export default function AccountPage() {
 
   const columns = [
     { key: "index", label: "#" },
-    { key: "account_holder_name", label: "Holder Name" },
+    { key: "account_holder_name", label: "Name" },
     { key: "bank_service_name", label: "Service/Bank" },
     { key: "balance", label: "Balance" },
     { key: "account_mode", label: "Mode" },
     { key: "category", label: "Category" },
+    { key: "sub_account_type", label: "Type" },
   ];
 
-  const tableData = paginatedAccounts.map((acc, i) => ({
-    ...acc,
-    index: startIndex + i + 1,
-  }));
+  const tableData = paginatedAccounts.map((acc, i) => {
+    // --------- Account Holder Name ---------
+    let displayName = "-";
+    if (acc.account_holder_name?.trim()) {
+      const parts = acc.account_holder_name.trim().split(" ");
+      if (parts.length === 1) displayName = parts[0];
+      else if (parts.length === 2) displayName = `${parts[0]} ${parts[1]}`;
+      else displayName = `${parts[0]} ${parts[parts.length - 1]}`;
+    }
+
+    // --------- Bank / Service Name ---------
+    let displayBank = "-";
+    if (acc.bank_service_name?.trim()) {
+      const parts = acc.bank_service_name.trim().split(" ");
+      if (parts.length <= 4) displayBank = acc.bank_service_name;
+      else {
+        const firstFour = parts.slice(0, 4).join(" ");
+        const lastWord = parts[parts.length - 1];
+        displayBank = `${firstFour} ... ${lastWord}`;
+      }
+    }
+
+    return {
+      ...acc,
+      index: startIndex + i + 1,
+      display_name: displayName,
+      display_bank: displayBank,
+      sub_account_type: acc.sub_account_type || "-",
+    };
+  });
 
   return (
     <div className="main-content">
@@ -136,8 +163,19 @@ export default function AccountPage() {
           columns={columns.map((c) => c.key)}
           data={tableData}
           onEdit={handleEdit}
-          renderCell={(row, col) => (col === "balance" ? <BalanceCell value={parseFloat(row.balance)} /> : row[col] ?? "-")}
+          renderCell={(row, col) =>
+            col === "balance" ? (
+              <BalanceCell value={parseFloat(row.balance)} />
+            ) : col === "account_holder_name" ? (
+              row.display_name
+            ) : col === "bank_service_name" ? (
+              row.display_bank
+            ) : (
+              row[col] ?? "-"
+            )
+          }
         />
+
       ) : (
         <div style={{ padding: "1rem", textAlign: "center", color: "#888" }}>No accounts found.</div>
       )}
