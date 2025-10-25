@@ -213,12 +213,12 @@ class Account(models.Model):
         # Bank/Savings mode: full bank fields required
         elif self.account_mode in ["Online", "Savings"]:
             if not self.account_number:
-                raise ValidationError("Account number is required for non-cash accounts.")
+                raise ValidationError({"account_number": "Account number is required for non-cash accounts."})
             if not self.ifsc_code:
-                raise ValidationError("IFSC code is required for non-cash accounts.")
-            if Account.objects.exclude(pk=self.pk).filter(account_number=self.account_number).exists():
-                raise ValidationError("Account number must be unique.")
-
+                raise ValidationError({"ifsc_code": "IFSC code is required for non-cash accounts."})
+            if self.account_number and Account.objects.exclude(pk=self.pk).filter(account_number=self.account_number).exists():
+                raise ValidationError({"account_number": "Account number must be unique."})
+            
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)

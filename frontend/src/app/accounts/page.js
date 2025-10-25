@@ -43,6 +43,8 @@ export default function AccountPage() {
       balance: 0,
       account_mode: "Cash",
       category: "Business",
+      sub_account_type: "",
+      issue_date: "",
     });
     setEditingId(null);
     setShowForm(true);
@@ -54,13 +56,15 @@ export default function AccountPage() {
     setShowForm(true);
   };
 
-  const handleFormSubmit = () => {
-    addOrUpdateAccount(formData, editingId)
-      .then(() => {
-        setShowForm(false);
-        setEditingId(null);
-      })
-      .catch((err) => alert(err.message));
+  const handleFormSubmit = async () => {
+    try {
+      await addOrUpdateAccount(formData, editingId);
+      setShowForm(false);
+      setEditingId(null);
+    } catch (err) {
+      // Show exact backend validation error
+      alert(err.message);
+    }
   };
 
   const handleDelete = (id) => {

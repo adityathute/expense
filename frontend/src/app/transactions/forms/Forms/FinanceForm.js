@@ -34,10 +34,14 @@ export default function FinanceForm({
   setStatus
 }) {
   const [useDueRange, setUseDueRange] = useState(false);
-  const recurringAllowed = ["Income", "Expense", "Savings", "Investments", "Loans"].includes(selectedCore);
 
+  const recurringAllowed = ["Income", "Expense", "Savings", "Investments", "Loans"].includes(selectedCore);
+  const isTransfer = selectedCore === "Transfer";
+  const isIncomeExpense = selectedCore === "Income" || selectedCore === "Expense";
+
+  // Render nested category options recursively
   const renderCategoryOptions = (nodes, level = 0) =>
-    nodes.map((node) => {
+    nodes.map(node => {
       const hasChildren = node.children && node.children.length > 0;
       const indent = "\u00A0\u00A0".repeat(level);
       return (
@@ -50,8 +54,28 @@ export default function FinanceForm({
       );
     });
 
-  const isTransfer = selectedCore === "Transfer";
-  const isIncomeExpense = selectedCore === "Income" || selectedCore === "Expense";
+  // Filter accounts based on core category type
+  const getFilteredAccounts = () => {
+    if (!accounts) return [];
+
+    switch (selectedCore) {
+      case "Income":
+      case "Expense":
+      case "Loans":
+      case "Debts":
+        return accounts.filter(acc =>
+          ["Cash", "Online"].includes(acc.account_mode)
+        );
+      case "Savings":
+        return accounts.filter(acc => acc.account_mode === "Savings");
+      case "Investments":
+        return accounts.filter(acc => acc.account_mode === "Investments");
+      case "Transfer":
+        return accounts; // all accounts
+      default:
+        return [];
+    }
+  };
 
   return (
     <>
@@ -77,11 +101,7 @@ export default function FinanceForm({
             onChange={(e) => {
               const val = e.target.value;
               updateSplitRow(0, "account", val);
-
-              // Reset To Account if it equals the selected From Account
-              if (splits[1]?.account === val) {
-                updateSplitRow(1, "account", "");
-              }
+              if (splits[1]?.account === val) updateSplitRow(1, "account", "");
             }}
             className={styles.modalFormInput}
           >
@@ -99,11 +119,12 @@ export default function FinanceForm({
           >
             <option value="">--Select To Account--</option>
             {accounts
-              .filter(acc => acc.id !== Number(splits[0]?.account)) // exclude From Account only
+              .filter(acc => acc.id !== Number(splits[0]?.account))
               .map(acc => (
                 <option key={acc.id} value={acc.id}>{formatAccountOption(acc)}</option>
               ))}
           </select>
+
           <label>Amount</label>
           <input
             type="number"
@@ -111,7 +132,7 @@ export default function FinanceForm({
             onChange={(e) => {
               const val = e.target.value;
               updateSplitRow(0, "amount", val);
-              updateSplitRow(1, "amount", val); // sync second split
+              updateSplitRow(1, "amount", val);
             }}
             className={styles.modalFormInput}
           />
@@ -138,16 +159,14 @@ export default function FinanceForm({
                   <select
                     value={split.account || ""}
                     onChange={(e) => updateSplitRow(i, "account", e.target.value)}
-                    className={`${styles.modalFormInput}`}
+                    className={styles.modalFormInput}
                     style={{ width: "50%" }}
                   >
                     <option value="">--Select Account--</option>
-                    {accounts
+                    {getFilteredAccounts()
                       .filter(acc => !splits.some((s, idx) => s.account === String(acc.id) && idx !== i))
                       .map(acc => (
-                        <option key={acc.id} value={acc.id}>
-                          {formatAccountOption(acc)}
-                        </option>
+                        <option key={acc.id} value={acc.id}>{formatAccountOption(acc)}</option>
                       ))}
                   </select>
 
@@ -159,14 +178,23 @@ export default function FinanceForm({
                     style={{ width: "50%" }}
                   />
 
-                  <button type="button" onClick={() => removeSplitRow(i)} className={styles.removeButton}>
+                  <button
+                    type="button"
+                    onClick={() => removeSplitRow(i)}
+                    className={styles.removeButton}
+                  >
                     <DeleteIcon className={styles.icon} />
                   </button>
                 </div>
               ))}
 
-              {accounts.filter(acc => !splits.some(s => s.account === String(acc.id))).length > 0 && (
-                <button type="button" onClick={addSplitRow} className={styles.buttonAddLink} style={{ marginTop: ".25rem" }}>
+              {getFilteredAccounts().filter(acc => !splits.some(s => s.account === String(acc.id))).length > 0 && (
+                <button
+                  type="button"
+                  onClick={addSplitRow}
+                  className={styles.buttonAddLink}
+                  style={{ marginTop: ".25rem" }}
+                >
                   Add More Account
                 </button>
               )}
@@ -175,7 +203,7 @@ export default function FinanceForm({
         </>
       )}
 
-      {/* Recurring Toggle */}
+      {/* Recurring Section */}
       {recurringAllowed && (
         <>
           <label className={styles.uiCheckbox} style={{ marginTop: ".5rem" }}>
@@ -188,11 +216,9 @@ export default function FinanceForm({
             Is Recurring
           </label>
 
-          {/* Recurring Section */}
           {isRecurring && (
             <>
               <div style={{ display: "flex", gap: "1rem", alignItems: "flex-end", marginTop: ".25rem" }}>
-                {/* Frequency */}
                 <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
                   <label>Frequency</label>
                   <select
@@ -207,7 +233,6 @@ export default function FinanceForm({
                   </select>
                 </div>
 
-                {/* Status */}
                 <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
                   <label>Status</label>
                   <select
@@ -221,7 +246,6 @@ export default function FinanceForm({
                 </div>
               </div>
 
-              {/* Next Due Date */}
               <div style={{ marginTop: ".25rem" }}>
                 <label>Next Due Date</label>
                 <input
@@ -232,7 +256,6 @@ export default function FinanceForm({
                 />
               </div>
 
-              {/* Checkbox to show/hide due range */}
               <label className={styles.uiCheckbox} style={{ marginTop: ".5rem" }}>
                 <input
                   type="checkbox"
@@ -270,7 +293,6 @@ export default function FinanceForm({
           )}
         </>
       )}
-
     </>
   );
 }
