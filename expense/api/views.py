@@ -6,7 +6,7 @@ from .serializers import CategorySerializer, UserSerializer, ServiceSerializer, 
 from rest_framework.generics import DestroyAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
-from .choices import CORE_CATEGORIES, ACCOUNT_TYPE_CHOICES
+from .choices import CORE_CATEGORIES
 from django.http import FileResponse, JsonResponse
 from io import BytesIO
 from reportlab.pdfgen import canvas
@@ -312,10 +312,6 @@ class ServiceSupportingDocumentViewSet(viewsets.ModelViewSet):
             )
         
 # ---------------------- ACCOUNTS RELATED VIEWS ---------------------- #
-@api_view(["GET"])
-def account_type_choices(request):
-    # ACCOUNT_TYPE_CHOICES is defined in your models.py
-    return Response([{"value": choice[0], "label": choice[1]} for choice in ACCOUNT_TYPE_CHOICES])
 
 class AccountListView(APIView):
     def get(self, request, *args, **kwargs):

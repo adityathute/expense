@@ -80,20 +80,24 @@ PAYMENT_TYPE_CHOICES = [
     ("mixed", "Mixed"),
 ]
 
-ACCOUNT_TYPE_CHOICES = [
-    ('Current', 'Current'),
-    ('Saving', 'Saving'),
-    ('Personal', 'Personal'),
-    ('Investment', 'Investment'),
-    ('Mutual Fund', 'Mutual Fund'),
-    ('Digital Gold', 'Digital Gold'),
-    ('Trading', 'Trading'),
-]
-
 CATEGORY_CHOICES = [
     ('Personal', 'Personal'),
-    ('Home', 'Home'),
     ('Business', 'Business'),
+]
+
+ACCOUNT_MODE_CHOICES = [
+    ('Cash', 'Cash'),
+    ('Online', 'Online'),
+    ('Savings', 'Savings'),
+    ('Investments', 'Investments'),
+]
+
+SUB_ACCOUNT_CHOICES = [
+    ("Fixed Deposit", "Fixed Deposit"),
+    ("SIP/Mutual Funds", "SIP/Mutual Funds"),
+    ("Gold", "Gold"),
+    ("Deposits", "Deposits"),
+    ("Others", "Others"),
 ]
 
 FREQUENCY_CHOICES = [

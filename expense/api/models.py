@@ -2,7 +2,7 @@ from django.db import models
 from django.conf import settings
 from decouple import config
 from django.core.exceptions import ValidationError
-from .choices import CATEGORY_TYPES, CORE_CATEGORIES, GENDER_CHOICES, ID_TYPES, DOCUMENT_TYPE_CHOICES, ENTRY_TYPE_CHOICES, UID_TYPE_CHOICES,  UPDATE_TYPE_CHOICES, ENTRY_TYPE_CHOICES, STATUS_CHOICES, UID_TYPE_CHOICES, UPDATE_TYPE_CHOICES, PAYMENT_TYPE_CHOICES, ACCOUNT_TYPE_CHOICES, CATEGORY_CHOICES, FREQUENCY_CHOICES
+from .choices import CATEGORY_TYPES, CORE_CATEGORIES, GENDER_CHOICES, ID_TYPES, DOCUMENT_TYPE_CHOICES, ENTRY_TYPE_CHOICES, UID_TYPE_CHOICES,  UPDATE_TYPE_CHOICES, ENTRY_TYPE_CHOICES, STATUS_CHOICES, UID_TYPE_CHOICES, UPDATE_TYPE_CHOICES, PAYMENT_TYPE_CHOICES, CATEGORY_CHOICES, FREQUENCY_CHOICES, ACCOUNT_MODE_CHOICES, SUB_ACCOUNT_CHOICES
 import os
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
@@ -48,25 +48,6 @@ class UserID(models.Model):
 
     def __str__(self):
         return f"{self.user.name}: {self.id_number}" if self.id_number else f"{self.user.name} - No ID"
-
-# class Address(models.Model):
-#     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="address")
-#     house_number = models.CharField(max_length=10, blank=True, null=True)
-#     street = models.CharField(max_length=255, blank=True, null=True)
-#     landmark = models.CharField(max_length=510, blank=True, null=True)
-#     area = models.CharField(max_length=510, blank=True, null=True)
-#     village = models.CharField(max_length=255, blank=True, null=True)
-#     post_office = models.CharField(max_length=255, blank=True, null=True)
-#     sub_dist = models.CharField(max_length=255, blank=True, null=True)
-#     district = models.CharField(max_length=255, blank=True, null=True)
-#     state = models.CharField(max_length=255, blank=True, null=True)
-#     pincode = models.CharField(max_length=6, blank=True, null=True)
-#     is_deleted = models.BooleanField(default=False, verbose_name="Is Deleted")
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     updated_at = models.DateTimeField(auto_now=True)
-
-#     def __str__(self):
-#         return f"{self.user.name}"
 
 # ---------------------- CATEGORY RELATED MODEL ---------------------- #
 
@@ -196,35 +177,54 @@ class ActiveAccountManager(models.Manager):
 class Account(models.Model):
     account_holder_name = models.CharField(max_length=255, blank=True, null=True, verbose_name="Account Holder's Name")
     account_number = models.CharField(max_length=50, blank=True, null=True, verbose_name="Account Number")
-    account_mode = models.CharField(choices=[('Cash', 'Cash'), ('Online', 'Online')],  max_length=25)
+    account_mode = models.CharField(choices=ACCOUNT_MODE_CHOICES, max_length=25)
+    sub_account_type = models.CharField(choices=SUB_ACCOUNT_CHOICES, max_length=50, blank=True, null=True)
     bank_service_name = models.CharField(max_length=255, blank=True, null=True)
-    account_type = models.CharField(max_length=25, blank=True, null=True, choices=ACCOUNT_TYPE_CHOICES)
     ifsc_code = models.CharField(max_length=20, blank=True, null=True)
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-    issue_date = models.DateTimeField(null=True, blank=True)
+    issue_date = models.DateField(null=True, blank=True)
     category = models.CharField(max_length=10, choices=CATEGORY_CHOICES, verbose_name="Category")
     is_active = models.BooleanField(default=True)
+    is_deleted = models.BooleanField(default=False, verbose_name="Is Deleted")
     objects = models.Manager()
     active_objects = ActiveAccountManager()
-    is_deleted = models.BooleanField(default=False, verbose_name="Is Deleted")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def clean(self):
-        if self.account_mode != "Cash":
+        # Cash mode: only simple fields required
+        if self.account_mode == "Cash":
+            self.account_number = None
+            self.ifsc_code = None
+
+        # Investments: account_number and IFSC not required
+        elif self.account_mode == "Investments":
+            self.account_number = None
+            self.ifsc_code = None
+            if not self.bank_service_name:
+                raise ValidationError("Bank/Institute/Shop Name is required for Investments.")
+            if not self.sub_account_type:
+                raise ValidationError("Sub Account Type is required for Investments.")
+            if not self.account_holder_name:
+                raise ValidationError("Account Holder Name is required for Investments.")
+            if not self.issue_date:
+                raise ValidationError("Issue Date is required for Investments.")
+
+        # Bank/Savings mode: full bank fields required
+        elif self.account_mode in ["Online", "Savings"]:
             if not self.account_number:
                 raise ValidationError("Account number is required for non-cash accounts.")
+            if not self.ifsc_code:
+                raise ValidationError("IFSC code is required for non-cash accounts.")
             if Account.objects.exclude(pk=self.pk).filter(account_number=self.account_number).exists():
                 raise ValidationError("Account number must be unique.")
-        else:
-            self.account_number = None
 
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.account_holder_name} ({self.bank_service_name}) - {self.account_number}"
+        return f"{self.account_holder_name or '-'} ({self.bank_service_name or '-'}) - {self.account_number or '-'}"
 
     class Meta:
         verbose_name = 'Account'

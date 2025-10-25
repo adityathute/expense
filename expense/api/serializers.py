@@ -347,7 +347,6 @@ class ServiceSerializer(serializers.ModelSerializer):
 
 # ---------------------- ACCOUNTS RELATED SERIALIZER ---------------------- #
 
-
 class AccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Account
@@ -357,5 +356,5 @@ class AccountSerializer(serializers.ModelSerializer):
             "account_number": {"required": False, "allow_null": True},
             "bank_service_name": {"required": False, "allow_null": True},
             "ifsc_code": {"required": False, "allow_null": True},
-            "account_type": {"required": False, "allow_null": True},
+            "sub_account_type": {"required": False, "allow_null": True},
         }
