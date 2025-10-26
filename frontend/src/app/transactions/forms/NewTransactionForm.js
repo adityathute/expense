@@ -103,9 +103,14 @@ export default function NewTransactionForm({ onSubmit }) {
       payload.to_account = toAccountId;
       payload.amount = amount;
 
+      // Set Transfer category explicitly
+      const transferCategory = allCategories.find(
+        c => c.core_category === "Transfer" && c.is_core
+      );
+      payload.category = transferCategory?.id || null;
+
       // Remove irrelevant fields
       delete payload.account;
-      delete payload.category;
       payload.is_split = false;
       payload.split_details = [];
     }
@@ -123,6 +128,7 @@ export default function NewTransactionForm({ onSubmit }) {
       });
       if (!res.ok) throw new Error(await res.text());
       onSubmit();
+      console.log("Payload to send:", payload);
     } catch (err) {
       console.error("Submit error:", err);
       alert("Failed to save transaction");
