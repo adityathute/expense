@@ -165,8 +165,7 @@ export default function FinanceForm({
           >
             <option value="">--Select--</option>
             {renderCategoryOptions(
-              // filter by Shop / Personal here dynamically
-              categories.filter(cat => cat.category_type === categoryType)
+              categories.filter(cat => String(cat.category_type) === String(categoryType))
             )}
           </select>
         </>

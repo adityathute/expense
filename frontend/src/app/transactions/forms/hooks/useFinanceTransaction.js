@@ -46,59 +46,64 @@ export default function useFinanceTransaction() {
     }
   }, [selectedCore, allCategories]);
 
+  // Fetch categories from API
   useEffect(() => {
     const fetchCategories = async () => {
-      try {
-        if (!selectedCore) return;
+      if (!selectedCore) return;
 
-        const res = await fetch(`http://127.0.0.1:8001/api/categories/?type=${selectedCore}`);
+      try {
+        const res = await fetch(`http://127.0.0.1:8001/api/categories/`);
+
         const data = await res.json();
         const allCats = data.results || [];
+
         setAllCategories(allCats);
-
-        // Filter initial categories by selectedCore, not is_core
-        const filteredByCore = allCats.filter(
-          c => c.core_category === selectedCore && !c.is_core
-        );
-
-        const buildTree = (items, parentId = null) =>
-          items
-            .filter(i => i.parent === parentId)
-            .map(i => ({ ...i, children: buildTree(items, i.id) }));
-
-        setCategories(buildTree(filteredByCore).filter(c => c.category_type === categoryType));
-        setSelectedLeaf("");
-        setSelectedCategory(null);
       } catch (err) {
         console.error(err);
-        setCategories([]);
+        setAllCategories([]);
       }
     };
 
     fetchCategories();
   }, [selectedCore]);
 
-  // React to categoryType changes
-  useEffect(() => {
-    // Only filter if allCategories already fetched
-    if (!allCategories.length) return;
+  // Build tree helper
+  const buildTree = (items, parentId = null) =>
+    items
+      .filter((i) => i.parent === parentId)
+      .map((i) => ({ ...i, children: buildTree(items, i.id) }));
 
+  // Filter categories by categoryType dynamically
+  const filterByCategoryType = (nodes, type) =>
+    nodes
+      .map((node) => {
+        const children = filterByCategoryType(node.children || [], type);
+        if (node.category_type === type || children.length > 0) {
+          return { ...node, children };
+        }
+        return null;
+      })
+      .filter(Boolean);
+
+  // Build category tree whenever allCategories or categoryType changes
+  useEffect(() => {
+    if (!allCategories.length || !selectedCore) {
+      setCategories([]);
+      return;
+    }
+
+    // Filter only subcategories (is_core = false) for the selected core
     const filteredByCore = allCategories.filter(
-      c => c.core_category === selectedCore && !c.is_core
+      (c) => c.core_category === selectedCore && !c.is_core
     );
 
-    const buildTree = (items, parentId = null) =>
-      items
-        .filter(i => i.parent === parentId)
-        .map(i => ({ ...i, children: buildTree(items, i.id) }));
+    const tree = buildTree(filteredByCore);
 
-    // Filter categories dynamically by categoryType (Shop / Personal)
-    setCategories(buildTree(filteredByCore).filter(c => c.category_type === categoryType));
-
-    // Reset selection
+    // Filter dynamically by categoryType
+    setCategories(filterByCategoryType(tree, categoryType));
     setSelectedLeaf("");
     setSelectedCategory(null);
-  }, [categoryType]);
+  }, [allCategories, selectedCore, categoryType]);
 
   // Fetch accounts
   useEffect(() => {
