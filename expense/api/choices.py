@@ -17,8 +17,9 @@ CORE_CATEGORIES = [
 
 USER_TYPES = [
     ("Customer", "Customer"),
-    ("Staff", "Staff"),
     ("Family", "Family"),
+    ("Staff", "Staff"),
+    ("Owner", "Owner"),
     ("Friend", "Friend"),
     ("Agent", "Agent"),
     ("Client", "Client"),

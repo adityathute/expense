@@ -2,7 +2,7 @@ from django.db import models
 from django.conf import settings
 from decouple import config
 from django.core.exceptions import ValidationError
-from .choices import CATEGORY_TYPES, CORE_CATEGORIES, GENDER_CHOICES, ID_TYPES, DOCUMENT_TYPE_CHOICES, ENTRY_TYPE_CHOICES, UID_TYPE_CHOICES,  UPDATE_TYPE_CHOICES, ENTRY_TYPE_CHOICES, STATUS_CHOICES, UID_TYPE_CHOICES, UPDATE_TYPE_CHOICES, PAYMENT_TYPE_CHOICES, CATEGORY_CHOICES, FREQUENCY_CHOICES, ACCOUNT_MODE_CHOICES, SUB_ACCOUNT_CHOICES
+from .choices import CATEGORY_TYPES, CORE_CATEGORIES, GENDER_CHOICES, ID_TYPES, DOCUMENT_TYPE_CHOICES, ENTRY_TYPE_CHOICES, UID_TYPE_CHOICES,  UPDATE_TYPE_CHOICES, ENTRY_TYPE_CHOICES, STATUS_CHOICES, UID_TYPE_CHOICES, UPDATE_TYPE_CHOICES, PAYMENT_TYPE_CHOICES, CATEGORY_CHOICES, FREQUENCY_CHOICES, ACCOUNT_MODE_CHOICES, SUB_ACCOUNT_CHOICES, USER_TYPES
 import os
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
@@ -11,20 +11,11 @@ import uuid
 
 # ---------------------- USER RELATED MODELS ---------------------- #
 class User(models.Model):
-    USER_TYPES = [
-        ("Customer", "Customer"),
-        ("Staff", "Staff"),
-        ("Family", "Family"),
-        ("Friend", "Friend"),
-        ("Agent", "Agent"),
-        ("Client", "Client"),
-    ]
-
     name = models.CharField(max_length=255)
     email = models.EmailField(blank=True, null=True)
     date_of_birth = models.DateField(blank=True, null=True)
     mobile_number = models.CharField(max_length=10, blank=True, null=True)
-    user_type = models.JSONField(default=list)  # Example: ["Customer", "Agent"]
+    user_type = models.CharField(max_length=10, choices=USER_TYPES, blank=True, null=True, default="Customer")
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES, blank=True, null=True)
     is_deleted = models.BooleanField(default=False, verbose_name="Is Deleted")
     created_at = models.DateTimeField(auto_now_add=True)

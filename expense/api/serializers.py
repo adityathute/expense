@@ -74,7 +74,7 @@ class UserSerializer(serializers.ModelSerializer):
             "mobile_number",
             "gender",
             "user_type",
-            "is_deleted",  # <-- add this
+            "is_deleted",
             "identifications",
         ]
         read_only_fields = ["id", "created_at", "updated_at"]

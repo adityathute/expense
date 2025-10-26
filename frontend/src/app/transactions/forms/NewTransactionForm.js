@@ -8,11 +8,29 @@ import useFinanceTransaction from "./hooks/useFinanceTransaction";
 export default function NewTransactionForm({ onSubmit }) {
   const [type, setType] = useState("service");
   const [user, setUser] = useState("");
+  const [userOptions, setUserOptions] = useState([]);
   const [serviceOptions, setServiceOptions] = useState([]);
   const [selectedService, setSelectedService] = useState("");
   const [description, setDescription] = useState("");
   const finance = useFinanceTransaction();
   const { allCategories, selectedCategory } = finance;
+
+  // ---------------- FETCH USERS ----------------
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await fetch("http://127.0.0.1:8001/api/users/");
+        if (!res.ok) throw new Error("Failed to fetch users");
+        const data = await res.json();
+        // Handles both paginated or plain array responses
+        setUserOptions(Array.isArray(data) ? data : data.results || []);
+      } catch (err) {
+        console.error("Error fetching users:", err);
+        setUserOptions([]);
+      }
+    };
+    fetchUsers();
+  }, []);
 
   // Fetch services
   useEffect(() => {
@@ -123,7 +141,7 @@ export default function NewTransactionForm({ onSubmit }) {
       payload.split_details = [];
     }
 
-    // console.log("Submitting payload:", payload);
+    console.log("Submitting payload:", payload);
 
     const endpoint =
       type === "service"
@@ -193,6 +211,9 @@ export default function NewTransactionForm({ onSubmit }) {
           lastPaymentDate={finance.lastPaymentDate}
           setLastPaymentDate={finance.setLastPaymentDate}
           groupId={finance.groupId}
+          user={user}
+          setUser={setUser}
+          userOptions={userOptions}
         />
       )}
 

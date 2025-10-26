@@ -22,6 +22,7 @@ urlpatterns = [
 
     # Users
     path('api/users/', views.UserListCreateView.as_view(), name='user-list-create'),
+    path("api/user-types/", views.user_types_list, name="user-types-list"),
     path('api/users/<int:pk>/', views.UserDetailView.as_view(), name='user-detail'),
     path('api/documents/create/', views.create_document, name='create_document'),
     path('api/users/<int:user_id>/restore/', views.user_restore, name='user-restore'),

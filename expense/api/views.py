@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import generics, status, viewsets
 from .models import Category, Service, User, Account, Document, ServiceDocumentRequirement, DocumentCategory, SupportingDocument, ServiceSupportingDocument, ServiceTransaction, FinanceTransaction
 from .serializers import CategorySerializer, UserSerializer, ServiceSerializer, AccountSerializer, DocumentSerializer, ServiceDocumentRequirementSerializer, SupportingDocumentSerializer, ServiceSupportingDocumentSerializer, ServiceTransactionSerializer, FinanceTransactionSerializer
+from .choices import USER_TYPES
 from rest_framework.generics import DestroyAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.views import APIView
@@ -94,6 +95,12 @@ def category_restore(request, category_id):
         return Response({"error": "Category not found"}, status=404)
 
 # ---------------------- USER RELATED VIEWS ---------------------- #
+@api_view(["GET"])
+def user_types_list(request):
+    """
+    Returns all possible user types as strings.
+    """
+    return Response({"user_types": [choice[0] for choice in USER_TYPES]})
 
 class UserListCreateView(generics.ListCreateAPIView):
     serializer_class = UserSerializer

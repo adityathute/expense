@@ -31,7 +31,10 @@ export default function FinanceForm({
   dueRangeEnd,
   setDueRangeEnd,
   status,
-  setStatus
+  setStatus,
+  user,
+  setUser,
+  userOptions
 }) {
   const [useDueRange, setUseDueRange] = useState(false);
 
@@ -170,6 +173,20 @@ export default function FinanceForm({
           </select>
         </>
       )}
+
+      <label>Select User</label>
+      <select
+        value={user}
+        onChange={(e) => setUser(e.target.value)}
+        className={styles.modalFormInput}
+      >
+        <option value="">--Select User--</option>
+        {userOptions.map(u => (
+          <option key={u.id} value={u.id}>
+            {u.name || u.username}
+          </option>
+        ))}
+      </select>
 
       {/* Income / Expense Section */}
       {isIncomeExpense && categories.length > 0 && (
