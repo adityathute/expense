@@ -14,6 +14,7 @@ export default function useFinanceTransaction() {
   const [splits, setSplits] = useState([{ account: "", amount: "" }]);
   const [totalAmount, setTotalAmount] = useState("");
   const isTransfer = selectedCore === "Transfer";
+  const [debtType, setDebtType] = useState("");
 
   // Recurring fields
   const [isRecurring, setIsRecurring] = useState(false);
@@ -145,7 +146,7 @@ export default function useFinanceTransaction() {
     if (!newSplits[index]) newSplits[index] = { account: "", amount: "" };
 
     if (field === "amount") {
-      let sanitized = value.replace(/[^0-9.]/g, "");
+      let sanitized = String(value || "").replace(/[^0-9.]/g, "");
       const parts = sanitized.split(".");
       if (parts.length > 2) sanitized = parts[0] + "." + parts[1];
       if (sanitized && !sanitized.startsWith("0.")) sanitized = sanitized.replace(/^0+/, "");
@@ -167,10 +168,13 @@ export default function useFinanceTransaction() {
       return;
     }
 
-    const sign = selectedCategory?.core_category === "Expense" ? -1 : 1;
+    let sign = 1;
+    if (selectedCategory?.core_category === "Expense") sign = -1;
+    if (selectedCore === "Debts" && debtType === "Lend") sign = -1;
+
     const total = splits.reduce((sum, s) => sum + Number(s.amount || 0) * sign, 0);
     setTotalAmount(total !== 0 ? total : "");
-  }, [splits, selectedCategory, selectedCore]);
+  }, [splits, selectedCategory, selectedCore, debtType]);
 
   const getTotalSplitAmount = () => {
     if (isTransfer) return Number(splits[0]?.amount || 0);
@@ -212,5 +216,7 @@ export default function useFinanceTransaction() {
     setLastPaymentDate,
     groupId,
     isTransfer,
+    debtType,
+    setDebtType,
   };
 }

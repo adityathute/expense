@@ -32,6 +32,14 @@ class FinanceTransactionSerializer(serializers.ModelSerializer):
     description = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     user_name = serializers.CharField(source='user.name', read_only=True)
 
+    # Add inside FinanceTransactionSerializer
+    is_debt = serializers.BooleanField(read_only=True)
+    debt_type = serializers.CharField(required=False, allow_blank=False, allow_null=False)
+    interest_amount = serializers.DecimalField(
+        max_digits=10, decimal_places=2, required=False, allow_null=True, default=0
+    )
+    due_date = serializers.DateField(required=False, allow_null=True)
+
     account = serializers.PrimaryKeyRelatedField(
         queryset=Account.objects.filter(is_deleted=False),
         required=False,
@@ -74,7 +82,8 @@ class FinanceTransactionSerializer(serializers.ModelSerializer):
             "next_due_date", "due_range_start", "due_range_end", "status",
             "last_payment_date", "group_id",
             "date_created", "is_cleared",
-            "is_transfer", "from_account", "to_account"
+            "is_transfer", "from_account", "to_account",
+            "is_debt", "debt_type", "interest_amount", "due_date",
         ]
 
     def create(self, validated_data):
@@ -131,7 +140,7 @@ class FinanceTransactionSerializer(serializers.ModelSerializer):
                     Account.objects.filter(pk=to_acc.pk).update(balance=F("balance") + amount)
                     to_acc.refresh_from_db()
                 return tx
-
+            
             # --- Normal / Split Transaction ---
             tx = FinanceTransaction.objects.create(
                 **validated_data,
@@ -139,6 +148,28 @@ class FinanceTransactionSerializer(serializers.ModelSerializer):
                 status=status,
                 group_id=group_id
             )
+
+            # --- Debt Transaction ---
+            if getattr(validated_data.get("category", None), "core_category", "") == "Debts":
+                debt_type = validated_data.get("debt_type")
+                interest_amount = Decimal(str(validated_data.get("interest_amount", 0)))
+                due_date = validated_data.get("due_date", None)
+
+                tx.is_debt = True
+                tx.debt_type = debt_type
+                tx.interest_amount = interest_amount
+                tx.due_date = due_date
+                tx.save()
+
+                # Update account balance based on Borrow/Lend
+                acc = validated_data.get("account")
+                if acc and tx.amount:
+                    amt = abs(Decimal(str(tx.amount)))
+                    if debt_type == "Borrow":
+                        Account.objects.filter(pk=acc.pk).update(balance=F("balance") + amt)
+                    elif debt_type == "Lend":
+                        Account.objects.filter(pk=acc.pk).update(balance=F("balance") - amt)
+                    acc.refresh_from_db()
 
             # --- Single Account Transaction ---
             if tx.is_cleared and not split_details and validated_data.get("account"):

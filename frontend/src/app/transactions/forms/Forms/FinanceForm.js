@@ -34,7 +34,9 @@ export default function FinanceForm({
   setStatus,
   user,
   setUser,
-  userOptions
+  userOptions,
+  debtType,
+  setDebtType,
 }) {
   const [useDueRange, setUseDueRange] = useState(false);
 
@@ -274,6 +276,87 @@ export default function FinanceForm({
             onChange={(e) => updateSplitRow(0, "amount", e.target.value)}
             onWheel={(e) => e.target.blur()} // disable scroll
           />
+        </div>
+      )}
+
+      {/* DEBTS SECTION - show account + amount, then due date + interest */}
+      {selectedCore === "Debts" && (
+        <div style={{ marginTop: ".5rem" }}>
+          <label>Transaction Type</label>
+          <select
+            value={debtType}
+            onChange={(e) => setDebtType(e.target.value)}
+            className={styles.modalFormInput}
+            style={{ marginBottom: ".5rem" }}
+          >
+            <option value="">--Select Type--</option>
+            <option value="Borrow">Borrow</option>
+            <option value="Lend">Lend</option>
+          </select>
+
+          {/* Row 1: Account + Amount */}
+          <div style={{ display: "flex", gap: "0.5rem", alignItems: "flex-end", marginBottom: ".5rem" }}>
+            <div style={{ flex: 1 }}>
+              <label>Select Account</label>
+              <select
+                value={splits[0]?.account || ""}
+                onChange={(e) => updateSplitRow(0, "account", e.target.value)}
+                className={styles.modalFormInput}
+              >
+                <option value="">--Select Account--</option>
+                {accounts
+                  .filter(acc => ["Cash", "Online"].includes(acc.account_mode))
+                  .map(acc => (
+                    <option key={acc.id} value={acc.id}>
+                      {formatAccountOption(acc)}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            <div style={{ flex: 1 }}>
+              <label>Amount</label>
+              <input
+                type="number"
+                className={styles.modalFormInput}
+                value={
+                  debtType === "Lend" && splits[0]?.amount
+                    ? -Math.abs(splits[0]?.amount)
+                    : splits[0]?.amount || ""
+                }
+                onChange={(e) => {
+                  // Store absolute value only, backend handles Lend logic
+                  const val = Math.abs(Number(e.target.value));
+                  updateSplitRow(0, "amount", val);
+                }}
+                onWheel={(e) => e.target.blur()}
+              />
+            </div>
+          </div>
+
+          {/* Row 2: Due Date + Interest Amount */}
+          <div style={{ display: "flex", gap: "0.5rem", alignItems: "flex-end" }}>
+            <div style={{ flex: 1 }}>
+              <label>Due Date</label>
+              <input
+                type="date"
+                className={styles.modalFormInput}
+                value={nextDueDate || ""}
+                onChange={(e) => setNextDueDate(e.target.value)}
+              />
+            </div>
+
+            <div style={{ flex: 1 }}>
+              <label>Interest Amount</label>
+              <input
+                type="number"
+                className={styles.modalFormInput}
+                value={splits[0]?.interest || ""}
+                onChange={(e) => updateSplitRow(0, "interest", e.target.value)}
+                onWheel={(e) => e.target.blur()}
+              />
+            </div>
+          </div>
         </div>
       )}
 

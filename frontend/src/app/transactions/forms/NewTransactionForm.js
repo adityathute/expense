@@ -141,6 +141,15 @@ export default function NewTransactionForm({ onSubmit }) {
       payload.split_details = [];
     }
 
+    if (finance.selectedCore === "Debts") {
+      if (!finance.debtType) return alert("Please select debt type");
+      if (!finance.nextDueDate) return alert("Please select due date");
+      payload.is_debt = true;
+      payload.debt_type = finance.debtType;
+      payload.interest_amount = Number(finance.splits[0]?.interest || 0);
+      payload.due_date = finance.nextDueDate;
+    }
+
     console.log("Submitting payload:", payload);
 
     const endpoint =
@@ -214,6 +223,8 @@ export default function NewTransactionForm({ onSubmit }) {
           user={user}
           setUser={setUser}
           userOptions={userOptions}
+          debtType={finance.debtType}
+          setDebtType={finance.setDebtType}
         />
       )}
 
