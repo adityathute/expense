@@ -139,90 +139,90 @@ export default function FinanceForm({
         </div>
       )}
 
-      {/* Income / Expense Section */}
-{/* Income / Expense Section */}
-{isIncomeExpense && categories.length > 0 && (
-  <>
-    <label>Select Category</label>
-    <select
-      value={selectedLeaf}
-      className={styles.modalFormInput}
-      onChange={onLeafChange}
-    >
-      <option value="">--Select--</option>
-      {renderCategoryOptions(
-        // Filter categories by selected type (Shop/Personal)
-        categories.filter(cat => cat.category_type === categoryType)
-      )}
-    </select>
+      {isIncomeExpense && (
+        <>
+          {/* Switch for Shop / Personal */}
+          <div className="main-switch-header" style={{ marginBottom: ".5rem" }}>
+            <div className="switch-container">
+              <label className="switch">
+                <input
+                  type="checkbox"
+                  checked={categoryType}
+                  onChange={() => setCategoryType(!categoryType)}
+                />
+                <span className="slider"></span>
+              </label>
+              <span className="switch-text">{categoryType ? "Personal" : "Shop"}</span>
+            </div>
+          </div>
 
-    {/* Switch for Shop / Personal */}
-    <div className="main-switch-header" style={{ marginTop: ".5rem" }}>
-      <div className="switch-container">
-        <label className="switch">
-          <input
-            type="checkbox"
-            checked={categoryType}
-            onChange={() => {
-              setCategoryType(!categoryType);
-              setCurrentPage(1); // if you have pagination
-            }}
-          />
-          <span className="slider"></span>
-        </label>
-        <span className="switch-text">{categoryType ? "Personal" : "Shop"}</span>
-      </div>
-    </div>
-
-    {/* Split accounts section remains unchanged */}
-    <div>
-      {splits.map((split, i) => (
-        <div key={i} style={{ display: "flex", gap: "0.5rem", marginTop: ".25rem" }}>
+          <label>Select Category</label>
           <select
-            value={split.account || ""}
-            onChange={(e) => updateSplitRow(i, "account", e.target.value)}
+            value={selectedLeaf}
             className={styles.modalFormInput}
-            style={{ width: "50%" }}
+            onChange={onLeafChange}
           >
-            <option value="">--Select Account--</option>
-            {getFilteredAccounts()
-              .filter(acc => !splits.some((s, idx) => s.account === String(acc.id) && idx !== i))
-              .map(acc => (
-                <option key={acc.id} value={acc.id}>{formatAccountOption(acc)}</option>
-              ))}
+            <option value="">--Select--</option>
+            {renderCategoryOptions(
+              // filter by Shop / Personal here dynamically
+              categories.filter(cat => cat.category_type === categoryType)
+            )}
           </select>
-
-          <input
-            type="number"
-            value={split.amount}
-            onChange={(e) => updateSplitRow(i, "amount", e.target.value)}
-            className={styles.modalFormInput}
-            style={{ width: "50%" }}
-          />
-
-          <button
-            type="button"
-            onClick={() => removeSplitRow(i)}
-            className={styles.removeButton}
-          >
-            <DeleteIcon className={styles.icon} />
-          </button>
-        </div>
-      ))}
-
-      {getFilteredAccounts().filter(acc => !splits.some(s => s.account === String(acc.id))).length > 0 && (
-        <button
-          type="button"
-          onClick={addSplitRow}
-          className={styles.buttonAddLink}
-          style={{ marginTop: ".25rem" }}
-        >
-          Add More Account
-        </button>
+        </>
       )}
-    </div>
-  </>
-)}
+
+      {/* Income / Expense Section */}
+      {isIncomeExpense && categories.length > 0 && (
+        <>
+          {/* Split accounts section remains unchanged */}
+          <div>
+            {splits.map((split, i) => (
+              <div key={i} style={{ display: "flex", gap: "0.5rem", marginTop: ".25rem" }}>
+                <select
+                  value={split.account || ""}
+                  onChange={(e) => updateSplitRow(i, "account", e.target.value)}
+                  className={styles.modalFormInput}
+                  style={{ width: "50%" }}
+                >
+                  <option value="">--Select Account--</option>
+                  {getFilteredAccounts()
+                    .filter(acc => !splits.some((s, idx) => s.account === String(acc.id) && idx !== i))
+                    .map(acc => (
+                      <option key={acc.id} value={acc.id}>{formatAccountOption(acc)}</option>
+                    ))}
+                </select>
+
+                <input
+                  type="number"
+                  value={split.amount}
+                  onChange={(e) => updateSplitRow(i, "amount", e.target.value)}
+                  className={styles.modalFormInput}
+                  style={{ width: "50%" }}
+                />
+
+                <button
+                  type="button"
+                  onClick={() => removeSplitRow(i)}
+                  className={styles.removeButton}
+                >
+                  <DeleteIcon className={styles.icon} />
+                </button>
+              </div>
+            ))}
+
+            {getFilteredAccounts().filter(acc => !splits.some(s => s.account === String(acc.id))).length > 0 && (
+              <button
+                type="button"
+                onClick={addSplitRow}
+                className={styles.buttonAddLink}
+                style={{ marginTop: ".25rem" }}
+              >
+                Add More Account
+              </button>
+            )}
+          </div>
+        </>
+      )}
 
       {/* SAVINGS SECTION - show account immediately */}
       {selectedCore === "Savings" && (

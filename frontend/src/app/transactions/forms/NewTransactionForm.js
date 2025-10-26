@@ -12,6 +12,7 @@ export default function NewTransactionForm({ onSubmit }) {
   const [selectedService, setSelectedService] = useState("");
   const [description, setDescription] = useState("");
   const finance = useFinanceTransaction();
+  const { allCategories, selectedCategory } = finance;
 
   // Fetch services
   useEffect(() => {
@@ -60,10 +61,14 @@ export default function NewTransactionForm({ onSubmit }) {
       : true; // non-recurring transactions are cleared immediately
 
     // ---------- BASE PAYLOAD ----------
+    const savingsCategory = allCategories.find(
+      c => c.core_category === "Savings" && c.is_core
+    );
+
     const payload = {
       user,
       amount: Number(finance.totalAmount),
-      category: parseInt(finance.selectedLeaf, 10),
+      category: selectedCategory?.id || savingsCategory?.id, // <-- use this
       is_split: isSplit,
       split_details: isSplit
         ? finance.splits.map(s => ({

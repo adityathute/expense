@@ -35,9 +35,20 @@ export default function useFinanceTransaction() {
   }, [selectedCore]);
 
   useEffect(() => {
+    if (selectedCore === "Savings") {
+      // Find core category object for Savings
+      const coreCat = allCategories.find(c => c.core_category === "Savings" && c.is_core);
+      setSelectedCategory(coreCat || { id: null, name: "Savings", core_category: "Savings" });
+      setSelectedLeaf(coreCat?.id || null);
+    } else {
+      setSelectedLeaf("");
+      setSelectedCategory(null);
+    }
+  }, [selectedCore, allCategories]);
+
+  useEffect(() => {
     const fetchCategories = async () => {
       try {
-        // Only fetch when selectedCore is Income/Expense
         if (!selectedCore) return;
 
         const res = await fetch(`http://127.0.0.1:8001/api/categories/?type=${selectedCore}`);
@@ -45,6 +56,7 @@ export default function useFinanceTransaction() {
         const allCats = data.results || [];
         setAllCategories(allCats);
 
+        // Filter initial categories by selectedCore, not is_core
         const filteredByCore = allCats.filter(
           c => c.core_category === selectedCore && !c.is_core
         );
@@ -54,8 +66,7 @@ export default function useFinanceTransaction() {
             .filter(i => i.parent === parentId)
             .map(i => ({ ...i, children: buildTree(items, i.id) }));
 
-        setCategories(buildTree(filteredByCore));
-
+        setCategories(buildTree(filteredByCore).filter(c => c.category_type === categoryType));
         setSelectedLeaf("");
         setSelectedCategory(null);
       } catch (err) {
@@ -66,6 +77,28 @@ export default function useFinanceTransaction() {
 
     fetchCategories();
   }, [selectedCore]);
+
+  // React to categoryType changes
+  useEffect(() => {
+    // Only filter if allCategories already fetched
+    if (!allCategories.length) return;
+
+    const filteredByCore = allCategories.filter(
+      c => c.core_category === selectedCore && !c.is_core
+    );
+
+    const buildTree = (items, parentId = null) =>
+      items
+        .filter(i => i.parent === parentId)
+        .map(i => ({ ...i, children: buildTree(items, i.id) }));
+
+    // Filter categories dynamically by categoryType (Shop / Personal)
+    setCategories(buildTree(filteredByCore).filter(c => c.category_type === categoryType));
+
+    // Reset selection
+    setSelectedLeaf("");
+    setSelectedCategory(null);
+  }, [categoryType]);
 
   // Fetch accounts
   useEffect(() => {

@@ -167,15 +167,21 @@ export default function Transactions() {
     if (!catId) return "-";
     const path = [];
     let current = categoryMap[catId];
+
+    if (!current) return "-";
+
+    // Traverse parents
     while (current) {
       path.unshift(current.name);
       if (!current.parent) break;
       current = categoryMap[current.parent];
     }
-    // Prepend core_category if exists
-    if (current?.core_category) {
+
+    // Only prepend core_category if it's different from the main category name
+    if (current?.core_category && current.core_category !== path[0]) {
       path.unshift(current.core_category);
     }
+
     return path.join(" > ");
   };
 
