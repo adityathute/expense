@@ -13,11 +13,12 @@ class ServiceTransactionSerializer(serializers.ModelSerializer):
     service_name = serializers.CharField(source='service.name', read_only=True)
     service_fee = serializers.DecimalField(source='service.service_fee', max_digits=10, decimal_places=2, read_only=True)
     global_id = serializers.CharField(read_only=True)
+    user_name = serializers.CharField(source='user.name', read_only=True) 
 
     class Meta:
         model = ServiceTransaction
         fields = [
-            "id", "global_id", "user", "amount", "service",
+            "id", "global_id", "user", "user_name", "amount", "service",
             "service_name", "service_fee", "date_created",
             "is_recurring", "recurring_frequency", "next_due_date", "status"
         ]
@@ -29,6 +30,7 @@ class FinanceTransactionSerializer(serializers.ModelSerializer):
     global_id = serializers.CharField(read_only=True)
     is_cleared = serializers.BooleanField(default=False)
     description = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    user_name = serializers.CharField(source='user.name', read_only=True)
 
     account = serializers.PrimaryKeyRelatedField(
         queryset=Account.objects.filter(is_deleted=False),
@@ -66,7 +68,7 @@ class FinanceTransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = FinanceTransaction
         fields = [
-            "id", "global_id", "user", "amount", "category", "category_name",
+            "id", "global_id", "user", "user_name", "amount", "category", "category_name",
             "account", "split_details", "is_split", "description",
             "is_recurring", "recurring_frequency",
             "next_due_date", "due_range_start", "due_range_end", "status",

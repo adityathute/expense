@@ -41,6 +41,7 @@ export default function FinanceForm({
   const recurringAllowed = ["Income", "Expense", "Savings", "Investments", "Loans"].includes(selectedCore);
   const isTransfer = selectedCore === "Transfer";
   const isIncomeExpense = selectedCore === "Income" || selectedCore === "Expense";
+  const showUserField = ["Income", "Expense", "Debts"].includes(selectedCore);
 
   // Render nested category options recursively
   const renderCategoryOptions = (nodes, level = 0) =>
@@ -174,19 +175,23 @@ export default function FinanceForm({
         </>
       )}
 
-      <label>Select User</label>
-      <select
-        value={user}
-        onChange={(e) => setUser(e.target.value)}
-        className={styles.modalFormInput}
-      >
-        <option value="">--Select User--</option>
-        {userOptions.map(u => (
-          <option key={u.id} value={u.id}>
-            {u.name || u.username}
-          </option>
-        ))}
-      </select>
+      {showUserField && (
+        <>
+          <label>Select User</label>
+          <select
+            value={user}
+            onChange={(e) => setUser(e.target.value)}
+            className={styles.modalFormInput}
+          >
+            <option value="">--Select User--</option>
+            {userOptions.map(u => (
+              <option key={u.id} value={u.id}>
+                {u.name || u.username}
+              </option>
+            ))}
+          </select>
+        </>
+      )}
 
       {/* Income / Expense Section */}
       {isIncomeExpense && categories.length > 0 && (

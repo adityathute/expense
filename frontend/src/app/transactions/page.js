@@ -152,7 +152,7 @@ export default function Transactions() {
 
   // Search filter
   const filteredTransactions = transactions.filter((t) =>
-    (t.user?.username || "").toLowerCase().includes(searchQuery.toLowerCase())
+    (t.user_name || "").toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const totalPages = Math.ceil(filteredTransactions.length / entriesPerPage);
@@ -186,7 +186,7 @@ export default function Transactions() {
   };
 
   const headers = ["TransID", "Type", "User", "Service / Category", "Amount", "Date"];
-  const columns = ["global_id", "transaction_type", "user.username", "service_or_category", "amount", "date_created"];
+  const columns = ["global_id", "transaction_type", "user_name", "service_or_category", "amount", "date_created"];
 
   // Prepare table data with full hierarchy
   const tableData = paginatedTransactions.map((t) => {
@@ -202,6 +202,7 @@ export default function Transactions() {
       service_or_category_id: t.transaction_type === "Service" ? t.service : t.category,
     };
   });
+  console.log(paginatedTransactions[0])
 
   return (
     <div>
@@ -242,7 +243,12 @@ export default function Transactions() {
                 {row.global_id}
               </button>
             );
-            if (col === "user.username") return row.user?.username || "-";
+            if (col === "user_name") {
+              if (!row.user_name) return "-";
+              const words = row.user_name.split(" ");
+              if (words.length === 1) return words[0]; // Only one word
+              return `${words[0]} ${words[words.length - 1]}`; // First + last
+            }
             if (col === "service_or_category") return row.service_or_category || "-";
             if (col === "date_created") return new Date(row.date_created).toLocaleDateString("en-GB");
             return row[col];

@@ -92,7 +92,7 @@ export default function NewTransactionForm({ onSubmit }) {
     }
 
     const payload = {
-      user,
+      user: user || null,
       amount: Number(finance.totalAmount),
       category: categoryToUse,
       is_split: isSplit,
