@@ -134,6 +134,7 @@ export default function FinanceForm({
               updateSplitRow(0, "amount", val);
               updateSplitRow(1, "amount", val);
             }}
+            onWheel={(e) => e.target.blur()} // disable scroll
             className={styles.modalFormInput}
           />
         </div>
@@ -196,6 +197,7 @@ export default function FinanceForm({
                   type="number"
                   value={split.amount}
                   onChange={(e) => updateSplitRow(i, "amount", e.target.value)}
+                  onWheel={(e) => e.target.blur()} // disable scroll
                   className={styles.modalFormInput}
                   style={{ width: "50%" }}
                 />
@@ -249,6 +251,7 @@ export default function FinanceForm({
             className={styles.modalFormInput}
             value={splits[0]?.amount || ""}
             onChange={(e) => updateSplitRow(0, "amount", e.target.value)}
+            onWheel={(e) => e.target.blur()} // disable scroll
           />
         </div>
       )}
