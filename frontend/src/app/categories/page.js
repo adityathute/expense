@@ -50,18 +50,18 @@ export default function Categories() {
   async function fetchCategories() {
     setLoading(true);
     try {
-      const response = await fetch(`http://127.0.0.1:8001/api/categories/?type=${categoryType}`);
-      if (!response.ok) throw new Error("Failed to fetch categories");
-      const data = await response.json();
+      const res = await fetch(`http://127.0.0.1:8001/api/categories/?type=${categoryType}`);
+      if (!res.ok) throw new Error("Failed to fetch categories");
+      const data = await res.json();
 
-      // API returns { categories: [...], core_categories: [...] }
-      const dbCategories = Array.isArray(data) ? data : data.categories || [];
-      const cores = (data && data.core_categories) || [];
+      // all DB categories (including is_core true/false)
+      const allCategories = Array.isArray(data.results) ? data.results : [];
+      setCategories(allCategories);
 
-      setCategories(dbCategories);
-      setCoreCategories(cores);
-    } catch (error) {
-      console.error("Error fetching categories:", error);
+      // top-level pseudo cores for modal
+      setCoreCategories(["Income", "Expense"]);
+    } catch (err) {
+      console.error(err);
       setCategories([]);
       setCoreCategories([]);
     } finally {
@@ -71,62 +71,64 @@ export default function Categories() {
 
   // Build a tree grouped by core (core nodes are pseudo nodes 'core-<NAME>')
   const buildCoreTree = () => {
-    // helper: build subtree for a core and parentId
     const buildSubtree = (core, parentId = null) => {
       return categories
-        .filter((c) => c.core_category === core && (c.parent === parentId || (c.parent === null && parentId === null)))
-        .map((c) => ({
-          ...c,
-          children: buildSubtree(core, c.id),
-        }));
+        .filter(c => !c.is_core && c.core_category === core && (c.parent === parentId || (c.parent === null && parentId === null)))
+        .map(c => ({ ...c, children: buildSubtree(core, c.id) }));
     };
 
-    // Only show Income and Expense cores
-    const allowedCores = ["Income", "Expense"];
-    return coreCategories
-      .filter(coreName => allowedCores.includes(coreName))
-      .map((coreName) => ({
-        id: `core-${coreName}`,
-        name: coreName,
-        isCore: true,
-        children: buildSubtree(coreName, null),
-      }));
+    return coreCategories.map(coreName => ({
+      id: `core-${coreName}`,
+      name: coreName,
+      isCore: true,
+      children: buildSubtree(coreName, null),
+    }));
   };
 
-  // Flatten tree for table view (so we can paginate/search easily)
-  const flattenTreeForTable = () => {
-    const tree = buildCoreTree();
+  // Flatten tree for table view (ignore pseudo core nodes)
+  const flattenCategoriesForTable = () => {
     const rows = [];
 
-    const pushNode = (node, level = 0, parentPath = "") => {
-      // parentPath only for DB categories; core nodes will show their own name
-      if (!node.isCore) {
-        rows.push({
-          _isCore: false,
-          id: node.id,
-          name: node.name,
-          description: node.description || "-",
-          core_category: node.core_category,
-          parentPath: parentPath || node.core_category,
-          raw: node,
-        });
+    const buildPath = (node) => {
+      let path = [];
+      let current = node;
+      while (current?.parent) {
+        const parent = categories.find(c => c.id === current.parent);
+        if (!parent) break;
+        path.unshift(parent.name);
+        current = parent;
       }
+      return path.length > 0 ? `${node.core_category} > ${path.join(" > ")}` : `${node.core_category}`;
+    };
 
-      if (node.children && node.children.length > 0) {
-        for (const child of node.children) {
-          // For child, parentPath should show chain: Core > Parent > ...
-          const newParentPath = node.isCore ? `${node.name}` : `${parentPath} > ${node.name}`;
-          pushNode(child, level + 1, newParentPath);
-        }
+    const pushNode = (node) => {
+      rows.push({
+        _isCore: false,
+        id: node.id,
+        name: node.name,
+        description: node.description || "-",
+        core_category: node.core_category || "-",
+        parentPath: buildPath(node),
+        raw: node,
+      });
+
+      // recursively add children
+      const children = categories.filter(c => c.parent === node.id);
+      for (const child of children) {
+        pushNode(child);
       }
     };
 
-    tree.forEach((n) => pushNode(n));
+    // top-level nodes (parent = null)
+    const topLevel = categories.filter(c => !c.parent);
+    topLevel.forEach(cat => pushNode(cat));
+
     return rows;
   };
 
   // Filter & paginate rows
-  const allRows = flattenTreeForTable();
+  // Table rows: flatten only non-core DB categories
+  const allRows = flattenCategoriesForTable().filter(row => row.raw.is_core === false);
   const filteredRows = allRows.filter((r) =>
     r.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (r.parentPath && r.parentPath.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -152,20 +154,18 @@ export default function Categories() {
   // Render hierarchical options for the modal picker
   const renderOptions = (nodes, level = 0) =>
     nodes.flatMap((node) => {
-      // if core node
       if (node.isCore) {
         const coreOption = (
           <option key={node.id} value={node.id} style={{ fontWeight: 700 }}>
             {node.name}
           </option>
         );
-        const childOptions = (node.children || []).flatMap((c) => renderCategoryOptions(c, 1));
+        const childOptions = (node.children || []).flatMap(c => renderCategoryOptions(c, 1));
         return [coreOption, ...childOptions];
       }
-      return []; // should not reach because top-level nodes are cores
+      return []; // DB categories handled recursively
     });
 
-  // helper to render DB category nodes recursively (indented)
   const renderCategoryOptions = (node, level = 0) => {
     const prefix = "—".repeat(level);
     const option = (
@@ -173,7 +173,7 @@ export default function Categories() {
         {prefix} {node.name}
       </option>
     );
-    const children = (node.children || []).flatMap((c) => renderCategoryOptions(c, level + 1));
+    const children = (node.children || []).flatMap(c => renderCategoryOptions(c, level + 1));
     return [option, ...children];
   };
 

@@ -57,6 +57,7 @@ class Category(models.Model):
     parent = models.ForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="subcategories")
     core_category = models.CharField(max_length=20, choices=CORE_CATEGORIES, null=True, blank=True)
     category_type = models.BooleanField(default=False, verbose_name="Is Personal")  # False = Shop, True = Personal
+    is_core = models.BooleanField(default=False, verbose_name="Is Core")
     is_deleted = models.BooleanField(default=False, verbose_name="Is Deleted")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

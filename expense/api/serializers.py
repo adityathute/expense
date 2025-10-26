@@ -50,6 +50,7 @@ class CategorySerializer(serializers.ModelSerializer):
             "parent",
             "subcategories",
             "category_type",
+            "is_core",
             "is_deleted",
         ]
         read_only_fields = ["subcategories"]

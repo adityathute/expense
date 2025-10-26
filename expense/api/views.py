@@ -22,39 +22,69 @@ pdfmetrics.registerFont(TTFont('Gotham', os.path.join('static', 'fonts', 'Gotham
 
 @api_view(['GET', 'POST'])
 def category_list(request):
-    category_type = request.GET.get('type')
+    """List all categories or create a new category."""
+    category_type_param = request.GET.get('type')
     show_deleted = request.GET.get('show_deleted') == 'true'
+    is_core_param = request.GET.get('is_core')
 
-    if category_type is not None:
-        if category_type.lower() in ["true", "1"]:
-            category_type = True
-        else:
-            category_type = False
+    # Convert category_type to boolean
+    if category_type_param is not None:
+        category_type_param = category_type_param.lower() in ['true', '1']
 
-    if request.method == "POST":
+    categories = Category.objects.all()
+
+    if not show_deleted:
+        categories = categories.filter(is_deleted=False)
+
+    if is_core_param is not None:
+        is_core_bool = is_core_param.lower() in ['true', '1']
+        categories = categories.filter(is_core=is_core_bool)
+
+    if category_type_param is not None:
+        categories = categories.filter(category_type=category_type_param)
+
+    if request.method == 'POST':
         serializer = CategorySerializer(data=request.data)
         if serializer.is_valid():
             category_instance = serializer.save()
             return Response(CategorySerializer(category_instance).data, status=201)
         return Response(serializer.errors, status=400)
 
-    core_category_names = [c[0] for c in CORE_CATEGORIES]
+    serializer = CategorySerializer(categories, many=True)
+    return Response({"results": serializer.data})
 
-    if show_deleted:
-        categories = Category.objects.exclude(name__in=core_category_names)
-    else:
-        categories = Category.objects.filter(is_deleted=False).exclude(name__in=core_category_names)
 
-    if category_type is not None:  # Only filter if provided
-        categories = categories.filter(category_type=category_type)
+@api_view(['GET', 'PUT', 'DELETE'])
+def category_detail(request, category_id):
+    """Retrieve, update, soft delete or hard delete a category."""
+    try:
+        category = Category.objects.get(id=category_id)
+    except Category.DoesNotExist:
+        return Response({"error": "Category not found"}, status=404)
 
-    return Response({
-        "categories": CategorySerializer(categories, many=True).data,
-        "core_categories": core_category_names
-    })
+    if request.method == 'GET':
+        return Response(CategorySerializer(category).data)
+
+    elif request.method == 'PUT':
+        serializer = CategorySerializer(category, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+    elif request.method == 'DELETE':
+        if not category.is_deleted:
+            category.is_deleted = True  # soft delete
+            category.save(update_fields=['is_deleted'])
+            return Response({"message": "Category marked as deleted"}, status=200)
+        else:
+            category.delete()  # hard delete
+            return Response({"message": "Category permanently deleted"}, status=200)
+
 
 @api_view(['POST'])
 def category_restore(request, category_id):
+    """Restore a soft-deleted category."""
     try:
         category = Category.objects.get(id=category_id)
         category.is_deleted = False
@@ -62,34 +92,6 @@ def category_restore(request, category_id):
         return Response({"message": "Category restored successfully"}, status=200)
     except Category.DoesNotExist:
         return Response({"error": "Category not found"}, status=404)
-
-@api_view(['GET', 'PUT', 'DELETE'])
-def category_detail(request, category_id):
-    try:
-        category = Category.objects.get(id=category_id)
-    except Category.DoesNotExist:
-        return Response({"error": "Category not found"}, status=404)
-
-    if request.method == "GET":
-        return Response(CategorySerializer(category).data)
-
-    elif request.method == "PUT":
-        serializer = CategorySerializer(category, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=400)
-
-    elif request.method == "DELETE":
-        if not category.is_deleted:
-            # Soft delete
-            category.is_deleted = True
-            category.save(update_fields=['is_deleted'])
-            return Response({"message": "Category marked as deleted"}, status=200)
-        else:
-            # Hard delete
-            category.delete()
-            return Response({"message": "Category permanently deleted"}, status=200)
 
 # ---------------------- USER RELATED VIEWS ---------------------- #
 

@@ -34,35 +34,38 @@ export default function useFinanceTransaction() {
     }
   }, [selectedCore]);
 
-  // Fetch categories
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await fetch(`http://127.0.0.1:8001/api/categories/?type=${categoryType}`);
+        // Only fetch when selectedCore is Income/Expense
+        if (!selectedCore) return;
+
+        const res = await fetch(`http://127.0.0.1:8001/api/categories/?type=${selectedCore}`);
         const data = await res.json();
-        const allCats = data.categories || [];
+        const allCats = data.results || [];
         setAllCategories(allCats);
 
-        if (selectedCore) {
-          const filteredByCore = allCats.filter(c => c.core_category === selectedCore);
-          const buildTree = (items, parentId = null) =>
-            items
-              .filter(i => i.parent === parentId)
-              .map(i => ({ ...i, children: buildTree(items, i.id) }));
-          setCategories(buildTree(filteredByCore));
-          setSelectedLeaf("");
-          setSelectedCategory(null);
-        } else {
-          setCategories([]);
-          setSelectedCategory(null);
-        }
+        const filteredByCore = allCats.filter(
+          c => c.core_category === selectedCore && !c.is_core
+        );
+
+        const buildTree = (items, parentId = null) =>
+          items
+            .filter(i => i.parent === parentId)
+            .map(i => ({ ...i, children: buildTree(items, i.id) }));
+
+        setCategories(buildTree(filteredByCore));
+
+        setSelectedLeaf("");
+        setSelectedCategory(null);
       } catch (err) {
         console.error(err);
         setCategories([]);
       }
     };
+
     fetchCategories();
-  }, [categoryType, selectedCore]);
+  }, [selectedCore]);
 
   // Fetch accounts
   useEffect(() => {

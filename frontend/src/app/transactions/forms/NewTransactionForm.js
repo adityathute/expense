@@ -38,13 +38,18 @@ export default function NewTransactionForm({ onSubmit }) {
     }
 
     if (type === "finance") {
-      // Only require leaf category if not Transfer
+      // Must select a core category always
       if (!finance.selectedCore) {
         return alert("Please select a core category");
       }
-      if (finance.selectedCore !== "Transfer" && !finance.selectedLeaf) {
+
+      // Require leaf ONLY for Income & Expense
+      const requireLeafFor = ["Income", "Expense"];
+      if (requireLeafFor.includes(finance.selectedCore) && !finance.selectedLeaf) {
         return alert("Please select a category");
       }
+
+      // No leaf required for Savings, Investments, Loans, Debts, Transfer
     }
 
     const isSplit = finance.splits.length > 1;

@@ -22,4 +22,9 @@ def create_core_categories(sender, **kwargs):
             return
 
     for key, name in CORE_CATEGORIES:
-        Category.objects.get_or_create(name=name, core_category=key, parent=None)
+        Category.objects.get_or_create(
+            name=name,
+            core_category=key,
+            parent=None,
+            defaults={"is_core": True}
+        )

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "../../../styles/components/modalForm.module.css";
 import { DeleteIcon } from "../../../components/Icons";
 import { formatAccountOption } from "../utils/accountFormat";
@@ -140,67 +140,117 @@ export default function FinanceForm({
       )}
 
       {/* Income / Expense Section */}
-      {isIncomeExpense && categories.length > 0 && (
-        <>
-          <label>Select Category</label>
+{/* Income / Expense Section */}
+{isIncomeExpense && categories.length > 0 && (
+  <>
+    <label>Select Category</label>
+    <select
+      value={selectedLeaf}
+      className={styles.modalFormInput}
+      onChange={onLeafChange}
+    >
+      <option value="">--Select--</option>
+      {renderCategoryOptions(
+        // Filter categories by selected type (Shop/Personal)
+        categories.filter(cat => cat.category_type === categoryType)
+      )}
+    </select>
+
+    {/* Switch for Shop / Personal */}
+    <div className="main-switch-header" style={{ marginTop: ".5rem" }}>
+      <div className="switch-container">
+        <label className="switch">
+          <input
+            type="checkbox"
+            checked={categoryType}
+            onChange={() => {
+              setCategoryType(!categoryType);
+              setCurrentPage(1); // if you have pagination
+            }}
+          />
+          <span className="slider"></span>
+        </label>
+        <span className="switch-text">{categoryType ? "Personal" : "Shop"}</span>
+      </div>
+    </div>
+
+    {/* Split accounts section remains unchanged */}
+    <div>
+      {splits.map((split, i) => (
+        <div key={i} style={{ display: "flex", gap: "0.5rem", marginTop: ".25rem" }}>
           <select
-            value={selectedLeaf}
+            value={split.account || ""}
+            onChange={(e) => updateSplitRow(i, "account", e.target.value)}
             className={styles.modalFormInput}
-            onChange={onLeafChange}
+            style={{ width: "50%" }}
           >
-            <option value="">--Select--</option>
-            {renderCategoryOptions(categories)}
+            <option value="">--Select Account--</option>
+            {getFilteredAccounts()
+              .filter(acc => !splits.some((s, idx) => s.account === String(acc.id) && idx !== i))
+              .map(acc => (
+                <option key={acc.id} value={acc.id}>{formatAccountOption(acc)}</option>
+              ))}
           </select>
 
-          {selectedCategory && (
-            <div>
-              {splits.map((split, i) => (
-                <div key={i} style={{ display: "flex", gap: "0.5rem", marginTop: ".25rem" }}>
-                  <select
-                    value={split.account || ""}
-                    onChange={(e) => updateSplitRow(i, "account", e.target.value)}
-                    className={styles.modalFormInput}
-                    style={{ width: "50%" }}
-                  >
-                    <option value="">--Select Account--</option>
-                    {getFilteredAccounts()
-                      .filter(acc => !splits.some((s, idx) => s.account === String(acc.id) && idx !== i))
-                      .map(acc => (
-                        <option key={acc.id} value={acc.id}>{formatAccountOption(acc)}</option>
-                      ))}
-                  </select>
+          <input
+            type="number"
+            value={split.amount}
+            onChange={(e) => updateSplitRow(i, "amount", e.target.value)}
+            className={styles.modalFormInput}
+            style={{ width: "50%" }}
+          />
 
-                  <input
-                    type="number"
-                    value={split.amount}
-                    onChange={(e) => updateSplitRow(i, "amount", e.target.value)}
-                    className={styles.modalFormInput}
-                    style={{ width: "50%" }}
-                  />
+          <button
+            type="button"
+            onClick={() => removeSplitRow(i)}
+            className={styles.removeButton}
+          >
+            <DeleteIcon className={styles.icon} />
+          </button>
+        </div>
+      ))}
 
-                  <button
-                    type="button"
-                    onClick={() => removeSplitRow(i)}
-                    className={styles.removeButton}
-                  >
-                    <DeleteIcon className={styles.icon} />
-                  </button>
-                </div>
+      {getFilteredAccounts().filter(acc => !splits.some(s => s.account === String(acc.id))).length > 0 && (
+        <button
+          type="button"
+          onClick={addSplitRow}
+          className={styles.buttonAddLink}
+          style={{ marginTop: ".25rem" }}
+        >
+          Add More Account
+        </button>
+      )}
+    </div>
+  </>
+)}
+
+      {/* SAVINGS SECTION - show account immediately */}
+      {selectedCore === "Savings" && (
+        <div style={{ marginTop: ".5rem" }}>
+          <label>Select Account</label>
+          <select
+            value={splits[0]?.account || ""}
+            onChange={(e) => updateSplitRow(0, "account", e.target.value)}
+            className={styles.modalFormInput}
+          >
+            <option value="">--Select Account--</option>
+            {accounts
+              .filter(acc => acc.account_mode === "Savings")
+              .map(acc => (
+                <option key={acc.id} value={acc.id}>
+                  {formatAccountOption(acc)}
+                </option>
               ))}
+          </select>
 
-              {getFilteredAccounts().filter(acc => !splits.some(s => s.account === String(acc.id))).length > 0 && (
-                <button
-                  type="button"
-                  onClick={addSplitRow}
-                  className={styles.buttonAddLink}
-                  style={{ marginTop: ".25rem" }}
-                >
-                  Add More Account
-                </button>
-              )}
-            </div>
-          )}
-        </>
+          <label style={{ marginTop: ".25rem" }}>Amount</label>
+          <input
+            type="number"
+            className={styles.modalFormInput}
+            value={splits[0]?.amount || ""}
+            onChange={(e) => updateSplitRow(0, "amount", e.target.value)}
+          />
+        </div>
       )}
 
       {/* Recurring Section */}
