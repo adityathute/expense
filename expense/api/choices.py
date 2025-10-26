@@ -10,7 +10,7 @@ CORE_CATEGORIES = [
     ("Expense", "Expense"),
     ("Savings", "Savings"),
     ("Transfer", "Transfer"),
-    ("Investment", "Investment"),
+    ("Investments", "Investments"),
     ("Loans", "Loans"),
     ("Debts", "Debts"),
 ]

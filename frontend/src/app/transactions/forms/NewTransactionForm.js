@@ -61,14 +61,22 @@ export default function NewTransactionForm({ onSubmit }) {
       : true; // non-recurring transactions are cleared immediately
 
     // ---------- BASE PAYLOAD ----------
-    const savingsCategory = allCategories.find(
-      c => c.core_category === "Savings" && c.is_core
-    );
+    let categoryToUse = selectedCategory?.id;
+
+    // Auto-assign for core categories that do not require leaf
+    if (!categoryToUse) {
+      const autoCategory = allCategories.find(
+        c =>
+          c.core_category === finance.selectedCore && // <-- match exactly the selected core
+          c.is_core
+      );
+      categoryToUse = autoCategory?.id || null;
+    }
 
     const payload = {
       user,
       amount: Number(finance.totalAmount),
-      category: selectedCategory?.id || savingsCategory?.id, // <-- use this
+      category: categoryToUse,
       is_split: isSplit,
       split_details: isSplit
         ? finance.splits.map(s => ({
@@ -114,6 +122,8 @@ export default function NewTransactionForm({ onSubmit }) {
       payload.is_split = false;
       payload.split_details = [];
     }
+
+    // console.log("Submitting payload:", payload);
 
     const endpoint =
       type === "service"

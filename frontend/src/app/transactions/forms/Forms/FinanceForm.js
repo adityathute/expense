@@ -225,8 +225,8 @@ export default function FinanceForm({
         </>
       )}
 
-      {/* SAVINGS SECTION - show account immediately */}
-      {selectedCore === "Savings" && (
+      {/* SAVINGS & INVESTMENTS SECTION - show account immediately */}
+      {(selectedCore === "Savings" || selectedCore === "Investments") && (
         <div style={{ marginTop: ".5rem" }}>
           <label>Select Account</label>
           <select
@@ -236,7 +236,7 @@ export default function FinanceForm({
           >
             <option value="">--Select Account--</option>
             {accounts
-              .filter(acc => acc.account_mode === "Savings")
+              .filter(acc => acc.account_mode === selectedCore)
               .map(acc => (
                 <option key={acc.id} value={acc.id}>
                   {formatAccountOption(acc)}

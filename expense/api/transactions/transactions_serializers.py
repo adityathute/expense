@@ -143,7 +143,7 @@ class FinanceTransactionSerializer(serializers.ModelSerializer):
                 acc = validated_data.get("account")
                 if category_obj:
                     core = getattr(category_obj, "core_category", None)
-                    if core in ["Income", "Savings"]:
+                    if core in ["Income", "Savings", "Investments"]:
                         Account.objects.filter(pk=acc.pk).update(balance=F('balance') + amount)
                     elif core == "Expense":
                         Account.objects.filter(pk=acc.pk).update(balance=F('balance') - amount)
@@ -156,7 +156,7 @@ class FinanceTransactionSerializer(serializers.ModelSerializer):
 
                 if tx.is_cleared and split_account and category_obj:
                     core = getattr(category_obj, "core_category", None)
-                    if core in ["Income", "Savings"]:
+                    if core in ["Income", "Savings", "Investments"]:
                         Account.objects.filter(pk=split_account.pk).update(balance=F('balance') + split_amount)
                     elif core == "Expense":
                         Account.objects.filter(pk=split_account.pk).update(balance=F('balance') - split_amount)
