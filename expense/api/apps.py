@@ -2,6 +2,7 @@ from django.apps import AppConfig
 from django.db.models.signals import post_migrate
 from django.db import connection
 from django.core.exceptions import ImproperlyConfigured
+from .choices import CORE_CATEGORIES
 
 class ApiConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
@@ -20,13 +21,10 @@ def create_core_categories(sender, **kwargs):
         if not cursor.fetchone():
             return
 
-    core_categories = {
-        "INCOME": "Income",
-        "EXPENSE": "Expense",
-        "MONEY": "Money",
-        "DEBT": "Debt",
-        "INVEST": "Invest",
-    }
-
-    for key, name in core_categories.items():
-        Category.objects.get_or_create(name=name, core_category=key, parent=None)
+    for key, name in CORE_CATEGORIES:
+        Category.objects.get_or_create(
+            name=name,
+            core_category=key,
+            parent=None,
+            defaults={"is_core": True}
+        )

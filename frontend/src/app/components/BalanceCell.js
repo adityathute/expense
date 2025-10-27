@@ -1,5 +1,5 @@
 // components/BalanceCell.js
-// import "./../styles/balancecell.css";
+import "./../styles/components/balanceCell.css";
 
 export default function BalanceCell({ value }) {
   const getBalanceClass = (val) => {

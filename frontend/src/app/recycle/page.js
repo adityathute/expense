@@ -31,7 +31,7 @@ export default function RecycleBinPage() {
           type: "Service"
         }));
 
-        const deletedCategories = (categoriesData.categories || []).filter(c => c.is_deleted);
+        const deletedCategories = (categoriesData.results || []).filter(c => c.is_deleted);
         const categoriesWithType = deletedCategories.map(c => ({
           id: c.id,
           name: c.name,
