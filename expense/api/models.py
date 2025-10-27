@@ -288,3 +288,81 @@ class ServiceEntry(models.Model):
 
     def __str__(self):
         return f"{self.user}"
+
+# ---------------------- SHOP-DETAILS RELATED MODELS ---------------------- #
+
+# ---------------------- SHOP DETAILS ---------------------- #
+class Shop(models.Model):
+    name = models.CharField(max_length=150)
+    owner_name = models.CharField(max_length=100, blank=True, null=True)
+    contact_number = models.CharField(max_length=20, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+    address = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+
+# ---------------------- SHOP ATTENDANCE (Open / Close) ---------------------- #
+class ShopAttendance(models.Model):
+    shop = models.ForeignKey(Shop, on_delete=models.CASCADE, related_name="shop_attendance")
+    date = models.DateField()
+    opened_by = models.CharField(max_length=100, help_text="Name of person who opened the shop")
+    open_time = models.TimeField(blank=True, null=True)
+    close_time = models.TimeField(blank=True, null=True)
+    remarks = models.TextField(blank=True, null=True)
+
+    class Meta:
+        unique_together = ("shop", "date")  # Only one record per day per shop
+
+    def __str__(self):
+        return f"{self.shop.name} - {self.date} (Opened by {self.opened_by})"
+
+
+# ---------------------- STAFF DETAILS ---------------------- #
+class Staff(models.Model):
+    shop = models.ForeignKey(Shop, on_delete=models.CASCADE, related_name="staff_members")
+    name = models.CharField(max_length=100)
+    contact_number = models.CharField(max_length=20, blank=True, null=True)
+    position = models.CharField(max_length=50, blank=True, null=True)
+    join_date = models.DateField(blank=True, null=True)
+    salary = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.shop.name})"
+
+
+# ---------------------- STAFF ATTENDANCE ---------------------- #
+class StaffAttendance(models.Model):
+    staff = models.ForeignKey(Staff, on_delete=models.CASCADE, related_name="attendance_records")
+    date = models.DateField()
+    status = models.CharField(
+        max_length=10,
+        choices=[
+            ("Present", "Present"),
+            ("Absent", "Absent"),
+            ("Leave", "Leave"),
+        ],
+        default="Present",
+    )
+    check_in_time = models.TimeField(blank=True, null=True)
+    check_out_time = models.TimeField(blank=True, null=True)
+    remarks = models.TextField(blank=True, null=True)
+
+    class Meta:
+        unique_together = ("staff", "date")
+
+    def __str__(self):
+        return f"{self.staff.name} - {self.date} ({self.status})"
+
+    @property
+    def total_work_hours(self):
+        """Optional: Calculate total hours worked."""
+        if self.check_in_time and self.check_out_time:
+            from datetime import datetime
+            check_in = datetime.combine(self.date, self.check_in_time)
+            check_out = datetime.combine(self.date, self.check_out_time)
+            return check_out - check_in
+        return None
