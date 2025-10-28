@@ -3,12 +3,12 @@ import { useState, useEffect } from "react";
 import styles from "../../styles/components/modalForm.module.css";
 import { DeleteIcon } from "../../components/Icons";
 
-export default function AddUserForm({ onClose, onAddUser, initialData = null }) {
+export default function AddUserForm({ onClose, onAddUser, initialData = null, userTypes = [] }) {
   const [newUser, setNewUser] = useState({
     name: "",
     mobile_number: "",
     gender: "",
-    user_type: ["Customer"],
+    user_type: "",
     identifications: [{ id_name: "", id_number: "" }], // ID Name + ID Number
   });
 
@@ -54,57 +54,57 @@ export default function AddUserForm({ onClose, onAddUser, initialData = null }) 
     setNewUser({ ...newUser, identifications: updatedIDs });
   };
 
-const handleSubmit = async () => {
-  let errors = {};
+  const handleSubmit = async () => {
+    let errors = {};
 
-  // Validate name
-  if (!newUser.name.trim()) {
-    errors.name = "Full Name is required!";
-  } else if (!/^[A-Za-z\s]+$/.test(newUser.name)) {
-    errors.name = "Name can only contain letters and spaces!";
-  }
+    // Validate name
+    if (!newUser.name.trim()) {
+      errors.name = "Full Name is required!";
+    } else if (!/^[A-Za-z\s]+$/.test(newUser.name)) {
+      errors.name = "Name can only contain letters and spaces!";
+    }
 
-  // Validate mobile
-  if (newUser.mobile_number && !/^\d{10}$/.test(newUser.mobile_number)) {
-    errors.mobile_number = "Mobile number must be 10 digits!";
-  }
+    // Validate mobile
+    if (newUser.mobile_number && !/^\d{10}$/.test(newUser.mobile_number)) {
+      errors.mobile_number = "Mobile number must be 10 digits!";
+    }
 
-  // ✅ Skip ID validation — allow empty ID fields
-  if (Object.keys(errors).length > 0) {
-    setErrorMessage(errors);
-    return;
-  }
+    // ✅ Skip ID validation — allow empty ID fields
+    if (Object.keys(errors).length > 0) {
+      setErrorMessage(errors);
+      return;
+    }
 
-  // Filter out completely empty ID entries
-  const cleanedUser = {
-    ...newUser,
-    identifications: newUser.identifications
-      .filter(
-        (id) => id.id_name.trim() !== "" || id.id_number.trim() !== ""
-      )
-      .map((id) => ({
-        id_name: id.id_name,
-        id_number: id.id_number,
-      })),
-  };
+    // Filter out completely empty ID entries
+    const cleanedUser = {
+      ...newUser,
+      identifications: newUser.identifications
+        .filter(
+          (id) => id.id_name.trim() !== "" || id.id_number.trim() !== ""
+        )
+        .map((id) => ({
+          id_name: id.id_name,
+          id_number: id.id_number,
+        })),
+    };
 
-  try {
-    const result = await onAddUser(cleanedUser);
+    try {
+      const result = await onAddUser(cleanedUser);
 
-    if (result && result.success) {
-      onClose();
-    } else {
+      if (result && result.success) {
+        onClose();
+      } else {
+        setErrorMessage({
+          general: result?.message || "Failed to create user. Please try again.",
+        });
+      }
+    } catch (error) {
+      console.error("Add user failed:", error);
       setErrorMessage({
-        general: result?.message || "Failed to create user. Please try again.",
+        general: "Something went wrong while creating the user.",
       });
     }
-  } catch (error) {
-    console.error("Add user failed:", error);
-    setErrorMessage({
-      general: "Something went wrong while creating the user.",
-    });
-  }
-};
+  };
 
 
   return (
@@ -139,6 +139,18 @@ const handleSubmit = async () => {
         <option value="Male">Male</option>
         <option value="Female">Female</option>
         <option value="Other">Other</option>
+      </select>
+
+      <select
+        name="user_type"
+        value={newUser.user_type || ""}
+        onChange={handleInputChange}
+        className={styles.modalFormInput}
+      >
+        <option value="">--Select User Type--</option>
+        {userTypes.map((type) => (
+          <option key={type} value={type}>{type}</option>
+        ))}
       </select>
 
       {newUser.identifications.map((id, index) => (

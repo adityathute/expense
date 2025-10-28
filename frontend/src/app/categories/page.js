@@ -1,204 +1,324 @@
-// categories/page.js
 "use client";
-import { useEffect, useState, useRef } from "react";
-import SearchBar from "../components/SearchBar"; // ✅ Add this line
-import StyledTable from "../components/StyledTable"; // adjust the path if needed
+
+import React, { useEffect, useState } from "react";
+import SearchBar from "../components/SearchBar";
+import StyledTable from "../components/StyledTable";
 import Modal from "../components/Modal";
 import DeleteCategoryModal from "./DeleteCategoryModal";
 import styles from "../styles/components/modalForm.module.css";
 import Pagination from "../components/Pagination";
+import { EditIcon, DeleteIcon } from "../components/Icons";
+
+/**
+ * Categories page:
+ * - shows CORE_CATEGORIES (from backend) as top-level rows (non-editable)
+ * - shows DB categories (hierarchical under the cores)
+ * - modal uses a single hierarchical picker (core -> sub -> ...)
+ */
 
 export default function Categories() {
+  // UI state
   const [showCategoryModal, setShowCategoryModal] = useState(false);
-  const [categories, setCategories] = useState([]);
-  const [categoryType, setCategoryType] = useState("Shop");
-  const [coreCategories, setCoreCategories] = useState([]);
+  const [categories, setCategories] = useState([]); // flat DB categories (excluding core rows)
+  const [coreCategories, setCoreCategories] = useState([]); // array of strings from backend
+  const [categoryType, setCategoryType] = useState(false); // false = Shop, true = Personal
   const [loading, setLoading] = useState(false);
+
+  // search / pagination
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const entriesPerPage = 10;
 
+  // form state for add/edit
+  const [editingCategory, setEditingCategory] = useState(null); // DB category object when editing
   const [newCategory, setNewCategory] = useState({
     name: "",
     description: "",
-    core_category: "",
-    parent: null,
-    hierarchy: [],
+    // selectedNode holds either "core-<NAME>" for core selection or "<id>" (string) for DB node selection
+    selectedNode: "",
   });
 
-  const [editingCategory, setEditingCategory] = useState(null);
-
-  // For Delete Confirmation Modal
+  // delete modal
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [categoryToDelete, setCategoryToDelete] = useState(null);
-  const [message, setMessage] = useState(null);
-  const filteredCategories = categories.filter((cat) =>
-    cat.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-  const totalPages = Math.ceil(filteredCategories.length / entriesPerPage);
-  const startIndex = (currentPage - 1) * entriesPerPage;
-  const paginatedCategories = filteredCategories.slice(startIndex, startIndex + entriesPerPage);
+
+  // Fetch categories & core categories
   useEffect(() => {
     fetchCategories();
   }, [categoryType]);
 
   async function fetchCategories() {
+    setLoading(true);
     try {
-      const response = await fetch(`http://127.0.0.1:8001/api/categories/?type=${categoryType}`);
+      const res = await fetch(`http://127.0.0.1:8001/api/categories/?type=${categoryType}`);
+      if (!res.ok) throw new Error("Failed to fetch categories");
+      const data = await res.json();
 
-      if (!response.ok) throw new Error("Failed to fetch categories");
-      const data = await response.json();
+      // all DB categories (including is_core true/false)
+      const allCategories = Array.isArray(data.results) ? data.results : [];
+      setCategories(allCategories);
 
-      if (Array.isArray(data)) {
-        setCategories(data); // API returns an array
-        setCategories(data.categories);
-      } else {
-        setCategories(data.categories || []);
-        setCoreCategories(data.core_categories || []);
-      }
-    } catch (error) {
-      console.error("Error fetching categories:", error);
+      // top-level pseudo cores for modal
+      setCoreCategories(["Income", "Expense"]);
+    } catch (err) {
+      console.error(err);
+      setCategories([]);
+      setCoreCategories([]);
     } finally {
       setLoading(false);
     }
   }
 
-  async function handleAddCategory() {
-    if (!newCategory.core_category) return alert("Please select a Core Category!");
-    if (!newCategory.name.trim()) return alert("Category name is required!");
+  // Build a tree grouped by core (core nodes are pseudo nodes 'core-<NAME>')
+  const buildCoreTree = () => {
+    const buildSubtree = (core, parentId = null) => {
+      return categories
+        .filter(c => !c.is_core && c.core_category === core && (c.parent === parentId || (c.parent === null && parentId === null)))
+        .map(c => ({ ...c, children: buildSubtree(core, c.id) }));
+    };
 
-    const parentCategory =
-      newCategory.hierarchy.length > 0
-        ? newCategory.hierarchy[newCategory.hierarchy.length - 1]
-        : null;
+    return coreCategories.map(coreName => ({
+      id: `core-${coreName}`,
+      name: coreName,
+      isCore: true,
+      children: buildSubtree(coreName, null),
+    }));
+  };
+
+  // Flatten tree for table view (ignore pseudo core nodes)
+  const flattenCategoriesForTable = () => {
+    const rows = [];
+
+    const buildPath = (node) => {
+      let path = [];
+      let current = node;
+      while (current?.parent) {
+        const parent = categories.find(c => c.id === current.parent);
+        if (!parent) break;
+        path.unshift(parent.name);
+        current = parent;
+      }
+      return path.length > 0 ? `${node.core_category} > ${path.join(" > ")}` : `${node.core_category}`;
+    };
+
+    const pushNode = (node) => {
+      rows.push({
+        _isCore: false,
+        id: node.id,
+        name: node.name,
+        description: node.description || "-",
+        core_category: node.core_category || "-",
+        parentPath: buildPath(node),
+        raw: node,
+      });
+
+      // recursively add children
+      const children = categories.filter(c => c.parent === node.id);
+      for (const child of children) {
+        pushNode(child);
+      }
+    };
+
+    // top-level nodes (parent = null)
+    const topLevel = categories.filter(c => !c.parent);
+    topLevel.forEach(cat => pushNode(cat));
+
+    return rows;
+  };
+
+  // Filter & paginate rows
+  // Table rows: flatten only non-core DB categories
+  const allRows = flattenCategoriesForTable().filter(row => row.raw.is_core === false);
+  const filteredRows = allRows.filter((r) =>
+    r.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (r.parentPath && r.parentPath.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+  const totalPages = Math.ceil(filteredRows.length / entriesPerPage);
+  const startIndex = (currentPage - 1) * entriesPerPage;
+  const paginatedRows = filteredRows.slice(startIndex, startIndex + entriesPerPage);
+
+  // Utility: find parent path for a DB category (used elsewhere)
+  function getParentPathFlat(cat) {
+    // cat is a DB category object with .parent = id|null
+    const path = [];
+    let current = cat;
+    while (current?.parent) {
+      const parent = categories.find((c) => c.id === current.parent);
+      if (!parent) break;
+      path.unshift(parent.name);
+      current = parent;
+    }
+    return path.length > 0 ? `${cat.core_category} > ${path.join(" > ")}` : `${cat.core_category}`;
+  }
+
+  // Render hierarchical options for the modal picker
+  const renderOptions = (nodes, level = 0) =>
+    nodes.flatMap((node) => {
+      if (node.isCore) {
+        const coreOption = (
+          <option key={node.id} value={node.id} style={{ fontWeight: 700 }}>
+            {node.name}
+          </option>
+        );
+        const childOptions = (node.children || []).flatMap(c => renderCategoryOptions(c, 1));
+        return [coreOption, ...childOptions];
+      }
+      return []; // DB categories handled recursively
+    });
+
+  const renderCategoryOptions = (node, level = 0) => {
+    const prefix = "—".repeat(level);
+    const option = (
+      <option key={node.id} value={String(node.id)}>
+        {prefix} {node.name}
+      </option>
+    );
+    const children = (node.children || []).flatMap(c => renderCategoryOptions(c, level + 1));
+    return [option, ...children];
+  };
+
+  // Modal handlers
+  function openAddModal() {
+    setEditingCategory(null);
+    setNewCategory({ name: "", description: "", selectedNode: "" });
+    setShowCategoryModal(true);
+  }
+
+  function handleEditCategory(category) {
+    // editing category (DB row) — we need to preselect the node in tree
+    // compute the selectedNode value as the category's id (string)
+    setEditingCategory(category);
+    setNewCategory({
+      name: category.name,
+      description: category.description || "",
+      selectedNode: String(category.id),
+    });
+    setShowCategoryModal(true);
+  }
+
+  async function submitAddCategory() {
+    if (!newCategory.name?.trim()) return alert("Category name required");
+    if (!newCategory.selectedNode) return alert("Please select a place in hierarchy (core or parent category)");
+
+    let parent = null;
+    let core_category = "";
+
+    if (newCategory.selectedNode.startsWith("core-")) {
+      // Top-level category under a core
+      core_category = newCategory.selectedNode.replace("core-", "");
+      parent = null;
+    } else {
+      // Subcategory: send parent id directly
+      parent = parseInt(newCategory.selectedNode, 10);
+
+      // Traverse up to find the top-level core category
+      let parentNode = categories.find(c => c.id === parent);
+      while (parentNode?.parent) {
+        parentNode = categories.find(c => c.id === parentNode.parent);
+      }
+      core_category = parentNode ? parentNode.core_category : "";
+    }
 
     try {
-      const response = await fetch("http://127.0.0.1:8001/api/categories/", {
+      const res = await fetch("http://127.0.0.1:8001/api/categories/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: newCategory.name,
           description: newCategory.description || "",
-          core_category: newCategory.core_category,
-          parent: parentCategory,
+          core_category,
+          parent,
           category_type: categoryType,
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to add category");
-
-      fetchCategories();
-      closeModal();
-    } catch (error) {
-      console.error("Error adding category:", error);
-    }
-  }
-
-  function handleEditCategory(category) {
-    let hierarchyPath = [];
-    let parent = category.parent;
-
-    while (parent) {
-      hierarchyPath.unshift(parent);
-      parent = categories.find((cat) => cat.id === parent)?.parent;
-    }
-
-    setEditingCategory(category);
-    setNewCategory({
-      name: category.name,
-      description: category.description,
-      core_category: category.core_category,
-      parent: category.parent || null,
-      hierarchy: hierarchyPath,
-    });
-
-    setShowCategoryModal(true);
-  }
-
-  async function handleUpdateCategory() {
-    if (!editingCategory) return;
-
-    try {
-      const response = await fetch(`http://127.0.0.1:8001/api/categories/${editingCategory.id}/`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newCategory),
-      });
-
-      if (!response.ok) throw new Error("Failed to update category");
-
-      fetchCategories();
-      closeModal();
-    } catch (error) {
-      console.error("Error updating category:", error);
-    }
-  }
-
-  async function handleDeleteCategory(id) {
-    try {
-      if (!id) {
-        console.error("No category ID to delete");
-        return;
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || "Failed to add");
       }
 
-      const response = await fetch(`http://127.0.0.1:8001/api/categories/${id}/`, {
-        method: "DELETE",
+      await fetchCategories();
+      closeModal();
+    } catch (err) {
+      console.error("Add error:", err);
+      alert("Failed to add category");
+    }
+  }
+
+  async function submitUpdateCategory() {
+    if (!editingCategory) return;
+    if (!newCategory.name?.trim()) return alert("Category name required");
+
+    // For updating, allow changing name/description only. Parent/core remain as-is to avoid complexity.
+    // If you want to allow moving nodes, we can expand this.
+    try {
+      const res = await fetch(`http://127.0.0.1:8001/api/categories/${editingCategory.id}/`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: newCategory.name,
+          description: newCategory.description || "",
+          // only partial update fields; keep existing parent/core if omitted
+        }),
       });
-
-      if (!response.ok) throw new Error("Failed to delete category");
-
-      fetchCategories();
-      setShowDeleteModal(false);
-      setCategoryToDelete(null);
-
-    } catch (error) {
-      console.error("Error deleting category:", error);
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || "Failed to update");
+      }
+      await fetchCategories();
+      closeModal();
+    } catch (err) {
+      console.error("Update error:", err);
+      alert("Failed to update category");
     }
   }
 
   function closeModal() {
     setEditingCategory(null);
     setShowCategoryModal(false);
-    setNewCategory({ name: "", description: "", core_category: "", parent: null, hierarchy: [] });
+    setNewCategory({ name: "", description: "", selectedNode: "" });
   }
 
-  function getParentPath(categories, category) {
-    let path = [];
-    let coreCategory = category.core_category || "N/A";
-
-    while (category?.parent) {
-      category = categories.find((cat) => cat.id === category.parent);
-      if (category) path.unshift(category.name);
+  async function handleDeleteCategory(id) {
+    if (!id) return;
+    try {
+      const res = await fetch(`http://127.0.0.1:8001/api/categories/${id}/`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || "Delete failed");
+      }
+      await fetchCategories();
+      setShowDeleteModal(false);
+      setCategoryToDelete(null);
+    } catch (err) {
+      console.error("Delete error:", err);
+      alert("Failed to delete category");
     }
-
-    return path.length > 0
-      ? `Category: ${coreCategory} > ${path.join(" > ")}`
-      : `Category: ${coreCategory}`;
   }
 
   return (
     <div className="content">
       <h1>Categories</h1>
 
-      {/* Switch Container */}
       <div className="main-switch-header">
         <div className="switch-container">
           <label className="switch">
             <input
               type="checkbox"
-              checked={categoryType === "Shop"}
+              checked={categoryType}
               onChange={() => {
-                if (!loading) setCategoryType(categoryType === "Home" ? "Shop" : "Home");
+                setCategoryType(!categoryType);
+                setCurrentPage(1);
               }}
             />
             <span className="slider"></span>
           </label>
-
-          <span className="switch-text">{categoryType}</span>
+          <span className="switch-text">{categoryType ? "Personal" : "Shop"}</span>
         </div>
 
-        {/* Add Button */}
-        <button className="create-btn" onClick={() => setShowCategoryModal(true)}>
+        <button className="create-btn" onClick={openAddModal}>
           + Create Category
         </button>
       </div>
@@ -207,12 +327,12 @@ export default function Categories() {
         value={searchTerm}
         onChange={(e) => {
           setSearchTerm(e.target.value);
-          setCurrentPage(1); // reset page when searching
+          setCurrentPage(1);
         }}
         placeholder="Search categories..."
       />
 
-      {/* Modal for Category Form */}
+      {/* Modal */}
       <Modal
         isOpen={showCategoryModal}
         onClose={closeModal}
@@ -232,92 +352,27 @@ export default function Categories() {
             value={newCategory.description}
             onChange={(e) => setNewCategory({ ...newCategory, description: e.target.value })}
             className={styles.modalFormTextarea}
-            style={{
-              marginBottom: "0.9rem",
-            }}
+            style={{ marginBottom: "0.9rem" }}
           />
 
+          {/* Unified hierarchical selector */}
+          <label>Place in hierarchy (pick a core or a parent category)</label>
           <select
-            value={newCategory.core_category || ""}
-            onChange={(e) => {
-              setNewCategory({
-                ...newCategory,
-                core_category: e.target.value,
-                parent: null,
-                hierarchy: [],
-              });
-            }}
             className={styles.modalFormInput}
+            value={newCategory.selectedNode}
+            onChange={(e) => setNewCategory({ ...newCategory, selectedNode: e.target.value })}
           >
-            <option value="">Select Core Category</option>
-            {coreCategories.map((core) => (
-              <option key={core} value={core}>
-                {core}
-              </option>
-            ))}
+            <option value="">--Select (Core or Parent Category)--</option>
+            {renderOptions(buildCoreTree())}
           </select>
 
-          {newCategory.core_category &&
-            categories.some((cat) => cat.core_category === newCategory.core_category && !cat.parent) && (
-              <select
-                value={newCategory.hierarchy[0] || ""}
-                onChange={(e) => {
-                  const selectedCategoryId = e.target.value;
-                  setNewCategory({
-                    ...newCategory,
-                    parent: selectedCategoryId || null,
-                    hierarchy: selectedCategoryId ? [selectedCategoryId] : [],
-                  });
-                }}
-                className={styles.modalFormInput}
-              >
-                <option value="">Select Main Category</option>
-                {categories
-                  .filter((cat) => cat.core_category === newCategory.core_category && !cat.parent)
-                  .map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </option>
-                  ))}
-              </select>
-            )}
-
-          {newCategory.hierarchy.map((parentId, index) => {
-            const subcategories = categories.filter((cat) => cat.parent == parentId);
-            if (subcategories.length === 0) return null;
-
-            return (
-              <select
-                key={index}
-                value={newCategory.hierarchy[index + 1] || ""}
-                onChange={(e) => {
-                  const selectedSubcategoryId = e.target.value;
-                  let newHierarchy = [...newCategory.hierarchy.slice(0, index + 1)];
-
-                  if (selectedSubcategoryId) newHierarchy.push(selectedSubcategoryId);
-
-                  setNewCategory({
-                    ...newCategory,
-                    parent: selectedSubcategoryId || null,
-                    hierarchy: newHierarchy,
-                  });
-                }}
-                className={styles.modalFormInput}
-              >
-                <option value="">Select Subcategory</option>
-                {subcategories.map((sub) => (
-                  <option key={sub.id} value={sub.id}>
-                    {sub.name}
-                  </option>
-                ))}
-              </select>
-            );
-          })}
-
-          <div className="modal-actions">
+          <div className="modal-actions" style={{ marginTop: "0.8rem" }}>
             <button
               className={styles.buttonSubmit}
-              onClick={editingCategory ? handleUpdateCategory : handleAddCategory}
+              onClick={(ev) => {
+                ev.preventDefault();
+                editingCategory ? submitUpdateCategory() : submitAddCategory();
+              }}
             >
               {editingCategory ? "Update Category" : "Add Category"}
             </button>
@@ -328,33 +383,64 @@ export default function Categories() {
       <DeleteCategoryModal
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
-        onDelete={handleDeleteCategory}
+        onDelete={() => handleDeleteCategory(categoryToDelete)}
         categoryId={categoryToDelete}
         categoryName={categories.find((cat) => cat.id === categoryToDelete)?.name}
       />
 
-      {paginatedCategories.length > 0 ? (
+      {/* Table */}
+      {paginatedRows.length > 0 ? (
         <div className="category-table-container">
           <StyledTable
-            headers={["Name", "Description", "Core Category", "Parent"]}
-            columns={["name", "description", "core_category", "parentPath"]}
-            data={paginatedCategories.map(cat => ({
-              ...cat,
-              parentPath: getParentPath(categories, cat).replace("Category: ", ""),
-              description: cat.description || "-"
+            headers={["Name", "Description", "Core Category", "Parent Path", "Actions"]}
+            columns={["name", "description", "core_category", "parentPath", "actions"]}
+            data={paginatedRows.map((row) => ({
+              ...row,
+              // actions object for StyledTable to provide edit/delete callbacks
+              actions: row._isCore
+                ? { editable: false, deletable: false }
+                : { editable: true, deletable: true, id: row.id },
             }))}
-            onEdit={handleEditCategory}
-            onDelete={(cat) => {
-              setShowDeleteModal(true);
-              setCategoryToDelete(cat);
+            renderCell={(row, col) => {
+              if (col === "name") {
+                return row._isCore ? <strong>{row.name}</strong> : row.name;
+              }
+              if (col === "parentPath") {
+                return row.parentPath || "-";
+              }
+              if (col === "actions") {
+                if (row._isCore) return "-";
+
+                return (
+                  <div className="action-buttons">
+                    <button
+                      className="action-btn action-btn--edit"
+                      onClick={() => {
+                        const dbCat = categories.find((c) => c.id === row.id);
+                        if (dbCat) handleEditCategory(dbCat);
+                      }}
+                    >
+                      <EditIcon />
+                    </button>
+
+                    <button
+                      className="action-btn action-btn--delete"
+                      onClick={() => {
+                        setCategoryToDelete(row.id);
+                        setShowDeleteModal(true);
+                      }}
+                    >
+                      <DeleteIcon />
+                    </button>
+                  </div>
+                );
+              }
+              return row[col] ?? "-";
             }}
           />
-          {filteredCategories.length > entriesPerPage && (
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-            />
+
+          {filteredRows.length > entriesPerPage && (
+            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
           )}
         </div>
       ) : (
@@ -362,7 +448,6 @@ export default function Categories() {
           No categories found.
         </div>
       )}
-
     </div>
   );
 }
