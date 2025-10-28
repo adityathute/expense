@@ -15,6 +15,11 @@ CORE_CATEGORIES = [
     ("Debts", "Debts"),
 ]
 
+INTEREST_FREQUENCY_CHOICES = [
+    ("monthly", "Monthly"),
+    ("yearly", "Yearly"),
+]
+
 USER_TYPES = [
     ("Customer", "Customer"),
     ("Family", "Family"),

@@ -2,7 +2,7 @@ from django.db import models
 from django.conf import settings
 from decouple import config
 from django.core.exceptions import ValidationError
-from .choices import CATEGORY_TYPES, CORE_CATEGORIES, GENDER_CHOICES, ID_TYPES, DOCUMENT_TYPE_CHOICES, ENTRY_TYPE_CHOICES, UID_TYPE_CHOICES,  UPDATE_TYPE_CHOICES, ENTRY_TYPE_CHOICES, STATUS_CHOICES, UID_TYPE_CHOICES, UPDATE_TYPE_CHOICES, PAYMENT_TYPE_CHOICES, CATEGORY_CHOICES, FREQUENCY_CHOICES, ACCOUNT_MODE_CHOICES, SUB_ACCOUNT_CHOICES, USER_TYPES
+from .choices import CATEGORY_TYPES, CORE_CATEGORIES, GENDER_CHOICES, ID_TYPES, DOCUMENT_TYPE_CHOICES, ENTRY_TYPE_CHOICES, UID_TYPE_CHOICES,  UPDATE_TYPE_CHOICES, ENTRY_TYPE_CHOICES, STATUS_CHOICES, UID_TYPE_CHOICES, UPDATE_TYPE_CHOICES, PAYMENT_TYPE_CHOICES, CATEGORY_CHOICES, FREQUENCY_CHOICES, ACCOUNT_MODE_CHOICES, SUB_ACCOUNT_CHOICES, USER_TYPES, INTEREST_FREQUENCY_CHOICES
 import os
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
@@ -290,7 +290,7 @@ class FinanceTransaction(Transaction):
     to_account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='transfers_to')
     is_recurring = models.BooleanField(default=False)
     recurring_frequency = models.CharField(max_length=10, choices=FREQUENCY_CHOICES, blank=True, null=True)  
-    tenure = models.PositiveIntegerField(blank=True, null=True)  
+    tenure = models.PositiveIntegerField(blank=True, null=True)
     group_id = models.UUIDField(null=True, blank=True)
     is_debt = models.BooleanField(default=False)
     debt_type = models.CharField(max_length=10, blank=True, null=True, choices=[('Borrow','Borrow'), ('Lend','Lend')])
@@ -301,6 +301,24 @@ class FinanceTransaction(Transaction):
     due_range_end = models.DateField(null=True, blank=True)
     status = models.CharField(max_length=20, blank=True, null=True)
     last_payment_date = models.DateField(null=True, blank=True)
+    # Loan Realated Fields
+    is_loan = models.BooleanField(default=False)
+    principal_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    total_emi_paid = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    processing_fee = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    total_cost = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    effective_cost_percent = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    interest_frequency = models.CharField(max_length=10, choices=INTEREST_FREQUENCY_CHOICES, default="monthly")
+    interest_rate = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, help_text="Annual %")
+    emi_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    party_name = models.CharField(max_length=255, null=True, blank=True)
+    loan_id = models.CharField(max_length=100, null=True, blank=True)
+    remaining_balance = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    loan_start_date = models.DateField(null=True, blank=True)
+    penalty_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    is_foreclosed = models.BooleanField(default=False)
+    closed_date = models.DateField(null=True, blank=True)
+    close_reason = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
         return f"Finance {self.user}"

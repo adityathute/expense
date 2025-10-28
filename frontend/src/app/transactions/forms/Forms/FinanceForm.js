@@ -44,6 +44,7 @@ export default function FinanceForm({
   const isTransfer = selectedCore === "Transfer";
   const isIncomeExpense = selectedCore === "Income" || selectedCore === "Expense";
   const showUserField = ["Income", "Expense", "Debts"].includes(selectedCore);
+  const [showLoanDetails, setShowLoanDetails] = useState(false);
 
   // Render nested category options recursively
   const renderCategoryOptions = (nodes, level = 0) =>
@@ -357,6 +358,159 @@ export default function FinanceForm({
               />
             </div>
           </div>
+        </div>
+      )}
+
+      {/* LOANS SECTION */}
+      {selectedCore === "Loans" && (
+        <div style={{ marginTop: ".5rem" }}>
+
+          {/* Row 1: Account + Amount */}
+          <div style={{ display: "flex", gap: "0.5rem", alignItems: "flex-end", marginBottom: ".5rem" }}>
+            <div style={{ flex: 1 }}>
+              <label>Select Account</label>
+              <select
+                value={splits[0]?.account || ""}
+                onChange={(e) => updateSplitRow(0, "account", e.target.value)}
+                className={styles.modalFormInput}
+              >
+                <option value="">--Select Account--</option>
+                {accounts
+                  .filter(acc => ["Cash", "Online"].includes(acc.account_mode))
+                  .map(acc => (
+                    <option key={acc.id} value={acc.id}>
+                      {formatAccountOption(acc)}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            <div style={{ flex: 1 }}>
+              <label>Amount</label>
+              <input
+                type="number"
+                className={styles.modalFormInput}
+                value={
+                  debtType === "Lend" && splits[0]?.amount
+                    ? -Math.abs(splits[0]?.amount)
+                    : splits[0]?.amount || ""
+                }
+                onChange={(e) => {
+                  // Store absolute value only, backend handles Lend logic
+                  const val = Math.abs(Number(e.target.value));
+                  updateSplitRow(0, "amount", val);
+                }}
+                onWheel={(e) => e.target.blur()}
+              />
+            </div>
+          </div>
+
+          {/* Row 4: Loan ID + Party Name */}
+          <div style={{ display: "flex", gap: "0.5rem", alignItems: "flex-end", marginBottom: ".5rem" }}>
+            <div style={{ flex: 1 }}>
+              <label>Loan ID</label>
+              <input
+                type="text"
+                className={styles.modalFormInput}
+              // value={} // bind when you add state
+              // onChange={(e) => setLoanId(e.target.value)}
+              />
+            </div>
+
+            <div style={{ flex: 1 }}>
+              <label>Party Name</label>
+              <input
+                type="text"
+                className={styles.modalFormInput}
+              // value={} // bind when you add state
+              // onChange={(e) => setPartyName(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* Row: Interest Rate + Interest Frequency */}
+          <div style={{ display: "flex", gap: "0.5rem", alignItems: "flex-end", marginBottom: ".5rem" }}>
+
+            <div style={{ flex: 1 }}>
+              <label>Interest Frequency</label>
+              <select
+                className={styles.modalFormInput}
+              // value={}
+              // onChange={(e)=> setInterestFrequency(e.target.value)}
+              >
+                <option value="">--Select--</option>
+                <option value="monthly">Monthly</option>
+                <option value="yearly">Yearly</option>
+              </select>
+            </div>
+            
+            <div style={{ flex: 1 }}>
+              <label>Interest Rate (%)</label>
+              <input
+                type="number"
+                className={styles.modalFormInput}
+                onWheel={(e) => e.target.blur()}
+              // value={}
+              // onChange={(e)=> setInterestRate(e.target.value)}
+              />
+            </div>
+
+          </div>
+
+          {/* TOGGLE — Show Full Loan Details */}
+          <label className={styles.uiCheckbox} style={{ marginTop: ".5rem" }}>
+            <input
+              type="checkbox"
+              checked={showLoanDetails}
+              onChange={() => setShowLoanDetails(!showLoanDetails)}
+            />
+            <span></span>
+            Full Loan Details
+          </label>
+
+          {showLoanDetails && (
+            <>
+              {/* Row 2: Amount + Amount */}
+              <div style={{ display: "flex", gap: "0.5rem", alignItems: "flex-end", marginBottom: ".5rem" }}>
+                <div style={{ flex: 1 }}>
+                  <label>Principle Amount</label>
+                  <input type="number" className={styles.modalFormInput} />
+                </div>
+
+                <div style={{ flex: 1 }}>
+                  <label>Total EMI Amount</label>
+                  <input type="number" className={styles.modalFormInput} onWheel={(e) => e.target.blur()} />
+                </div>
+              </div>
+
+              {/* Row 3: Amount + Amount */}
+              <div style={{ display: "flex", gap: "0.5rem", alignItems: "flex-end", marginBottom: ".5rem" }}>
+                <div style={{ flex: 1 }}>
+                  <label>Interest Amount</label>
+                  <input type="number" className={styles.modalFormInput} />
+                </div>
+
+                <div style={{ flex: 1 }}>
+                  <label>Processing Fees</label>
+                  <input type="number" className={styles.modalFormInput} onWheel={(e) => e.target.blur()} />
+                </div>
+              </div>
+
+              {/* Row 5: EMI Amount + Tenure*/}
+              <div style={{ display: "flex", gap: "0.5rem", alignItems: "flex-end", marginBottom: ".5rem" }}>
+                <div style={{ flex: 1 }}>
+                  <label>EMI Amount</label>
+                  <input type="number" className={styles.modalFormInput} onWheel={(e) => e.target.blur()} />
+                </div>
+
+                <div style={{ flex: 1 }}>
+                  <label>Tenure</label>
+                  <input type="number" className={styles.modalFormInput} onWheel={(e) => e.target.blur()} />
+                </div>
+              </div>
+            </>
+          )}
+
         </div>
       )}
 
