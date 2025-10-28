@@ -115,49 +115,44 @@ export default function UserDetailsPopup({ selectedUser, onClose, onSave, onDele
           </div>
 
           {/* Identifications */}
-          {isEditing || editedUser.identifications.some(id => id.id_name || id.id_number) ? (
-            <div>
-              <h4 style={{ marginBottom: "0.5rem", marginLeft: "0.2rem" }}>Identifications:</h4>
+          <div>
+            <h4 style={{ marginBottom: "0.5rem", marginLeft: "0.2rem" }}>Identifications:</h4>
+            {editedUser.identifications.map((id, index) => (
+              <div key={index} className={styles.linkRow}>
+                {isEditing ? (
+                  <>
+                    <input
+                      type="text"
+                      placeholder="ID Name"
+                      value={id.id_name}
+                      onChange={(e) => handleIDChange(index, "id_name", e.target.value)}
+                      className={styles.linkUrlInput}
+                    />
+                    <input
+                      type="text"
+                      placeholder="ID Number"
+                      value={id.id_number}
+                      onChange={(e) => handleIDChange(index, "id_number", e.target.value)}
+                      className={styles.linkUrlInput}
+                    />
+                    {editedUser.identifications.length > 1 && (
+                      <button onClick={() => handleRemoveID(index)} className={styles.removeButton}>
+                        <DeleteIcon className={styles.icon} />
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <p>{id.id_name || "N/A"}: {id.id_number || "N/A"}</p>
+                )}
+              </div>
+            ))}
 
-              {editedUser.identifications.map((id, index) => (
-                <div key={index} className={styles.linkRow}>
-                  {isEditing ? (
-                    <>
-                      <input
-                        type="text"
-                        placeholder="ID Name"
-                        value={id.id_name}
-                        onChange={(e) => handleIDChange(index, "id_name", e.target.value)}
-                        className={styles.linkUrlInput}
-                      />
-                      <input
-                        type="text"
-                        placeholder="ID Number"
-                        value={id.id_number}
-                        onChange={(e) => handleIDChange(index, "id_number", e.target.value)}
-                        className={styles.linkUrlInput}
-                      />
-                      {editedUser.identifications.length > 1 && (
-                        <button onClick={() => handleRemoveID(index)} className={styles.removeButton}>
-                          <DeleteIcon className={styles.icon} />
-                        </button>
-                      )}
-                    </>
-                  ) : (
-                    (id.id_name || id.id_number) && (
-                      <p>{id.id_name || "N/A"}: {id.id_number || "N/A"}</p>
-                    )
-                  )}
-                </div>
-              ))}
-
-              {isEditing && (
-                <button type="button" onClick={handleAddID} className="service-edit-btn">
-                  + Add More ID
-                </button>
-              )}
-            </div>
-          ) : null}
+            {isEditing && (
+              <button type="button" onClick={handleAddID} className="service-edit-btn">
+                + Add More ID
+              </button>
+            )}
+          </div>
 
           {/* Actions */}
           <div className="flex gap-2 mt-4">

@@ -11,7 +11,6 @@ import Pagination from "../components/Pagination";
 
 export default function Users() {
   const [users, setUsers] = useState([]);
-  const [userTypes, setUserTypes] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -37,21 +36,9 @@ export default function Users() {
     }
   };
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
 
   useEffect(() => {
-    const fetchUserTypes = async () => {
-      try {
-        const res = await fetch("http://127.0.0.1:8001/api/user-types/");
-        const data = await res.json();
-        setUserTypes(data.user_types || []);
-      } catch (err) {
-        console.error("Failed to fetch user types:", err);
-      }
-    };
-    fetchUserTypes();
+    fetchUsers();
   }, []);
 
   // Soft delete handler
@@ -199,11 +186,7 @@ export default function Users() {
 
       {showForm && (
         <Modal isOpen={showForm} onClose={() => setShowForm(false)} title="Add User">
-          <AddUserForm
-            onClose={() => setShowForm(false)}
-            onAddUser={handleAddUser}
-            userTypes={userTypes}
-          />
+          <AddUserForm onClose={() => setShowForm(false)} onAddUser={handleAddUser} />
         </Modal>
       )}
 

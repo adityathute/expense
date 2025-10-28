@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import "../styles/components/topbar.css";
 import Image from "next/image";
-import { Plus, User } from "lucide-react"; // ✅ import icons
+import { Plus, LogIn } from "lucide-react"; // ✅ import icons
 
 export default function TopBar({ isSidebarOpen, onToggleSidebar }) {
   return (
@@ -49,7 +49,7 @@ export default function TopBar({ isSidebarOpen, onToggleSidebar }) {
 
           >
             <button className="topbar-btn secondary flex flex-row items-center gap-1">
-              <User size={16} />
+              <LogIn size={16} />
               <span className="btn-text">Login</span>
             </button>
           </Link>

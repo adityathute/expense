@@ -1,7 +1,4 @@
 from rest_framework import serializers
-from decimal import Decimal
-from django.db import transaction
-from django.db.models import F
 from .models import (
     Category,
     Service,
@@ -18,11 +15,7 @@ from .models import (
     ServiceDocumentRequirement,
     SupportingDocument,
     ServiceSupportingDocument,
-    ServiceTransaction, 
-    FinanceTransaction
 )
-import uuid
-from .transactions.transactions_serializers import ServiceTransactionSerializer, FinanceTransactionSerializer
 
 # ---------------------- CATEGORY RELATED SERIALIZER ---------------------- #
 
@@ -35,11 +28,7 @@ class SubCategorySerializer(serializers.ModelSerializer):
 
 class CategorySerializer(serializers.ModelSerializer):
     subcategories = SubCategorySerializer(many=True, read_only=True)
-    parent = serializers.PrimaryKeyRelatedField(
-        queryset=Category.objects.all(),
-        allow_null=True,
-        required=False
-    )
+
     class Meta:
         model = Category
         fields = [
@@ -50,7 +39,6 @@ class CategorySerializer(serializers.ModelSerializer):
             "parent",
             "subcategories",
             "category_type",
-            "is_core",
             "is_deleted",
         ]
         read_only_fields = ["subcategories"]
@@ -74,7 +62,7 @@ class UserSerializer(serializers.ModelSerializer):
             "mobile_number",
             "gender",
             "user_type",
-            "is_deleted",
+            "is_deleted",  # <-- add this
             "identifications",
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
@@ -348,6 +336,7 @@ class ServiceSerializer(serializers.ModelSerializer):
 
 # ---------------------- ACCOUNTS RELATED SERIALIZER ---------------------- #
 
+
 class AccountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Account
@@ -357,5 +346,8 @@ class AccountSerializer(serializers.ModelSerializer):
             "account_number": {"required": False, "allow_null": True},
             "bank_service_name": {"required": False, "allow_null": True},
             "ifsc_code": {"required": False, "allow_null": True},
-            "sub_account_type": {"required": False, "allow_null": True},
+            "account_type": {"required": False, "allow_null": True},
         }
+
+
+# ---------------------- UID SERVICE RELATED SERIALIZER ---------------------- #

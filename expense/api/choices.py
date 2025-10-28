@@ -1,25 +1,23 @@
 # api/choices.py
 
 CATEGORY_TYPES = [
-    ("persoanl", "Persoanl"),
-    ("shop", "Shop"),
+    ("Home", "Home"),
+    ("Shop", "Shop"),
 ]
 
 CORE_CATEGORIES = [
     ("Income", "Income"),
     ("Expense", "Expense"),
-    ("Savings", "Savings"),
-    ("Transfer", "Transfer"),
-    ("Investments", "Investments"),
-    ("Loans", "Loans"),
-    ("Debts", "Debts"),
+    ("Money", "Money"),
+    ("Debt", "Debt"),
+    ("Invest", "Invest"),
+    ("Saving", "Saving"),
 ]
 
 USER_TYPES = [
     ("Customer", "Customer"),
-    ("Family", "Family"),
     ("Staff", "Staff"),
-    ("Owner", "Owner"),
+    ("Family", "Family"),
     ("Friend", "Friend"),
     ("Agent", "Agent"),
     ("Client", "Client"),
@@ -78,32 +76,19 @@ STATUS_CHOICES = [
 PAYMENT_TYPE_CHOICES = [
     ("cash", "Cash"),
     ("online", "Online"),
-    ("mixed", "Mixed"),
+]
+
+ACCOUNT_TYPE_CHOICES = [
+    ('Current', 'Current'),
+    ('Saving', 'Saving'),
+    ('Pigme', 'Pigme'),
+    ('Mutual Fund', 'Mutual Fund'),
+    ('Digital Gold', 'Digital Gold'),
+    ('Trading', 'Trading'),
 ]
 
 CATEGORY_CHOICES = [
     ('Personal', 'Personal'),
+    ('Home', 'Home'),
     ('Business', 'Business'),
-]
-
-ACCOUNT_MODE_CHOICES = [
-    ('Cash', 'Cash'),
-    ('Online', 'Online'),
-    ('Savings', 'Savings'),
-    ('Investments', 'Investments'),
-]
-
-SUB_ACCOUNT_CHOICES = [
-    ("Fixed Deposit", "Fixed Deposit"),
-    ("SIP/Mutual Funds", "SIP/Mutual Funds"),
-    ("Gold", "Gold"),
-    ("Deposits", "Deposits"),
-    ("Others", "Others"),
-]
-
-FREQUENCY_CHOICES = [
-    ('daily', 'Daily'),
-    ('weekly', 'Weekly'),
-    ('monthly', 'Monthly'),
-    ('yearly', 'Yearly'),
 ]
