@@ -12,7 +12,7 @@ export function calculateLoanDetails({
   disbursedAmount = Number(disbursedAmount) || 0;
   totalEmiAmount = Number(totalEmiAmount) || 0;
 
-  // Auto-calc processing fees when not provided
+  // 🧮 Auto-calc processing fees when not given
   const finalProcessingFees =
     processingFees !== null && processingFees !== undefined
       ? Math.max(Number(processingFees) || 0, 0)
@@ -22,10 +22,14 @@ export function calculateLoanDetails({
   let totalPayable = 0;
   let EMI = 0;
 
+  // 🧩 Case 1: total EMI known (user entered)
   if (totalEmiAmount > 0 && principal > 0) {
     totalPayable = totalEmiAmount;
     totalInterest = Math.max(totalPayable - principal, 0);
-  } else if (principal > 0 && tenure > 0 && interestRate > 0) {
+  }
+
+  // 🧩 Case 2: rate-based calculation
+  else if (principal > 0 && tenure > 0 && interestRate > 0) {
     const monthlyRate =
       interestFrequency === "yearly"
         ? (Number(interestRate) || 0) / 100 / 12
