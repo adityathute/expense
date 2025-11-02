@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import styles from "../../../styles/components/modalForm.module.css";
 import { DeleteIcon } from "../../../components/Icons";
 import { formatAccountOption } from "../utils/accountFormat";
+import { calculateLoanDetails } from "../utils/loanCalculations";
 
 export default function FinanceForm({
   categoryType,
@@ -83,6 +84,63 @@ export default function FinanceForm({
         return [];
     }
   };
+
+  const [loanId, setLoanId] = useState("");
+  const [partyName, setPartyName] = useState("");
+  const [loanDate, setLoanDate] = useState("");
+  const [principalAmount, setPrincipalAmount] = useState("");
+  const [interestRate, setInterestRate] = useState("");
+  const [tenure, setTenure] = useState("");
+  const [emiAmount, setEmiAmount] = useState("");
+  const [totalEmiAmount, setTotalEmiAmount] = useState("");
+  const [interestAmount, setInterestAmount] = useState("");
+  const [totalPayable, setTotalPayable] = useState("");
+  const [processingFees, setProcessingFees] = useState("");
+  const [effectiveCostPercent, setEffectiveCostPercent] = useState("");
+  const [disbursedAmount, setDisbursedAmount] = useState("");
+  const [interestInputType, setInterestInputType] = useState("rate"); // "rate" or "amount"
+  const [interestFrequency, setInterestFrequency] = useState("yearly"); // Added missing variable
+
+  // ✅ Auto-calculate whenever loan details change
+  useEffect(() => {
+    const principal = Number(principalAmount) || 0;
+    const disbursed = Number(disbursedAmount) || 0;
+    const tenureVal = Number(tenure) || 0;
+    const rate = Number(interestRate) || 0;
+    const totalEmi = Number(totalEmiAmount) || 0;
+    const emiVal = Number(emiAmount) || 0;
+
+    // Auto-calculate processing fees (difference between principal & disbursed)
+    const feeValue = Math.max(principal - disbursed, 0);
+
+    const results = calculateLoanDetails({
+      principal,
+      interestRate: rate,
+      tenure: tenureVal,
+      interestFrequency,
+      disbursedAmount: disbursed,
+      processingFees: feeValue,
+      totalEmiAmount: totalEmi,
+    });
+
+    setProcessingFees(feeValue);
+    setEmiAmount(results.EMI || 0);
+    setInterestAmount(results.totalInterest || 0);
+    setTotalPayable(results.totalPayable || 0);
+    setEffectiveCostPercent(results.effectiveCostPercent || 0);
+
+    // Optional: auto-fill rate if not provided
+    if ((!interestRate || interestRate === "") && results.annualizedInterestPercent > 0) {
+      setInterestRate(results.annualizedInterestPercent);
+    }
+  }, [
+    principalAmount,
+    tenure,
+    interestFrequency,
+    disbursedAmount,
+    totalEmiAmount,
+    interestRate,
+  ]);
 
   return (
     <>
@@ -386,18 +444,14 @@ export default function FinanceForm({
             </div>
 
             <div style={{ flex: 1 }}>
-              <label>Amount</label>
+              <label>Disbursed Amount</label>
               <input
                 type="number"
                 className={styles.modalFormInput}
-                value={
-                  debtType === "Lend" && splits[0]?.amount
-                    ? -Math.abs(splits[0]?.amount)
-                    : splits[0]?.amount || ""
-                }
+                value={disbursedAmount}
                 onChange={(e) => {
-                  // Store absolute value only, backend handles Lend logic
                   const val = Math.abs(Number(e.target.value));
+                  setDisbursedAmount(val);
                   updateSplitRow(0, "amount", val);
                 }}
                 onWheel={(e) => e.target.blur()}
@@ -405,15 +459,15 @@ export default function FinanceForm({
             </div>
           </div>
 
-          {/* Row 4: Loan ID + Party Name */}
+          {/* Loan ID + Party Name */}
           <div style={{ display: "flex", gap: "0.5rem", alignItems: "flex-end", marginBottom: ".5rem" }}>
             <div style={{ flex: 1 }}>
               <label>Loan ID</label>
               <input
                 type="text"
                 className={styles.modalFormInput}
-              // value={} // bind when you add state
-              // onChange={(e) => setLoanId(e.target.value)}
+                value={loanId}
+                onChange={(e) => setLoanId(e.target.value)}
               />
             </div>
 
@@ -422,39 +476,105 @@ export default function FinanceForm({
               <input
                 type="text"
                 className={styles.modalFormInput}
-              // value={} // bind when you add state
-              // onChange={(e) => setPartyName(e.target.value)}
+                value={partyName}
+                onChange={(e) => setPartyName(e.target.value)}
               />
             </div>
           </div>
 
-          {/* Row: Interest Rate + Interest Frequency */}
+          {/* Row: Interest Rate + Tenure + Interest Frequency */}
           <div style={{ display: "flex", gap: "0.5rem", alignItems: "flex-end", marginBottom: ".5rem" }}>
+            <div style={{ flex: 1 }}>
+              <label>Tenure (In Months)</label>
+              <input
+                type="number"
+                className={styles.modalFormInput}
+                value={tenure}
+                onChange={(e) => setTenure(Number(e.target.value))}
+                onWheel={(e) => e.target.blur()}
+              />
+            </div>
 
             <div style={{ flex: 1 }}>
               <label>Interest Frequency</label>
               <select
                 className={styles.modalFormInput}
-              // value={}
-              // onChange={(e)=> setInterestFrequency(e.target.value)}
+                value={interestFrequency}
+                onChange={(e) => setInterestFrequency(e.target.value)}
               >
-                <option value="">--Select--</option>
                 <option value="monthly">Monthly</option>
                 <option value="yearly">Yearly</option>
               </select>
             </div>
-            
+          </div>
+
+          {/* Interest Type + Input in one row */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "flex-end",
+              gap: "0.5rem",
+              marginBottom: ".75rem",
+            }}
+          >
+
+            {/* Loan Date */}
             <div style={{ flex: 1 }}>
-              <label>Interest Rate (%)</label>
+              <label>Loan Date</label>
               <input
-                type="number"
+                type="date"
+                value={loanDate}
+                onChange={(e) => setLoanDate(e.target.value)}
                 className={styles.modalFormInput}
-                onWheel={(e) => e.target.blur()}
-              // value={}
-              // onChange={(e)=> setInterestRate(e.target.value)}
               />
             </div>
 
+            {/* Interest Type Dropdown */}
+            <div style={{ flex: 1 }}>
+              <label>Interest Type</label>
+              <select
+                className={styles.modalFormInput}
+                value={interestInputType}
+                onChange={(e) => setInterestInputType(e.target.value)}
+              >
+                <option value="rate">Interest Rate (%)</option>
+                <option value="amount">Interest Amount (₹)</option>
+              </select>
+            </div>
+
+            {/* Interest Input Field */}
+            <div style={{ flex: 1 }}>
+              {interestInputType === "rate" ? (
+                <>
+                  <label>Interest Rate (%)</label>
+                  <input
+                    type="number"
+                    className={styles.modalFormInput}
+                    value={interestRate}
+                    onChange={(e) => setInterestRate(Number(e.target.value))}
+                    onWheel={(e) => e.target.blur()}
+                  />
+                </>
+              ) : (
+                <>
+                  <label>Amount (₹)</label>
+                  <input
+                    type="number"
+                    className={styles.modalFormInput}
+                    value={interestAmount}
+                    onChange={(e) => {
+                      const val = Number(e.target.value);
+                      setInterestAmount(val);
+                      if (principalAmount > 0 && tenure > 0) {
+                        const rate = (val / principalAmount / tenure) * 100;
+                        setInterestRate(parseFloat(rate.toFixed(2)));
+                      }
+                    }}
+                    onWheel={(e) => e.target.blur()}
+                  />
+                </>
+              )}
+            </div>
           </div>
 
           {/* TOGGLE — Show Full Loan Details */}
@@ -470,43 +590,41 @@ export default function FinanceForm({
 
           {showLoanDetails && (
             <>
-              {/* Row 2: Amount + Amount */}
+              {/* Row 2: Principle Amount + EMI Amount + Total EMI Amount */}
               <div style={{ display: "flex", gap: "0.5rem", alignItems: "flex-end", marginBottom: ".5rem" }}>
                 <div style={{ flex: 1 }}>
                   <label>Principle Amount</label>
-                  <input type="number" className={styles.modalFormInput} />
+                  <input
+                    type="number"
+                    className={styles.modalFormInput}
+                    value={principalAmount}
+                    onChange={(e) => setPrincipalAmount(Number(e.target.value))}
+                    onWheel={(e) => e.target.blur()}
+                  />
+                </div>
+
+                <div style={{ flex: 1 }}>
+                  <label>EMI Amount</label>
+                  <input
+                    type="number"
+                    className={styles.modalFormInput}
+                    value={emiAmount}
+                    onChange={(e) => setEmiAmount(Number(e.target.value))}
+                    onWheel={(e) => e.target.blur()}
+                  />
                 </div>
 
                 <div style={{ flex: 1 }}>
                   <label>Total EMI Amount</label>
-                  <input type="number" className={styles.modalFormInput} onWheel={(e) => e.target.blur()} />
-                </div>
-              </div>
-
-              {/* Row 3: Amount + Amount */}
-              <div style={{ display: "flex", gap: "0.5rem", alignItems: "flex-end", marginBottom: ".5rem" }}>
-                <div style={{ flex: 1 }}>
-                  <label>Interest Amount</label>
-                  <input type="number" className={styles.modalFormInput} />
+                  <input
+                    type="number"
+                    className={styles.modalFormInput}
+                    value={totalEmiAmount}
+                    onChange={(e) => setTotalEmiAmount(Number(e.target.value))}
+                    onWheel={(e) => e.target.blur()}
+                  />
                 </div>
 
-                <div style={{ flex: 1 }}>
-                  <label>Processing Fees</label>
-                  <input type="number" className={styles.modalFormInput} onWheel={(e) => e.target.blur()} />
-                </div>
-              </div>
-
-              {/* Row 5: EMI Amount + Tenure*/}
-              <div style={{ display: "flex", gap: "0.5rem", alignItems: "flex-end", marginBottom: ".5rem" }}>
-                <div style={{ flex: 1 }}>
-                  <label>EMI Amount</label>
-                  <input type="number" className={styles.modalFormInput} onWheel={(e) => e.target.blur()} />
-                </div>
-
-                <div style={{ flex: 1 }}>
-                  <label>Tenure</label>
-                  <input type="number" className={styles.modalFormInput} onWheel={(e) => e.target.blur()} />
-                </div>
               </div>
             </>
           )}
@@ -601,6 +719,46 @@ export default function FinanceForm({
                 </div>
               )}
             </>
+          )}
+
+          {/* ✅ Loan Summary — Auto calculated */}
+          {selectedCore === "Loans" && (
+            <div
+              style={{
+                marginTop: "1rem",
+                padding: "1rem",
+                border: "1px solid #333",
+                borderRadius: "10px",
+                backgroundColor: "#1e1e1e",
+                color: "#ccc",
+                boxShadow: "0 0 8px rgba(0,0,0,0.3)",
+              }}
+            >
+              <h4 style={{ marginBottom: "0.5rem", color: "#fff" }}>Loan Summary</h4>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "0.75rem",
+                  fontSize: "0.95rem",
+                }}
+              >
+                <p><strong>Principal:</strong> ₹{principalAmount || 0}</p>
+                <p><strong>Disbursed:</strong> ₹{Number(disbursedAmount) || 0}</p>
+                <p><strong>Interest Rate:</strong> {Number(interestRate) ? `${Math.abs(Number(interestRate)).toFixed(2)}%` : "0%"}</p>
+                <p><strong>Tenure:</strong> {tenure || 0} months</p>
+                <p><strong>Interest Frequency:</strong> {interestFrequency}</p>
+                <p><strong>EMI Amount:</strong> ₹{emiAmount || 0}</p>
+                <p><strong>Total Interest:</strong> ₹{interestAmount || 0}</p>
+                <p><strong>Processing Fees:</strong> ₹{processingFees || 0}</p>
+                <p><strong>Total Cost:</strong> ₹{(Number(interestAmount || 0) + Number(processingFees || 0)).toLocaleString()}</p>
+                <p><strong>Total Payable:</strong> ₹{totalPayable || 0}</p>
+                <p>
+                  <strong>Effective Cost %:</strong>{" "}
+                  {effectiveCostPercent ? `${effectiveCostPercent}%` : "0%"}
+                </p>
+              </div>
+            </div>
           )}
         </>
       )}

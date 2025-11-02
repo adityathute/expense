@@ -10,8 +10,11 @@
   font-size: 24px;
 }
 
-.HeaderActionBar-btn-block{
+.HeaderActionBar-btn-block {
   margin-left: auto;
+  display: flex;
+  gap: 12px;
+  align-items: center;
 }
 
 .HeaderActionBar-btn {

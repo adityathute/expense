@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import HeaderWithNewButton from "../components/common/HeaderWithNewButton";
 import Modal from "../components/Modal";
-import NewTransactionForm from "./forms/NewTransactionForm";
+import NewFinanceTransactionForm from "./forms/NewFinanceTransactionForm";
+import NewServiceTransactionForm from "./forms/NewServiceTransactionForm";
 import EditTransactionForm from "./forms/EditTransactionForm";
 import ViewTransactionForm from "./forms/ViewTransactionForm";
 import SearchBar from "../components/SearchBar";
@@ -202,14 +203,25 @@ export default function Transactions() {
       service_or_category_id: t.transaction_type === "Service" ? t.service : t.category,
     };
   });
-  console.log(paginatedTransactions[0])
+
+  const openNewService = () => {
+    setModalMode("newService");
+    setIsOpen(true);
+  };
+
+  const openNewFinance = () => {
+    setModalMode("newFinance");
+    setIsOpen(true);
+  };
 
   return (
     <div>
       <HeaderWithNewButton
         title="All Transactions"
-        buttonLabel="Add Transaction"
-        onClick={openNew}
+        buttons={[
+          { label: "Service", onClick: openNewService },
+          { label: "Finance", onClick: openNewFinance },
+        ]}
       />
 
       <SearchBar
@@ -273,29 +285,38 @@ export default function Transactions() {
         isOpen={isOpen}
         onClose={handleClose}
         title={
-          modalMode === "new"
-            ? "Add New Transaction"
-            : isEditing
-              ? "Edit Transaction"
-              : "Transaction Details"
+          modalMode === "newFinance"
+            ? "Add New Finance Transaction"
+            : modalMode === "newService"
+              ? "Add New Service Transaction"
+              : isEditing
+                ? "Edit Transaction"
+                : "Transaction Details"
         }
       >
-        {modalMode === "new" && <NewTransactionForm onSubmit={handleSaveNew} />}
+        {modalMode === "newFinance" && (
+          <NewFinanceTransactionForm onSubmit={handleSaveNew} />
+        )}
+        {modalMode === "newService" && (
+          <NewServiceTransactionForm onSubmit={handleSaveNew} />
+        )}
         {modalMode === "view" && !isEditing && (
           <ViewTransactionForm
             data={selectedData}
-            getName={(id, type) => type === "Service" ? services.find(s => s.id === id)?.name || id : getCategoryPath(id)}
+            getName={(id, type) =>
+              type === "Service"
+                ? services.find((s) => s.id === id)?.name || id
+                : getCategoryPath(id)
+            }
             onEdit={() => openEditFromView(selectedData)}
             onClose={handleClose}
           />
-        )}
-        {modalMode === "view" && isEditing && (
-          <EditTransactionForm existing={selectedData} onSubmit={() => { }} />
         )}
         {modalMode === "edit" && (
           <EditTransactionForm existing={selectedData} onSubmit={() => { }} />
         )}
       </Modal>
+
     </div>
   );
 }
