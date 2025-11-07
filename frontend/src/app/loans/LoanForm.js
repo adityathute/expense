@@ -4,6 +4,12 @@ import React, { useState, useEffect } from "react";
 import styles from "../styles/components/modalForm.module.css";
 import { formatAccountOption } from "../transactions/forms/utils/accountFormat";
 
+/**
+ * LoanForm Component
+ * - Handles both simple and advanced loan calculation modes.
+ * - Automatically calculates EMI, interest, total payable, last EMI, processing fees, and effective cost percent.
+ * - Safely formats all numbers for backend (2-3 decimals).
+ */
 export default function LoanForm({ onClose, onSubmit, accounts = [] }) {
   // ---------- Form State ----------
   const [loanId, setLoanId] = useState("");
@@ -12,19 +18,24 @@ export default function LoanForm({ onClose, onSubmit, accounts = [] }) {
   const [firstEMIDate, setFirstEMIDate] = useState("");
   const [description, setDescription] = useState("");
   const [selectedAccount, setSelectedAccount] = useState("");
+
   const [disbursedAmount, setDisbursedAmount] = useState(null);
   const [principalAmount, setPrincipalAmount] = useState(null);
   const [emiAmount, setEmiAmount] = useState(null);
   const [lastEmiAmount, setLastEmiAmount] = useState(null);
   const [totalEmiAmount, setTotalEmiAmount] = useState(null);
+  const [isEmi, setIsEmi] = useState(false);
+
   const [interestInputType, setInterestInputType] = useState("rate"); // "rate" or "amount"
   const [interestRate, setInterestRate] = useState(null);
   const [interestAmount, setInterestAmount] = useState(null);
+
   const [tenure, setTenure] = useState(null); // in months
-  const [interestFrequency, setInterestFrequency] = useState("yearly"); // "monthly" or "yearly"
+  const [interestFrequency, setInterestFrequency] = useState("yearly");
   const [processingFees, setProcessingFees] = useState(0);
   const [totalPayable, setTotalPayable] = useState(0);
   const [effectiveCostPercent, setEffectiveCostPercent] = useState(0);
+
   const [showLoanDetails, setShowLoanDetails] = useState(false); // advanced mode
 
   // ---------- Helper: Number Input ----------
@@ -38,42 +49,39 @@ export default function LoanForm({ onClose, onSubmit, accounts = [] }) {
     const principal = showLoanDetails
       ? Number(principalAmount) || Number(disbursedAmount) || 0
       : Number(disbursedAmount) || 0;
-
     const months = Number(tenure) || 0;
     const rate = Number(interestRate) || 0;
 
     if (principal <= 0 || months <= 0) return;
 
     if (showLoanDetails && totalEmiAmount > 0) {
-      // --- Advanced Mode: do NOT overwrite user inputs ---
+      // Advanced Mode: Respect user inputs
       const pf = principal - (disbursedAmount || principal);
       const interestAmt = totalEmiAmount - principal;
       const yearlyInterestRate = (interestAmt / principal) / (months / 12) * 100;
       const totalPay = principal + interestAmt;
       const effectiveCost = ((interestAmt + pf) / (disbursedAmount || principal)) * 100;
 
-      // EMI Calculation: last EMI only
-      const standardEmi = emiAmount ?? Math.floor(totalEmiAmount / months);
-      const lastEmi = totalEmiAmount - standardEmi * (months - 1);
+      const standardEmi = emiAmount ?? Number((totalEmiAmount / months).toFixed(2));
+      const lastEmi = Number((totalEmiAmount - standardEmi * (months - 1)).toFixed(2));
 
-      setProcessingFees(pf);
-      setInterestAmount(interestAmt);
-      setInterestRate(yearlyInterestRate);
-      setTotalPayable(totalPay);
-      setEffectiveCostPercent(effectiveCost);
-      setLastEmiAmount(lastEmi);
+      setProcessingFees(Number(pf.toFixed(2)));
+      setInterestAmount(Number(interestAmt.toFixed(2)));
+      setInterestRate(Number(yearlyInterestRate.toFixed(2)));
+      setTotalPayable(Number(totalPay.toFixed(2)));
+      setEffectiveCostPercent(Number(effectiveCost.toFixed(2)));
+      setEmiAmount(Number(standardEmi.toFixed(2)));
+      setLastEmiAmount(Number(lastEmi.toFixed(2)));
     } else {
-      // --- Simple/Compound Interest Mode ---
+      // Simple Mode
       let totalPay = 0;
-
       if (interestInputType === "rate") {
-        if (interestFrequency === "yearly") {
-          const years = months / 12;
-          totalPay = principal * Math.pow(1 + rate / 100, years);
-        } else {
-          const monthlyRate = rate / 12 / 100;
-          totalPay = principal * Math.pow(1 + monthlyRate, months);
-        }
+        const years = interestFrequency === "yearly" ? months / 12 : months / 12; // monthly or yearly calculation
+        const monthlyRate = rate / 12 / 100;
+        totalPay =
+          interestFrequency === "yearly"
+            ? principal * Math.pow(1 + rate / 100, years)
+            : principal * Math.pow(1 + monthlyRate, months);
       } else {
         totalPay = principal + (Number(interestAmount) || 0);
       }
@@ -81,13 +89,15 @@ export default function LoanForm({ onClose, onSubmit, accounts = [] }) {
       const interestAmt = totalPay - principal;
       const effectiveCost = (interestAmt / principal) * 100;
 
-      setPrincipalAmount(principal);
-      setTotalPayable(totalPay);
-      setInterestAmount(interestAmt);
-      setEffectiveCostPercent(effectiveCost);
+      const calculatedEmi = Number((totalPay / months).toFixed(2));
+
+      setPrincipalAmount(Number(principal.toFixed(2)));
+      setTotalPayable(Number(totalPay.toFixed(2)));
+      setInterestAmount(Number(interestAmt.toFixed(2)));
+      setEffectiveCostPercent(Number(effectiveCost.toFixed(2)));
       setProcessingFees(0);
-      setEmiAmount(totalPay / months);
-      setLastEmiAmount(totalPay / months);
+      setEmiAmount(calculatedEmi);
+      setLastEmiAmount(calculatedEmi);
     }
   };
 
@@ -115,42 +125,43 @@ export default function LoanForm({ onClose, onSubmit, accounts = [] }) {
       loan_id: loanId,
       party_name: partyName,
       loan_date: loanDate,
-      account: selectedAccount ? Number(selectedAccount) : null, // ensure number
-      disbursed_amount: Number(disbursedAmount) || 0,
-      principal_amount: Number(principalAmount) || 0,
-      emi_amount: Number(emiAmount) || 0,
-      last_emi_amount: Number(lastEmiAmount) || 0,
-      total_emi_amount: Number(totalPayable) || 0,
+      account: selectedAccount ? Number(selectedAccount) : null,
+      disbursed_amount: Number(disbursedAmount?.toFixed(2)) || 0,
+      principal_amount: Number(principalAmount?.toFixed(2)) || 0,
       interest_input_type: interestInputType,
-      interest_rate: Number(interestRate) || 0,
-      interest_amount: Number(interestAmount) || 0,
-      processing_fees: Number(processingFees) || 0,
-      total_payable: Number(totalPayable) || 0,
-      effective_cost_percent: Number(effectiveCostPercent.toFixed(2)) || 0,
+      interest_rate: Number(interestRate?.toFixed(2)) || 0,
+      interest_amount: Number(interestAmount?.toFixed(2)) || 0,
+      processing_fees: Number(processingFees?.toFixed(2)) || 0,
+      total_payable: Number(totalPayable?.toFixed(2)) || 0,
+      effective_cost_percent: Number(effectiveCostPercent?.toFixed(2)) || 0,
       tenure: Number(tenure) || 0,
       interest_frequency: interestFrequency.toLowerCase(),
       first_emi_date: firstEMIDate || null,
       description: description || "",
+      is_emi: isEmi,
     };
+
+    // Only include EMI fields if isEmi is true or advanced mode
+    if (isEmi) {
+      payload.emi_amount = Number(emiAmount?.toFixed(2)) || 0;
+      payload.last_emi_amount = Number(lastEmiAmount?.toFixed(2)) || 0;
+      payload.total_emi_amount = Number(totalPayable?.toFixed(2)) || 0; // Or totalEmiAmount if you prefer
+    }
 
     try {
       const res = await fetch("http://127.0.0.1:8001/api/loans/", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
-        // LOG THE FULL RESPONSE FOR DEBUGGING
         const errorText = await res.text();
         console.error("Backend error:", res.status, errorText);
         throw new Error("Failed to save loan");
       }
 
       const data = await res.json();
-      console.log("Loan saved:", data);
       if (onSubmit) onSubmit(data);
       if (onClose) onClose();
     } catch (err) {
@@ -159,9 +170,10 @@ export default function LoanForm({ onClose, onSubmit, accounts = [] }) {
     }
   };
 
+  // ---------- JSX ----------
   return (
     <form onSubmit={handleSubmit}>
-      {/* ---------- Account + Disbursed Amount ---------- */}
+      {/* Account & Disbursed */}
       <div style={{ display: "flex", gap: ".5rem", marginBottom: ".5rem" }}>
         <div style={{ flex: 1 }}>
           <label>Select Account</label>
@@ -190,7 +202,7 @@ export default function LoanForm({ onClose, onSubmit, accounts = [] }) {
         </div>
       </div>
 
-      {/* ---------- Loan ID + Party Name ---------- */}
+      {/* Loan ID & Party Name */}
       <div style={{ display: "flex", gap: ".5rem", marginBottom: ".5rem" }}>
         <div style={{ flex: 1 }}>
           <label>Loan ID</label>
@@ -212,7 +224,7 @@ export default function LoanForm({ onClose, onSubmit, accounts = [] }) {
         </div>
       </div>
 
-      {/* ---------- Loan Date + Tenure + Frequency ---------- */}
+      {/* Loan Date + Tenure + Frequency */}
       <div style={{ display: "flex", gap: ".5rem", marginBottom: ".5rem" }}>
         <div style={{ flex: 1 }}>
           <label>Loan Date</label>
@@ -246,7 +258,7 @@ export default function LoanForm({ onClose, onSubmit, accounts = [] }) {
         </div>
       </div>
 
-      {/* ---------- Advanced Mode Toggle ---------- */}
+      {/* Advanced Mode Toggle */}
       <label className={styles.uiCheckbox} style={{ marginTop: ".5rem" }}>
         <input
           type="checkbox"
@@ -254,7 +266,7 @@ export default function LoanForm({ onClose, onSubmit, accounts = [] }) {
           onChange={() => {
             const newMode = !showLoanDetails;
             setShowLoanDetails(newMode);
-            // reset all values for clarity when switching mode
+            // Reset values when switching mode
             setPrincipalAmount(null);
             setEmiAmount(null);
             setLastEmiAmount(null);
@@ -264,14 +276,15 @@ export default function LoanForm({ onClose, onSubmit, accounts = [] }) {
             setTotalPayable(0);
             setEffectiveCostPercent(0);
             setProcessingFees(0);
+            setIsEmi(newMode);
           }}
         />
         <span></span>
         Advanced Mode
       </label>
 
-      {/* ---------- Simple Mode Inputs ---------- */}
-      {!showLoanDetails && (
+      {/* Simple / Advanced Inputs */}
+      {!showLoanDetails ? (
         <div style={{ display: "flex", gap: ".5rem", marginBottom: ".75rem" }}>
           <div style={{ flex: 1 }}>
             <label>Interest Type</label>
@@ -310,10 +323,7 @@ export default function LoanForm({ onClose, onSubmit, accounts = [] }) {
             )}
           </div>
         </div>
-      )}
-
-      {/* ---------- Advanced Mode Inputs ---------- */}
-      {showLoanDetails && (
+      ) : (
         <>
           <div style={{ display: "flex", gap: ".5rem", marginBottom: ".5rem" }}>
             <div style={{ flex: 1 }}>
@@ -362,7 +372,7 @@ export default function LoanForm({ onClose, onSubmit, accounts = [] }) {
         </>
       )}
 
-      {/* ---------- Loan Summary ---------- */}
+      {/* Loan Summary */}
       <div
         style={{
           marginTop: "1rem",
@@ -376,39 +386,56 @@ export default function LoanForm({ onClose, onSubmit, accounts = [] }) {
         <h4 style={{ color: "#fff" }}>Loan Summary</h4>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: ".75rem" }}>
           <p>
-            <strong>Principal:</strong> ₹{principalAmount ?? 0}
+            <strong>Principal:</strong>{" "}
+            ₹{principalAmount?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || 0}
           </p>
           <p>
-            <strong>Disbursed:</strong> ₹{disbursedAmount ?? 0}
+            <strong>Disbursed:</strong>{" "}
+            ₹{disbursedAmount?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || 0}
           </p>
           <p>
-            <strong>Interest Rate:</strong> {interestRate ? `${interestRate.toFixed(2)}%` : "0%"}
+            <strong>Interest Rate:</strong>{" "}
+            {interestRate?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || 0}%
           </p>
           <p>
             <strong>Tenure:</strong> {tenure ?? 0} months
           </p>
           <p>
-            <strong>Frequency:</strong> {interestFrequency.charAt(0).toUpperCase() + interestFrequency.slice(1)}
+            <strong>Frequency:</strong>{" "}
+            {interestFrequency.charAt(0).toUpperCase() + interestFrequency.slice(1)}
           </p>
           {showLoanDetails && (
             <>
               <p>
-                <strong>EMI (1-{tenure ? tenure - 1 : "n-1"}):</strong> ₹{emiAmount?.toFixed(2) || 0}
+                <strong>EMI (1-{tenure ? tenure - 1 : "n-1"}):</strong>{" "}
+                ₹{emiAmount?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || 0}
               </p>
               <p>
-                <strong>Last EMI:</strong> ₹{lastEmiAmount?.toFixed(2) || 0}
+                <strong>Last EMI:</strong>{" "}
+                ₹{lastEmiAmount?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || 0}
               </p>
               <p>
-                <strong>Processing Fees:</strong> ₹{processingFees ?? 0}
+                <strong>Processing Fees:</strong>{" "}
+                ₹{processingFees?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || 0}
               </p>
             </>
           )}
-          <p><strong>Total Interest:</strong> ₹{interestAmount?.toFixed(2) || 0}</p>
-          <p><strong>Total Payable:</strong> ₹{totalPayable?.toFixed(2) || 0}</p>
-          <p><strong>Effective Cost %:</strong> {effectiveCostPercent?.toFixed(2) || 0}%</p>
+          <p>
+            <strong>Total Interest:</strong>{" "}
+            ₹{interestAmount?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || 0}
+          </p>
+          <p>
+            <strong>Total Payable:</strong>{" "}
+            ₹{totalPayable?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || 0}
+          </p>
+          <p>
+            <strong>Effective Cost %:</strong>{" "}
+            {effectiveCostPercent?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || 0}%
+          </p>
         </div>
       </div>
 
+      {/* Description */}
       <label style={{ marginTop: ".75rem", display: "block" }}>Description</label>
       <textarea
         value={description}

@@ -8,7 +8,9 @@ from django.db.models.signals import post_delete
 from django.dispatch import receiver
 from django.db import transaction as db_transaction
 import uuid
+from decimal import Decimal
 from datetime import timedelta
+from django.utils import timezone
 
 # ---------------------- USER RELATED MODELS ---------------------- #
 class User(models.Model):
@@ -429,6 +431,7 @@ class Loan(models.Model):
     paid_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0, null=True, blank=True)
     remaining_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0, null=True, blank=True)
     is_active = models.BooleanField(default=True)
+    is_emi = models.BooleanField(default=False, null=True, blank=True)
     overdue = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     is_foreclosed = models.BooleanField(default=False)
     closed_date = models.DateField(null=True, blank=True)
@@ -445,25 +448,20 @@ class Loan(models.Model):
         return f"{self.loan_id} - {self.party_name}"
 
     def update_remaining_amount(self):
-        """
-        Updates remaining_amount, is_active status, next_due_date, next EMI number, and overdue.
-        Calculates total_payable if not set.
-        """
-        # Calculate total payable if not set
-        if self.total_payable is None:
+        # Ensure total_payable
+        if self.total_payable in [None, 0]:
             principal = self.principal_amount or 0
             interest = self.interest_amount or 0
             fees = self.processing_fees or 0
-            self.total_payable = principal + interest + fees
+            self.total_payable = Decimal(principal) + Decimal(interest) + Decimal(fees)
 
-        # Remaining amount
         total_paid = self.paid_amount or 0
-        self.remaining_amount = max(self.total_payable - total_paid, 0)
+        self.remaining_amount = max(Decimal(self.total_payable) - Decimal(total_paid), 0)
 
-        # Status
+        # Active status
         self.is_active = self.remaining_amount > 0 and not self.is_foreclosed
 
-        # Update next EMI info
+        # Next EMI info
         if self.remaining_amount == 0:
             self.next_due_date = None
             self.next_emi_number = 0
@@ -471,14 +469,10 @@ class Loan(models.Model):
             self.next_emi_number = (self.total_emis_paid or 0) + 1
             self.next_due_date = self.first_emi_date + timedelta(days=30 * (self.next_emi_number - 1))
 
-        # Overdue calculation (simple)
-        if self.next_due_date and self.is_active:
-            from django.utils import timezone
-            today = timezone.now().date()
-            if today > self.next_due_date:
-                self.overdue = self.remaining_amount
-            else:
-                self.overdue = 0
+        # Overdue
+        today = timezone.now().date()
+        if self.next_due_date and self.is_active and today > self.next_due_date:
+            self.overdue = self.remaining_amount
         else:
             self.overdue = 0
 

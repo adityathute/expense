@@ -367,3 +367,13 @@ class LoanSerializer(serializers.ModelSerializer):
     class Meta:
         model = Loan
         fields = "__all__"
+
+    def create(self, validated_data):
+        loan = super().create(validated_data)
+        loan.update_remaining_amount()  # ✅ Call after creating
+        return loan
+
+    def update(self, instance, validated_data):
+        loan = super().update(instance, validated_data)
+        loan.update_remaining_amount()  # ✅ Call after updating
+        return loan
