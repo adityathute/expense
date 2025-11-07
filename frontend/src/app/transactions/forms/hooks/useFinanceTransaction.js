@@ -26,6 +26,17 @@ export default function useFinanceTransaction() {
   const [groupId, setGroupId] = useState(uuidv4());
   const [status, setStatus] = useState("planned");
 
+  // Loan specific
+  const [emiAmount, setEmiAmount] = useState("");
+  const [interestAmount, setInterestAmount] = useState("");
+  const [totalPayable, setTotalPayable] = useState("");
+  const [principalAmount, setPrincipalAmount] = useState("");
+  const [interestRate, setInterestRate] = useState("");
+  const [tenure, setTenure] = useState("");
+  const [loanId, setLoanId] = useState("");
+  const [partyName, setPartyName] = useState("");
+  const [loanDate, setLoanDate] = useState("");
+
   // Reset splits when core category changes
   useEffect(() => {
     if (selectedCore === "Transfer") {
@@ -219,5 +230,14 @@ export default function useFinanceTransaction() {
     isTransfer,
     debtType,
     setDebtType,
+    emiAmount, setEmiAmount,
+    interestAmount, setInterestAmount,
+    totalPayable, setTotalPayable,
+    principalAmount, setPrincipalAmount,
+    interestRate, setInterestRate,
+    tenure, setTenure,
+    loanId, setLoanId,
+    partyName, setPartyName,
+    loanDate, setLoanDate,
   };
 }

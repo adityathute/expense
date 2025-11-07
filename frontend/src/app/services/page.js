@@ -12,6 +12,7 @@ import ServiceForm from "./ServiceForm";
 import Pagination from "../components/Pagination";
 import DeleteServiceModal from "./DeleteServiceModal";
 import ServiceDetailsModal from "./ServiceDetailsModal";
+import { Server } from "lucide-react";
 
 export default function ServicesPage() {
   const [services, setServices] = useState([]);
@@ -208,15 +209,20 @@ export default function ServicesPage() {
 
   return (
     <div>
-      <HeaderWithNewButton
-        title="Services"
-        buttonLabel="Add Service"
-        onClick={() => {
-          resetForm();
-          setShowForm(true);
-          setShowLinksSection(false);
-        }}
-      />
+<HeaderWithNewButton
+  title={
+    <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+      <Server size={22} color="#63e6be" />
+      <span>Services</span>
+    </span>
+  }
+  buttonLabel="Add Service"
+  onClick={() => {
+    resetForm();
+    setShowForm(true);
+    setShowLinksSection(false);
+  }}
+/>
 
       <SearchBar
         value={searchTerm}

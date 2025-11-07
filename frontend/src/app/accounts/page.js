@@ -9,6 +9,7 @@ import AccountFormModal from "./AccountFormModal";
 import DeleteAccountModal from "./DeleteAccountModal";
 import useAccounts from "../accounts/hooks/useAccounts";
 import "./accounts.css";
+import { Banknote } from "lucide-react";
 
 export default function AccountPage() {
   const {
@@ -129,7 +130,14 @@ export default function AccountPage() {
 
   return (
     <div className="main-content">
-      <h1>Welcome to the Accounts</h1>
+      <HeaderWithNewButton
+        title={
+          <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <Banknote size={22} color="#34d399" />
+            <span>Accounts</span>
+          </span>
+        }
+      />
 
       <div className="category-grid">
         {Object.entries(categoryTotals).map(([category, total]) => (

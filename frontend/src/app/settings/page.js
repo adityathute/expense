@@ -12,21 +12,6 @@ export default function Settings() {
       <p className="sub-text">Manage your business preferences and configurations.</p>
 
       <div className="settings-grid">
-        {/* Category Management */}
-        <div className="setting-card">
-          <h2 style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
-            <ListTree size={20} style={{ color: "#ff6b6b" }} />
-            Category Management
-          </h2>
-          <p>Customize categories for tracking income, expenses, and services.</p>
-          <div style={{ display: "flex", justifyContent: "center", marginTop: "1rem" }}>
-            <Link href="/categories" style={{ width: "100%", maxWidth: "400px" }}>
-              <button className="setting-card-link" style={{ width: "100%" }}>
-                Manage Categories
-              </button>
-            </Link>
-          </div>
-        </div>
 
         {/* Analytics */}
         <div className="setting-card">
@@ -55,22 +40,6 @@ export default function Settings() {
             <Link href="/shop-details" style={{ width: "100%", maxWidth: "400px" }}>
               <button className="setting-card-link" style={{ width: "100%" }}>
                 Manage Shop Details
-              </button>
-            </Link>
-          </div>
-        </div>
-
-        {/* Accounts */}
-        <div className="setting-card">
-          <h2 style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
-            <Banknote size={20} style={{ color: "#34d399" }} />
-            Accounts
-          </h2>
-          <p>Manage your bank and cash accounts, add new accounts, and update existing ones.</p>
-          <div style={{ display: "flex", justifyContent: "center", marginTop: "1rem" }}>
-            <Link href="/accounts" style={{ width: "100%", maxWidth: "400px" }}>
-              <button className="setting-card-link" style={{ width: "100%" }}>
-                Manage Accounts
               </button>
             </Link>
           </div>

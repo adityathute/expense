@@ -8,6 +8,7 @@ import StyledTable from "../components/StyledTable";
 import HeaderWithNewButton from "../components/common/HeaderWithNewButton";
 import Modal from "../components/Modal";
 import Pagination from "../components/Pagination";
+import { Users as UsersIcon } from "lucide-react";
 
 export default function Users() {
   const [users, setUsers] = useState([]);
@@ -183,7 +184,12 @@ export default function Users() {
   return (
     <div>
       <HeaderWithNewButton
-        title="Users"
+        title={
+          <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <UsersIcon size={22} color="#f783ac" />
+            <span>Users</span>
+          </span>
+        }
         buttonLabel="Add User"
         onClick={() => {
           setShowForm(true);

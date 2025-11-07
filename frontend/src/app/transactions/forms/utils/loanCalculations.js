@@ -1,66 +1,63 @@
 export function calculateLoanDetails({
   principal = 0,
-  interestRate = 0,
-  tenure = 0,
-  interestFrequency = "yearly",
+  tenure = 0, // in months
+  interestFrequency = "yearly", // "monthly" or "yearly"
+  inputType = "rate", // "rate" or "amount"
+  interestRate = 0, // yearly interest in percent
+  interestAmount = 0,
   disbursedAmount = 0,
-  processingFees = null,
-  totalEmiAmount = 0,
 }) {
   principal = Number(principal) || 0;
   tenure = Number(tenure) || 0;
-  disbursedAmount = Number(disbursedAmount) || 0;
-  totalEmiAmount = Number(totalEmiAmount) || 0;
+  disbursedAmount = Number(disbursedAmount) || principal;
+  interestRate = Number(interestRate) || 0;
+  interestAmount = Number(interestAmount) || 0;
 
-  // 🧮 Auto-calc processing fees when not given
-  const finalProcessingFees =
-    processingFees !== null && processingFees !== undefined
-      ? Math.max(Number(processingFees) || 0, 0)
-      : Math.max(principal - disbursedAmount, 0);
+  if (principal <= 0 || tenure <= 0) {
+    return {
+      EMI: 0,
+      totalInterest: 0,
+      totalPayable: 0,
+      processingFees: 0,
+      totalCost: 0,
+      effectiveCostPercent: 0,
+      calculatedInterestRate: 0,
+    };
+  }
 
   let totalInterest = 0;
   let totalPayable = 0;
-  let EMI = 0;
+  let calculatedInterestRate = 0;
 
-  // 🧩 Case 1: total EMI known (user entered)
-  if (totalEmiAmount > 0 && principal > 0) {
-    totalPayable = totalEmiAmount;
-    totalInterest = Math.max(totalPayable - principal, 0);
+  // Compounding periods per year
+  const n = interestFrequency === "monthly" ? 12 : 1;
+  const t = tenure / 12; // convert months to years
+
+  if (inputType === "rate") {
+    const r = interestRate / 100; // yearly rate
+    totalPayable = principal * Math.pow(1 + r / n, n * t);
+    totalInterest = totalPayable - principal;
+    calculatedInterestRate = interestRate;
+  } else {
+    totalInterest = interestAmount;
+    totalPayable = principal + totalInterest;
+
+    const periods = n * t;
+    const rateDecimal = Math.pow(totalPayable / principal, 1 / periods) - 1;
+    calculatedInterestRate =
+      interestFrequency === "yearly" ? rateDecimal * 100 : rateDecimal * 100 * 12;
+    if (!isFinite(calculatedInterestRate)) calculatedInterestRate = 0;
   }
 
-  // 🧩 Case 2: rate-based calculation
-  else if (principal > 0 && tenure > 0 && interestRate > 0) {
-    const monthlyRate =
-      interestFrequency === "yearly"
-        ? (Number(interestRate) || 0) / 100 / 12
-        : (Number(interestRate) || 0) / 100;
-
-    if (monthlyRate > 0) {
-      EMI =
-        (principal * monthlyRate * Math.pow(1 + monthlyRate, tenure)) /
-        (Math.pow(1 + monthlyRate, tenure) - 1);
-      totalPayable = EMI * tenure;
-      totalInterest = Math.max(totalPayable - principal, 0);
-    }
-  }
-
-  const totalCost = totalInterest + finalProcessingFees;
-  const effectiveCostPercent =
-    disbursedAmount > 0 ? (totalCost / disbursedAmount) * 100 : 0;
-
-  const interestPercentSimple =
-    principal > 0 ? (totalInterest / principal) * 100 : 0;
-  const annualizedInterestPercent =
-    tenure > 0 ? interestPercentSimple * (12 / tenure) : interestPercentSimple;
+  const effectiveCostPercent = (totalInterest / disbursedAmount) * 100;
 
   return {
-    EMI: Math.round(EMI),
-    totalInterest: Math.round(totalInterest),
-    totalPayable: Math.round(totalPayable),
-    processingFees: Math.round(finalProcessingFees),
-    totalCost: Math.round(totalCost),
+    EMI: 0, // Simple mode → no EMI
+    totalInterest: parseFloat(totalInterest.toFixed(2)),
+    totalPayable: parseFloat(totalPayable.toFixed(2)),
+    processingFees: 0,
+    totalCost: parseFloat(totalInterest.toFixed(2)),
     effectiveCostPercent: parseFloat(effectiveCostPercent.toFixed(2)),
-    interestPercentSimple: parseFloat(interestPercentSimple.toFixed(2)),
-    annualizedInterestPercent: parseFloat(annualizedInterestPercent.toFixed(2)),
+    calculatedInterestRate: parseFloat(calculatedInterestRate.toFixed(2)),
   };
 }

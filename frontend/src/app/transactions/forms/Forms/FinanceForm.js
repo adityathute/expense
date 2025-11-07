@@ -38,6 +38,15 @@ export default function FinanceForm({
   userOptions,
   debtType,
   setDebtType,
+  loanId, setLoanId,
+  partyName, setPartyName,
+  loanDate, setLoanDate,
+  principalAmount, setPrincipalAmount,
+  interestRate, setInterestRate,
+  tenure, setTenure,
+  emiAmount, setEmiAmount,
+  interestAmount, setInterestAmount,
+  totalPayable, setTotalPayable,
 }) {
   const [useDueRange, setUseDueRange] = useState(false);
 
@@ -98,21 +107,12 @@ export default function FinanceForm({
     setDisbursedAmount("");
   };
 
-  const [loanId, setLoanId] = useState("");
-  const [partyName, setPartyName] = useState("");
-  const [loanDate, setLoanDate] = useState("");
-  const [principalAmount, setPrincipalAmount] = useState("");
-  const [interestRate, setInterestRate] = useState("");
-  const [tenure, setTenure] = useState("");
-  const [emiAmount, setEmiAmount] = useState("");
   const [totalEmiAmount, setTotalEmiAmount] = useState("");
-  const [interestAmount, setInterestAmount] = useState("");
-  const [totalPayable, setTotalPayable] = useState("");
   const [processingFees, setProcessingFees] = useState("");
   const [effectiveCostPercent, setEffectiveCostPercent] = useState("");
   const [disbursedAmount, setDisbursedAmount] = useState("");
-  const [interestInputType, setInterestInputType] = useState("rate"); // "rate" or "amount"
-  const [interestFrequency, setInterestFrequency] = useState("yearly"); // Added missing variable
+  const [interestInputType, setInterestInputType] = useState("rate");
+  const [interestFrequency, setInterestFrequency] = useState("yearly");
 
   useEffect(() => {
     const principal = Number(principalAmount) || 0;
@@ -548,7 +548,7 @@ export default function FinanceForm({
             </div>
 
             <div style={{ flex: 1 }}>
-              <label>Tenure (In Months)</label>
+              <label>Tenure (Months)</label>
               <input
                 type="number"
                 className={styles.modalFormInput}

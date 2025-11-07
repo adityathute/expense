@@ -11,6 +11,7 @@ import SearchBar from "../components/SearchBar";
 import StyledTable from "../components/StyledTable";
 import BalanceCell from "../components/BalanceCell";
 import Pagination from "../components/Pagination";
+import { Wallet } from "lucide-react";
 
 export default function Transactions() {
   const [modalMode, setModalMode] = useState(null);
@@ -217,7 +218,12 @@ export default function Transactions() {
   return (
     <div>
       <HeaderWithNewButton
-        title="All Transactions"
+        title={
+          <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <Wallet size={22} color="#a26bfa" />
+            <span>Transactions</span>
+          </span>
+        }
         buttons={[
           { label: "Service", onClick: openNewService },
           { label: "Finance", onClick: openNewFinance },

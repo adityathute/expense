@@ -22,8 +22,11 @@ export default function Sidebar({ isOpen, onClose, sidebarRef }) {
   const navLinks = [
     { path: "/dashboard", label: "Dashboard", icon: <Home size={18} />, color: "#50b5ff" },
     { path: "/transactions", label: "Transactions", icon: <Wallet size={18} />, color: "#a26bfa" },
+    { path: "/loans", label: "Loans", icon: <Banknote size={18} />, color: "#ffb347" },
     { path: "/services", label: "Services", icon: <Server size={18} />, color: "#63e6be" },
     { path: "/users", label: "Users", icon: <Users size={18} />, color: "#f783ac" },
+    { path: "/categories", label: "Categories", icon: <ListTree size={18} />, color: "#50b5ff" },
+    { path: "/accounts", label: "Accounts", icon: <Banknote size={18} />, color: "#34d399" },
     { path: "/settings", label: "Settings", icon: <Settings size={18} />, color: "#ced4da" },
   ];
 

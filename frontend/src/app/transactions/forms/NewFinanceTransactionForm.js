@@ -109,6 +109,24 @@ export default function NewFinanceTransactionForm({ onSubmit }) {
       payload.due_date = finance.nextDueDate;
     }
 
+
+    // 🟢 Add Loan-specific fields
+    if (finance.selectedCore === "Loans") {
+      payload.is_loan = true;
+      payload.loan_id = finance.loanId || null;
+      payload.party_name = finance.partyName || null;
+      payload.loan_date = finance.loanDate || null;
+      payload.principal_amount = Number(finance.principalAmount || 0);
+      payload.interest_rate = Number(finance.interestRate || 0);
+      payload.tenure = Number(finance.tenure || 0);
+      payload.emi_amount = Number(finance.emiAmount || 0);
+      payload.total_interest = Number(finance.interestAmount || 0);
+      payload.total_payable = Number(finance.totalPayable || 0);
+    }
+
+    // 🧠 Debug: Log payload before sending
+    console.log("📦 Loan Payload to be sent:", payload);
+
     try {
       const res = await fetch("http://127.0.0.1:8001/api/finance-transactions/", {
         method: "POST",
@@ -161,6 +179,24 @@ export default function NewFinanceTransactionForm({ onSubmit }) {
         userOptions={userOptions}
         debtType={finance.debtType}
         setDebtType={finance.setDebtType}
+        loanId={finance.loanId}
+        setLoanId={finance.setLoanId}
+        partyName={finance.partyName}
+        setPartyName={finance.setPartyName}
+        loanDate={finance.loanDate}
+        setLoanDate={finance.setLoanDate}
+        principalAmount={finance.principalAmount}
+        setPrincipalAmount={finance.setPrincipalAmount}
+        interestRate={finance.interestRate}
+        setInterestRate={finance.setInterestRate}
+        tenure={finance.tenure}
+        setTenure={finance.setTenure}
+        emiAmount={finance.emiAmount}
+        setEmiAmount={finance.setEmiAmount}
+        interestAmount={finance.interestAmount}
+        setInterestAmount={finance.setInterestAmount}
+        totalPayable={finance.totalPayable}
+        setTotalPayable={finance.setTotalPayable}
       />
 
       <label style={{ marginTop: "0.75rem", display: "block" }}>Description</label>

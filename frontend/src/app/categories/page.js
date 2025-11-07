@@ -8,6 +8,8 @@ import DeleteCategoryModal from "./DeleteCategoryModal";
 import styles from "../styles/components/modalForm.module.css";
 import Pagination from "../components/Pagination";
 import { EditIcon, DeleteIcon } from "../components/Icons";
+import { ListTree} from "lucide-react";
+import HeaderWithNewButton from "../components/common/HeaderWithNewButton";
 
 /**
  * Categories page:
@@ -300,8 +302,15 @@ export default function Categories() {
 
   return (
     <div className="content">
-      <h1>Categories</h1>
-
+      <HeaderWithNewButton
+        title={
+          <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <ListTree size={22} color="#ffb347" />
+            <span>Categories</span>
+          </span>
+        }
+      />
+      
       <div className="main-switch-header">
         <div className="switch-container">
           <label className="switch">
