@@ -11,6 +11,7 @@ router.register(r'supporting-documents', views.SupportingDocumentViewSet)
 router.register(r'service-supporting-documents', views.ServiceSupportingDocumentViewSet, basename='service-supporting-document')
 router.register(r'service-transactions', views.ServiceTransactionViewSet, basename='service-transaction')
 router.register(r'finance-transactions', views.FinanceTransactionViewSet, basename='finance-transaction')
+router.register(r'loans', views.LoanViewSet, basename='loan')
 
 urlpatterns = [
     path('api/', include(router.urls)),

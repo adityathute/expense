@@ -108,32 +108,55 @@ export default function LoanForm({ onClose, onSubmit, accounts = [] }) {
   ]);
 
   // ---------- Handle Form Submit ----------
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     const payload = {
-      loanId,
-      partyName,
-      loanDate,
-      account: selectedAccount,
-      disbursedAmount: Number(disbursedAmount) || 0,
-      principalAmount: Number(principalAmount) || 0,
-      totalEmiAmount: Number(totalPayable) || 0,
-      interestRate: Number(interestRate) || 0,
-      interestAmount: Number(interestAmount) || 0,
-      processingFees: Number(processingFees) || 0,
-      totalPayable: Number(totalPayable) || 0,
-      effectiveCostPercent: Number(effectiveCostPercent) || 0,
+      loan_id: loanId,
+      party_name: partyName,
+      loan_date: loanDate,
+      account: selectedAccount ? Number(selectedAccount) : null, // ensure number
+      disbursed_amount: Number(disbursedAmount) || 0,
+      principal_amount: Number(principalAmount) || 0,
+      emi_amount: Number(emiAmount) || 0,
+      last_emi_amount: Number(lastEmiAmount) || 0,
+      total_emi_amount: Number(totalPayable) || 0,
+      interest_input_type: interestInputType,
+      interest_rate: Number(interestRate) || 0,
+      interest_amount: Number(interestAmount) || 0,
+      processing_fees: Number(processingFees) || 0,
+      total_payable: Number(totalPayable) || 0,
+      effective_cost_percent: Number(effectiveCostPercent.toFixed(2)) || 0,
       tenure: Number(tenure) || 0,
-      interestFrequency,
-      interestInputType,
-      description,
-      emiAmount: Number(emiAmount) || 0,
-      lastEmiAmount: Number(lastEmiAmount) || 0,
-      firstEMIDate,
+      interest_frequency: interestFrequency.toLowerCase(),
+      first_emi_date: firstEMIDate || null,
+      description: description || "",
     };
-    console.log("📦 Loan Payload:", payload);
-    if (onSubmit) onSubmit(payload);
-    if (onClose) onClose();
+
+    try {
+      const res = await fetch("http://127.0.0.1:8001/api/loans/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        // LOG THE FULL RESPONSE FOR DEBUGGING
+        const errorText = await res.text();
+        console.error("Backend error:", res.status, errorText);
+        throw new Error("Failed to save loan");
+      }
+
+      const data = await res.json();
+      console.log("Loan saved:", data);
+      if (onSubmit) onSubmit(data);
+      if (onClose) onClose();
+    } catch (err) {
+      console.error(err);
+      alert("Error saving loan! Check console for details.");
+    }
   };
 
   return (

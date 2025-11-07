@@ -2,12 +2,13 @@ from django.db import models
 from django.conf import settings
 from decouple import config
 from django.core.exceptions import ValidationError
-from .choices import CATEGORY_TYPES, CORE_CATEGORIES, GENDER_CHOICES, ID_TYPES, DOCUMENT_TYPE_CHOICES, ENTRY_TYPE_CHOICES, UID_TYPE_CHOICES,  UPDATE_TYPE_CHOICES, ENTRY_TYPE_CHOICES, STATUS_CHOICES, UID_TYPE_CHOICES, UPDATE_TYPE_CHOICES, PAYMENT_TYPE_CHOICES, CATEGORY_CHOICES, FREQUENCY_CHOICES, ACCOUNT_MODE_CHOICES, SUB_ACCOUNT_CHOICES, USER_TYPES, INTEREST_FREQUENCY_CHOICES
+from .choices import CATEGORY_TYPES, CORE_CATEGORIES, GENDER_CHOICES, ID_TYPES, DOCUMENT_TYPE_CHOICES, ENTRY_TYPE_CHOICES, UID_TYPE_CHOICES,  UPDATE_TYPE_CHOICES, ENTRY_TYPE_CHOICES, STATUS_CHOICES, UID_TYPE_CHOICES, UPDATE_TYPE_CHOICES, PAYMENT_TYPE_CHOICES, CATEGORY_CHOICES, FREQUENCY_CHOICES, ACCOUNT_MODE_CHOICES, SUB_ACCOUNT_CHOICES, USER_TYPES, INTEREST_FREQUENCY_CHOICES, INTEREST_TYPE_CHOICES, LOAN_STATUS_CHOICES
 import os
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 from django.db import transaction as db_transaction
 import uuid
+from datetime import timedelta
 
 # ---------------------- USER RELATED MODELS ---------------------- #
 class User(models.Model):
@@ -399,3 +400,86 @@ class StaffAttendance(models.Model):
             check_out = datetime.combine(self.date, self.check_out_time)
             return check_out - check_in
         return None
+
+# ---------------------- LOANS RELATED MODELS ---------------------- #
+class Loan(models.Model):
+    loan_id = models.CharField(max_length=50, unique=True)
+    account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True)
+    party_name = models.CharField(max_length=255, null=True, blank=True)
+    loan_date = models.DateField(null=True, blank=True)
+    first_emi_date = models.DateField(null=True, blank=True)
+    next_due_date = models.DateField(null=True, blank=True, help_text="Next EMI due date")
+    total_emis_paid = models.PositiveIntegerField(default=0, null=True, blank=True)
+    last_payment_date = models.DateField(null=True, blank=True)
+    next_emi_number = models.PositiveIntegerField(default=1, null=True, blank=True)
+    tenure = models.PositiveIntegerField(help_text="Tenure in months", null=True, blank=True)
+    interest_frequency = models.CharField(max_length=10, choices=INTEREST_FREQUENCY_CHOICES, default='yearly', null=True, blank=True)
+    interest_type = models.CharField(max_length=10, choices=INTEREST_TYPE_CHOICES, default='rate', null=True, blank=True)
+    interest_rate = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    interest_amount = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    principal_amount = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    disbursed_amount = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    total_emi_amount = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    emi_amount = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    last_emi_amount = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    processing_fees = models.DecimalField(max_digits=15, decimal_places=2, default=0, null=True, blank=True)
+    total_payable = models.DecimalField(max_digits=15, decimal_places=2, null=True, blank=True)
+    effective_cost_percent = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
+    paid_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0, null=True, blank=True)
+    remaining_amount = models.DecimalField(max_digits=15, decimal_places=2, default=0, null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    overdue = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    is_foreclosed = models.BooleanField(default=False)
+    closed_date = models.DateField(null=True, blank=True)
+    close_reason = models.CharField(max_length=255, null=True, blank=True)
+    status = models.CharField(max_length=20, choices=LOAN_STATUS_CHOICES, default='active')
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-loan_date']
+
+    def __str__(self):
+        return f"{self.loan_id} - {self.party_name}"
+
+    def update_remaining_amount(self):
+        """
+        Updates remaining_amount, is_active status, next_due_date, next EMI number, and overdue.
+        Calculates total_payable if not set.
+        """
+        # Calculate total payable if not set
+        if self.total_payable is None:
+            principal = self.principal_amount or 0
+            interest = self.interest_amount or 0
+            fees = self.processing_fees or 0
+            self.total_payable = principal + interest + fees
+
+        # Remaining amount
+        total_paid = self.paid_amount or 0
+        self.remaining_amount = max(self.total_payable - total_paid, 0)
+
+        # Status
+        self.is_active = self.remaining_amount > 0 and not self.is_foreclosed
+
+        # Update next EMI info
+        if self.remaining_amount == 0:
+            self.next_due_date = None
+            self.next_emi_number = 0
+        elif self.first_emi_date and self.tenure:
+            self.next_emi_number = (self.total_emis_paid or 0) + 1
+            self.next_due_date = self.first_emi_date + timedelta(days=30 * (self.next_emi_number - 1))
+
+        # Overdue calculation (simple)
+        if self.next_due_date and self.is_active:
+            from django.utils import timezone
+            today = timezone.now().date()
+            if today > self.next_due_date:
+                self.overdue = self.remaining_amount
+            else:
+                self.overdue = 0
+        else:
+            self.overdue = 0
+
+        self.save()

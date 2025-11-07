@@ -20,6 +20,18 @@ INTEREST_FREQUENCY_CHOICES = [
     ("yearly", "Yearly"),
 ]
 
+LOAN_STATUS_CHOICES = (
+    ('active', 'Active'),
+    ('closed', 'Closed'),
+    ('foreclosed', 'Foreclosed'),
+    ('defaulted', 'Defaulted'),
+)
+
+INTEREST_TYPE_CHOICES = [
+    ('rate', 'Rate (%)'),
+    ('amount', 'Amount (₹)'),
+]
+
 USER_TYPES = [
     ("Customer", "Customer"),
     ("Family", "Family"),

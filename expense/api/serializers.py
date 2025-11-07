@@ -19,7 +19,8 @@ from .models import (
     SupportingDocument,
     ServiceSupportingDocument,
     ServiceTransaction, 
-    FinanceTransaction
+    FinanceTransaction,
+    Loan
 )
 import uuid
 from .transactions.transactions_serializers import ServiceTransactionSerializer, FinanceTransactionSerializer
@@ -359,3 +360,10 @@ class AccountSerializer(serializers.ModelSerializer):
             "ifsc_code": {"required": False, "allow_null": True},
             "sub_account_type": {"required": False, "allow_null": True},
         }
+
+# ---------------------- LOANS RELATED SERIALIZER ---------------------- #
+
+class LoanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Loan
+        fields = "__all__"

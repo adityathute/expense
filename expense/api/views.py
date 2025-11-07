@@ -1,8 +1,8 @@
 from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 from rest_framework import generics, status, viewsets
-from .models import Category, Service, User, Account, Document, ServiceDocumentRequirement, DocumentCategory, SupportingDocument, ServiceSupportingDocument, ServiceTransaction, FinanceTransaction
-from .serializers import CategorySerializer, UserSerializer, ServiceSerializer, AccountSerializer, DocumentSerializer, ServiceDocumentRequirementSerializer, SupportingDocumentSerializer, ServiceSupportingDocumentSerializer, ServiceTransactionSerializer, FinanceTransactionSerializer
+from .models import Category, Service, User, Account, Document, ServiceDocumentRequirement, DocumentCategory, SupportingDocument, ServiceSupportingDocument, ServiceTransaction, FinanceTransaction, Loan
+from .serializers import CategorySerializer, UserSerializer, ServiceSerializer, AccountSerializer, DocumentSerializer, ServiceDocumentRequirementSerializer, SupportingDocumentSerializer, ServiceSupportingDocumentSerializer, ServiceTransactionSerializer, FinanceTransactionSerializer, LoanSerializer
 from .choices import USER_TYPES
 from rest_framework.generics import DestroyAPIView
 from rest_framework.permissions import AllowAny
@@ -433,3 +433,9 @@ class ServiceTransactionViewSet(viewsets.ModelViewSet):
 class FinanceTransactionViewSet(viewsets.ModelViewSet):
     queryset = FinanceTransaction.objects.all().order_by('-date_created')
     serializer_class = FinanceTransactionSerializer
+
+# ---------------------- LOANS RELATED VIEWS ---------------------- #
+
+class LoanViewSet(viewsets.ModelViewSet):
+    queryset = Loan.objects.all().order_by('-loan_date')
+    serializer_class = LoanSerializer
