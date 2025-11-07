@@ -8,21 +8,19 @@ export default function LoanForm({ onClose, onSubmit, accounts = [] }) {
     const [partyName, setPartyName] = useState("");
     const [loanDate, setLoanDate] = useState("");
     const [description, setDescription] = useState("");
-
     const [selectedAccount, setSelectedAccount] = useState("");
     const [disbursedAmount, setDisbursedAmount] = useState("");
     const [processingFees, setProcessingFees] = useState(0);
-
-    const [interestInputType, setInterestInputType] = useState("rate"); // rate or amount
+    const [emiAmount, setEmiAmount] = useState(0);
+    const [totalEmiAmount, setTotalEmiAmount] = useState(0);
+    const [interestInputType, setInterestInputType] = useState("rate");
     const [interestRate, setInterestRate] = useState("");
     const [interestAmount, setInterestAmount] = useState("");
     const [tenure, setTenure] = useState("");
     const [interestFrequency, setInterestFrequency] = useState("yearly");
-
     const [effectiveCostPercent, setEffectiveCostPercent] = useState(0);
     const [principalAmount, setPrincipalAmount] = useState(0);
     const [totalPayable, setTotalPayable] = useState(0);
-
     const [showLoanDetails, setShowLoanDetails] = useState(false);
 
     // ---------- Loan Calculation ----------
@@ -93,16 +91,23 @@ export default function LoanForm({ onClose, onSubmit, accounts = [] }) {
             interestAmount: Number(interestAmount),
             inputType: interestInputType,
             interestFrequency,
+            processingFees: Number(processingFees),
+            advancedMode: showLoanDetails,
+            totalEmiAmount: Number(totalEmiAmount),
         });
 
         setPrincipalAmount(principal);
         setTotalPayable(details.totalPayable);
         setEffectiveCostPercent(details.effectiveCostPercent);
+        setEmiAmount(details.EMI); // <-- now EMI is updated
 
-        if (interestInputType === "rate") {
-            setInterestAmount(details.totalInterest);
-        } else {
-            setInterestRate(details.calculatedInterestRate);
+        if (!showLoanDetails) {
+            // simple mode updates
+            if (interestInputType === "rate") {
+                setInterestAmount(details.totalInterest ?? 0);
+            } else {
+                setInterestRate(details.calculatedInterestRate ?? 0);
+            }
         }
     };
 
@@ -120,10 +125,10 @@ export default function LoanForm({ onClose, onSubmit, accounts = [] }) {
     };
 
     const resetLoanFields = () => {
-        setPrincipalAmount("");
-        setInterestRate("");
-        setInterestAmount("");
-        setTotalPayable("");
+        setPrincipalAmount(0);
+        setInterestRate(0);
+        setInterestAmount(0);
+        setTotalPayable(0);
         setEffectiveCostPercent(0);
     };
 
@@ -172,7 +177,7 @@ export default function LoanForm({ onClose, onSubmit, accounts = [] }) {
                     <input
                         type="number"
                         className={styles.modalFormInput}
-                        value={disbursedAmount}
+                        value={disbursedAmount || ""}
                         onChange={(e) => setDisbursedAmount(e.target.value)}
                         onWheel={(e) => e.target.blur()}
                     />
@@ -217,7 +222,7 @@ export default function LoanForm({ onClose, onSubmit, accounts = [] }) {
                     <input
                         type="number"
                         className={styles.modalFormInput}
-                        value={tenure}
+                        value={tenure || ""}
                         onChange={(e) => setTenure(e.target.value)}
                         onWheel={(e) => e.target.blur()}
                     />
@@ -234,6 +239,29 @@ export default function LoanForm({ onClose, onSubmit, accounts = [] }) {
                     </select>
                 </div>
             </div>
+
+            {/* Advanced Mode Toggle */}
+            <label className={styles.uiCheckbox} style={{ marginTop: ".5rem" }}>
+                <input
+                    type="checkbox"
+                    checked={showLoanDetails}
+                    onChange={() => {
+                        const newMode = !showLoanDetails;
+                        setShowLoanDetails(newMode);
+
+                        // Reset all inputs when switching modes
+                        setPrincipalAmount(0);
+                        setEmiAmount(0);
+                        setTotalEmiAmount(0);
+                        setInterestRate("");
+                        setInterestAmount("");
+                        setTotalPayable(0);
+                        setEffectiveCostPercent(0);
+                    }}
+                />
+                <span></span>
+                Advanced Mode
+            </label>
 
             {/* Simple Interest Input */}
             {!showLoanDetails && (
@@ -256,7 +284,7 @@ export default function LoanForm({ onClose, onSubmit, accounts = [] }) {
                                 <input
                                     type="number"
                                     className={styles.modalFormInput}
-                                    value={interestRate}
+                                    value={interestRate || ""}
                                     onChange={(e) => handleInterestChange(e.target.value)}
                                     onWheel={(e) => e.target.blur()}
                                 />
@@ -267,12 +295,48 @@ export default function LoanForm({ onClose, onSubmit, accounts = [] }) {
                                 <input
                                     type="number"
                                     className={styles.modalFormInput}
-                                    value={interestAmount}
+                                    value={interestAmount || ""}
                                     onChange={(e) => handleInterestChange(e.target.value)}
                                     onWheel={(e) => e.target.blur()}
                                 />
                             </>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {/* Advanced Mode Inputs */}
+            {showLoanDetails && (
+                <div style={{ display: "flex", gap: "0.5rem", marginBottom: ".5rem" }}>
+                    <div style={{ flex: 1 }}>
+                        <label>Principal Amount</label>
+                        <input
+                            type="number"
+                            className={styles.modalFormInput}
+                            value={principalAmount || 0}
+                            onChange={(e) => setPrincipalAmount(Number(e.target.value))}
+                            onWheel={(e) => e.target.blur()}
+                        />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                        <label>EMI Amount</label>
+                        <input
+                            type="number"
+                            className={styles.modalFormInput}
+                            value={emiAmount || 0}
+                            onChange={(e) => setEmiAmount(Number(e.target.value))}
+                            onWheel={(e) => e.target.blur()}
+                        />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                        <label>Total EMI Amount</label>
+                        <input
+                            type="number"
+                            className={styles.modalFormInput}
+                            value={totalEmiAmount || 0}
+                            onChange={(e) => setTotalEmiAmount(Number(e.target.value))}
+                            onWheel={(e) => e.target.blur()}
+                        />
                     </div>
                 </div>
             )}
@@ -307,19 +371,24 @@ export default function LoanForm({ onClose, onSubmit, accounts = [] }) {
                         <strong>Frequency:</strong>{" "}
                         {interestFrequency.charAt(0).toUpperCase() + interestFrequency.slice(1)}
                     </p>
-                    {!showLoanDetails && processingFees > 0 && (
+                    {showLoanDetails && (
                         <p>
-                            <strong>Processing Fees:</strong> ₹{processingFees}
+                            <strong>EMI:</strong> ₹{(Number(emiAmount) || 0).toFixed(2)}
+                        </p>
+                    )}
+                    {showLoanDetails && (
+                        <p>
+                            <strong>Processing Fees:</strong> ₹{(Number(processingFees) || 0).toFixed(2)}
                         </p>
                     )}
                     <p>
-                        <strong>Total Interest:</strong> ₹{(totalPayable - principalAmount).toFixed(2)}
+                        <strong>Total Interest:</strong> ₹{((Number(totalPayable) || 0) - (Number(principalAmount) || 0)).toFixed(2)}
                     </p>
                     <p>
-                        <strong>Total Payable:</strong> ₹{totalPayable.toFixed(2)}
+                        <strong>Total Payable:</strong> ₹{(Number(totalPayable) || 0).toFixed(2)}
                     </p>
                     <p>
-                        <strong>Effective Cost %:</strong> {Number(effectiveCostPercent).toFixed(2)}%
+                        <strong>Effective Cost %:</strong> {(Number(effectiveCostPercent) || 0).toFixed(2)}%
                     </p>
                 </div>
             </div>
