@@ -106,13 +106,13 @@ export default function Loans() {
     );
 
     const headers = [
-        "Party Name",
+        "Name",
         "Disbursed",
         "Principal",
-        "Interest Rate",
+        "Interest",
         "EMI",
-        "Total Payable",
-        "Remaining Amount",
+        "Payable",
+        "Remaining",
         "Status",
     ];
 

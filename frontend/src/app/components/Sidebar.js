@@ -15,6 +15,7 @@ import {
   LineChart,
   FileText,
   Settings,
+  Repeat,
 } from "lucide-react";
 
 export default function Sidebar({ isOpen, onClose, sidebarRef }) {
@@ -24,6 +25,7 @@ export default function Sidebar({ isOpen, onClose, sidebarRef }) {
     { path: "/transactions", label: "Transactions", icon: <Wallet size={18} />, color: "#a26bfa" },
     { path: "/loans", label: "Loans", icon: <Banknote size={18} />, color: "#ffb347" },
     { path: "/services", label: "Services", icon: <Server size={18} />, color: "#63e6be" },
+    { path: "/recurring", label: "Recurring", icon: <Repeat size={18} />, color: "#6ecb63" },
     { path: "/users", label: "Users", icon: <Users size={18} />, color: "#f783ac" },
     { path: "/categories", label: "Categories", icon: <ListTree size={18} />, color: "#50b5ff" },
     { path: "/accounts", label: "Accounts", icon: <Banknote size={18} />, color: "#34d399" },
