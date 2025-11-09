@@ -16,16 +16,6 @@ export default function useFinanceTransaction() {
   const isTransfer = selectedCore === "Transfer";
   const [debtType, setDebtType] = useState("");
 
-  // Recurring fields
-  const [isRecurring, setIsRecurring] = useState(false);
-  const [frequency, setFrequency] = useState("daily");
-  const [nextDueDate, setNextDueDate] = useState("");
-  const [dueRangeStart, setDueRangeStart] = useState("");
-  const [dueRangeEnd, setDueRangeEnd] = useState("");
-  const [lastPaymentDate, setLastPaymentDate] = useState("");
-  const [groupId, setGroupId] = useState(uuidv4());
-  const [status, setStatus] = useState("planned");
-
   // Reset splits when core category changes
   useEffect(() => {
     if (selectedCore === "Transfer") {
@@ -128,14 +118,6 @@ export default function useFinanceTransaction() {
     setSelectedCategory(catObj);
   };
 
-  useEffect(() => {
-    if (isRecurring && status === "paid") {
-      setLastPaymentDate(new Date().toISOString().split("T")[0]); // yyyy-mm-dd
-    } else {
-      setLastPaymentDate("");
-    }
-  }, [isRecurring, status]);
-
   // Split helpers
   const addSplitRow = () => setSplits([...splits, { account: "", amount: "" }]);
 
@@ -200,21 +182,6 @@ export default function useFinanceTransaction() {
     removeSplitRow,
     getTotalSplitAmount,
     handleLeafChange,
-    isRecurring,
-    setIsRecurring,
-    frequency,
-    setFrequency,
-    nextDueDate,
-    setNextDueDate,
-    dueRangeStart,
-    setDueRangeStart,
-    dueRangeEnd,
-    setDueRangeEnd,
-    status,
-    setStatus,
-    lastPaymentDate,
-    setLastPaymentDate,
-    groupId,
     isTransfer,
     debtType,
     setDebtType

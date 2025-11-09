@@ -39,9 +39,6 @@ export default function NewFinanceTransactionForm({ onSubmit }) {
       return alert("Please select a category");
 
     const isSplit = finance.splits.length > 1;
-    const isCleared = finance.isRecurring
-      ? finance.status !== "planned"
-      : true;
 
     let categoryToUse = selectedCategory?.id;
 
@@ -66,20 +63,8 @@ export default function NewFinanceTransactionForm({ onSubmit }) {
         }))
         : [],
       account: isSplit ? null : parseInt(finance.splits[0].account),
-      is_cleared: isCleared,
-      is_recurring: finance.isRecurring,
       description,
     };
-
-    if (finance.isRecurring) {
-      payload.recurring_frequency = finance.frequency || null;
-      payload.next_due_date = finance.nextDueDate || null;
-      payload.due_range_start = finance.dueRangeStart || null;
-      payload.due_range_end = finance.dueRangeEnd || null;
-      payload.status = finance.status || "planned";
-      payload.last_payment_date =
-        finance.status === "paid" ? finance.lastPaymentDate : null;
-    }
 
     if (finance.isTransfer) {
       const fromAccountId = parseInt(finance.splits[0]?.account);
@@ -141,21 +126,6 @@ export default function NewFinanceTransactionForm({ onSubmit }) {
         updateSplitRow={finance.updateSplitRow}
         removeSplitRow={finance.removeSplitRow}
         getTotalSplitAmount={finance.getTotalSplitAmount}
-        isRecurring={finance.isRecurring}
-        setIsRecurring={finance.setIsRecurring}
-        frequency={finance.frequency}
-        setFrequency={finance.setFrequency}
-        nextDueDate={finance.nextDueDate}
-        setNextDueDate={finance.setNextDueDate}
-        dueRangeStart={finance.dueRangeStart}
-        setDueRangeStart={finance.setDueRangeStart}
-        dueRangeEnd={finance.dueRangeEnd}
-        setDueRangeEnd={finance.setDueRangeEnd}
-        status={finance.status}
-        setStatus={finance.setStatus}
-        lastPaymentDate={finance.lastPaymentDate}
-        setLastPaymentDate={finance.setLastPaymentDate}
-        groupId={finance.groupId}
         user={user}
         setUser={setUser}
         userOptions={userOptions}

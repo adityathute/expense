@@ -1,6 +1,5 @@
 # transactions/transactions_serializers.py
 
-import uuid
 from decimal import Decimal
 from django.db import transaction
 from django.db.models import F
@@ -54,15 +53,6 @@ class FinanceTransactionSerializer(serializers.ModelSerializer):
 
     is_split = serializers.BooleanField(default=False)
 
-    # Recurring fields
-    is_recurring = serializers.BooleanField(default=False)
-    recurring_frequency = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    next_due_date = serializers.DateField(required=False, allow_null=True)
-    due_range_start = serializers.DateField(required=False, allow_null=True)
-    due_range_end = serializers.DateField(required=False, allow_null=True)
-    status = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    group_id = serializers.UUIDField(read_only=True, allow_null=True)
-    last_payment_date = serializers.DateField(required=False, allow_null=True)
     is_transfer = serializers.BooleanField(default=False)
     from_account = serializers.PrimaryKeyRelatedField(
         queryset=Account.objects.filter(is_deleted=False),
@@ -78,9 +68,6 @@ class FinanceTransactionSerializer(serializers.ModelSerializer):
         fields = [
             "id", "global_id", "user", "user_name", "amount", "category", "category_name",
             "account", "split_details", "is_split", "description",
-            "is_recurring", "recurring_frequency",
-            "next_due_date", "due_range_start", "due_range_end", "status",
-            "last_payment_date", "group_id",
             "date_created", "is_cleared",
             "is_transfer", "from_account", "to_account",
             "is_debt", "debt_type", "interest_amount", "due_date",
@@ -88,27 +75,7 @@ class FinanceTransactionSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         split_details = validated_data.pop("split_details", [])
-        is_recurring = validated_data.pop("is_recurring", False)
-        status = validated_data.pop("status", None)
-        group_id = validated_data.pop("group_id", None)
         is_transfer = validated_data.get("is_transfer", False)
-
-        # --- Handle Recurring / Non-Recurring ---
-        if not is_recurring:
-            validated_data.pop("recurring_frequency", None)
-            validated_data.pop("next_due_date", None)
-            validated_data.pop("due_range_start", None)
-            validated_data.pop("due_range_end", None)
-            validated_data.pop("last_payment_date", None)
-            status = None
-            group_id = None
-        else:
-            if not status:
-                status = "planned"
-            if not group_id:
-                group_id = uuid.uuid4()
-
-        validated_data["is_cleared"] = False if is_recurring and status == "planned" else True
 
         # Ensure amount is positive decimal
         amount_raw = validated_data.get("amount", 0)
@@ -144,9 +111,6 @@ class FinanceTransactionSerializer(serializers.ModelSerializer):
             # --- Normal / Split Transaction ---
             tx = FinanceTransaction.objects.create(
                 **validated_data,
-                is_recurring=is_recurring,
-                status=status,
-                group_id=group_id
             )
 
             # --- Debt Transaction ---

@@ -291,19 +291,22 @@ class FinanceTransaction(Transaction):
     is_transfer = models.BooleanField(default=False)
     from_account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='transfers_from')
     to_account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, blank=True, related_name='transfers_to')
-    is_recurring = models.BooleanField(default=False)
-    recurring_frequency = models.CharField(max_length=10, choices=FREQUENCY_CHOICES, blank=True, null=True)  
-    tenure = models.PositiveIntegerField(blank=True, null=True)
-    group_id = models.UUIDField(null=True, blank=True)
+
+    # is_recurring = models.BooleanField(default=False)
+    # recurring_frequency = models.CharField(max_length=10, choices=FREQUENCY_CHOICES, blank=True, null=True)  
+    # tenure = models.PositiveIntegerField(blank=True, null=True)
+    # group_id = models.UUIDField(null=True, blank=True)
+    # next_due_date = models.DateField(null=True, blank=True)
+    # due_range_start = models.DateField(null=True, blank=True)
+    # due_range_end = models.DateField(null=True, blank=True)
+    # status = models.CharField(max_length=20, blank=True, null=True)
+    # last_payment_date = models.DateField(null=True, blank=True)
+
     is_debt = models.BooleanField(default=False)
     debt_type = models.CharField(max_length=10, blank=True, null=True, choices=[('Borrow','Borrow'), ('Lend','Lend')])
     due_date = models.DateField(null=True, blank=True)
     interest_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    next_due_date = models.DateField(null=True, blank=True)
-    due_range_start = models.DateField(null=True, blank=True)
-    due_range_end = models.DateField(null=True, blank=True)
-    status = models.CharField(max_length=20, blank=True, null=True)
-    last_payment_date = models.DateField(null=True, blank=True)
+    
 
     def __str__(self):
         return f"Finance {self.user}"

@@ -19,28 +19,13 @@ export default function FinanceForm({
   addSplitRow,
   updateSplitRow,
   removeSplitRow,
-  getTotalSplitAmount,
-  isRecurring,
-  setIsRecurring,
-  frequency,
-  setFrequency,
-  nextDueDate,
-  setNextDueDate,
-  dueRangeStart,
-  setDueRangeStart,
-  dueRangeEnd,
-  setDueRangeEnd,
-  status,
-  setStatus,
   user,
   setUser,
   userOptions,
   debtType,
   setDebtType,
 }) {
-  const [useDueRange, setUseDueRange] = useState(false);
 
-  const recurringAllowed = ["Income", "Expense", "Savings", "Investments"].includes(selectedCore);
   const isTransfer = selectedCore === "Transfer";
   const isIncomeExpense = selectedCore === "Income" || selectedCore === "Expense";
   const showUserField = ["Income", "Expense", "Debts"].includes(selectedCore);
@@ -357,97 +342,6 @@ export default function FinanceForm({
             </div>
           </div>
         </div>
-      )}
-
-      {/* Recurring Section */}
-      {recurringAllowed && (
-        <>
-          <label className={styles.uiCheckbox} style={{ marginTop: ".5rem" }}>
-            <input
-              type="checkbox"
-              checked={isRecurring}
-              onChange={() => setIsRecurring(!isRecurring)}
-            />
-            <span></span>
-            Is Recurring
-          </label>
-
-          {isRecurring && (
-            <>
-              <div style={{ display: "flex", gap: "1rem", alignItems: "flex-end", marginTop: ".25rem" }}>
-                <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
-                  <label>Frequency</label>
-                  <select
-                    value={frequency}
-                    onChange={(e) => setFrequency(e.target.value)}
-                    className={styles.modalFormInput}
-                  >
-                    <option value="daily">Daily</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="monthly">Monthly</option>
-                    <option value="yearly">Yearly</option>
-                  </select>
-                </div>
-
-                <div style={{ display: "flex", flexDirection: "column", flex: 1 }}>
-                  <label>Status</label>
-                  <select
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value)}
-                    className={styles.modalFormInput}
-                  >
-                    <option value="planned">Planned</option>
-                    <option value="paid">Paid</option>
-                  </select>
-                </div>
-              </div>
-
-              <div style={{ marginTop: ".25rem" }}>
-                <label>Next Due Date</label>
-                <input
-                  type="date"
-                  value={nextDueDate || ""}
-                  onChange={(e) => setNextDueDate(e.target.value)}
-                  className={styles.modalFormInput}
-                />
-              </div>
-
-              <label className={styles.uiCheckbox} style={{ marginTop: ".5rem" }}>
-                <input
-                  type="checkbox"
-                  checked={useDueRange}
-                  onChange={() => setUseDueRange(!useDueRange)}
-                />
-                <span></span>
-                Use Date Range
-              </label>
-
-              {useDueRange && (
-                <div style={{ display: "flex", gap: "0.5rem", marginTop: ".25rem" }}>
-                  <div style={{ flex: 1 }}>
-                    <label>Start Date</label>
-                    <input
-                      type="date"
-                      value={dueRangeStart || ""}
-                      onChange={(e) => setDueRangeStart(e.target.value)}
-                      className={styles.modalFormInput}
-                    />
-                  </div>
-
-                  <div style={{ flex: 1 }}>
-                    <label>End Date</label>
-                    <input
-                      type="date"
-                      value={dueRangeEnd || ""}
-                      onChange={(e) => setDueRangeEnd(e.target.value)}
-                      className={styles.modalFormInput}
-                    />
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-        </>
       )}
     </>
   );
