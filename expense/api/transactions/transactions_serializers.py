@@ -73,14 +73,6 @@ class FinanceTransactionSerializer(serializers.ModelSerializer):
         required=False, allow_null=True
     )
 
-    is_loan = serializers.BooleanField(default=False)
-    loan_id = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    party_name = serializers.CharField(required=False, allow_blank=True, allow_null=True)
-    principal_amount = serializers.DecimalField(max_digits=12, decimal_places=2, required=False, allow_null=True, default=0)
-    interest_rate = serializers.DecimalField(max_digits=5, decimal_places=2, required=False, allow_null=True, default=0)
-    tenure = serializers.IntegerField(required=False, allow_null=True, default=0)
-    emi_amount = serializers.DecimalField(max_digits=12, decimal_places=2, required=False, allow_null=True, default=0)
-
     class Meta:
         model = FinanceTransaction
         fields = [
@@ -92,8 +84,6 @@ class FinanceTransactionSerializer(serializers.ModelSerializer):
             "date_created", "is_cleared",
             "is_transfer", "from_account", "to_account",
             "is_debt", "debt_type", "interest_amount", "due_date",
-            "is_loan", "loan_id", "party_name",
-            "principal_amount", "interest_rate", "tenure", "emi_amount",
         ]
 
     def create(self, validated_data):
@@ -180,20 +170,6 @@ class FinanceTransactionSerializer(serializers.ModelSerializer):
                     elif debt_type == "Lend":
                         Account.objects.filter(pk=acc.pk).update(balance=F("balance") - amt)
                     acc.refresh_from_db()
-
-            # --- Loan Transaction ---
-            if validated_data.get("is_loan", False):
-                tx.is_loan = True
-                tx.loan_id = validated_data.get("loan_id")
-                tx.party_name = validated_data.get("party_name")
-                tx.principal_amount = validated_data.get("principal_amount", 0)
-                tx.interest_rate = validated_data.get("interest_rate", 0)
-                tx.tenure = validated_data.get("tenure", 0)
-                tx.emi_amount = validated_data.get("emi_amount", 0)
-                tx.save(update_fields=[
-                    "is_loan", "loan_id", "party_name", "principal_amount",
-                    "interest_rate", "tenure", "emi_amount"
-                ])
 
             # --- Single Account Transaction ---
             if tx.is_cleared and not split_details and validated_data.get("account"):

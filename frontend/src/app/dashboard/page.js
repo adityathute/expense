@@ -1,50 +1,93 @@
-// app/page.js
 "use client";
 
+import React, { useEffect, useState } from "react";
 import StyledTable from "../components/StyledTable";
-import BalanceCell from "../components/BalanceCell";
+import { CalendarClock } from "lucide-react";
+import "../styles/components/table.css";
 
 export default function Dashboard() {
-  const income = 25000;
-  const expense = 12000;
-  const balance = income - expense;
+  const [upcomingPayments, setUpcomingPayments] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const recentTransactions = [
-    { id: 1, name: "Groceries", amount: -1500, date: "2025-05-13" },
-    { id: 2, name: "Salary", amount: 20000, date: "2025-05-10" },
-    { id: 3, name: "Electricity Bill", amount: -2200, date: "2025-05-08" },
+  // ✅ Fetch upcoming payments
+  const fetchUpcomingPayments = async () => {
+    try {
+      const response = await fetch("http://127.0.0.1:8001/api/upcoming-payments/");
+      const data = await response.json();
+
+      // ✅ Filter payments where next_due_date is in the future
+      const today = new Date();
+      const upcoming = data
+        .filter((item) => item.next_due_date && new Date(item.next_due_date) >= today)
+        .sort(
+          (a, b) =>
+            new Date(a.next_due_date).getTime() - new Date(b.next_due_date).getTime()
+        );
+
+      setUpcomingPayments(upcoming);
+    } catch (error) {
+      console.error("❌ Error fetching upcoming payments:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUpcomingPayments();
+  }, []);
+
+  const headers = ["Next Due Date", "Name", "Type", "Category", "Amount", "Frequency"];
+  const columns = [
+    "next_due_date",
+    "name",
+    "type",
+    "category",
+    "actual_amount",
+    "frequency",
   ];
 
-  const headers = ["Date", "Name", "Amount"];
-  const columns = ["date", "name", "amount"];
-
   function renderCell(row, column) {
-    if (column === "amount") {
-      return <BalanceCell value={row.amount} />;
+    if (column === "actual_amount") {
+      const value = row.actual_amount ?? row.estimated_amount ?? 0;
+      return (
+        <span
+          style={{
+            color: row.category === "income" ? "#6ecb63" : "#ff5e57",
+            fontWeight: 600,
+          }}
+        >
+          ₹{value}
+        </span>
+      );
     }
-    return row[column];
+    if (column === "next_due_date") {
+      return new Date(row.next_due_date).toLocaleDateString();
+    }
+    return row[column] ?? "-";
   }
 
   return (
-    <>
-      <h1>Dashboard</h1>
-      <p>Track your income, expenses, and balance.</p>
+    <div className="page-container">
+      <h1 style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+        <CalendarClock size={24} color="#6ecb63" />
+        Upcoming Payments
+      </h1>
+      <p style={{ color: "#aaa", marginBottom: "1rem" }}>
+        Track all upcoming recurring payments and due dates.
+      </p>
 
-      <div>
-        <div>Income ₹{income}</div>
-        <div>Expense ₹{expense}</div>
-        <div>Balance ₹{balance}</div>
-      </div>
-
-      <div>
-        <h2>Recent Transactions</h2>
+      {loading ? (
+        <p>Loading upcoming payments...</p>
+      ) : (
         <StyledTable
           headers={headers}
           columns={columns}
-          data={recentTransactions}
+          data={upcomingPayments}
           renderCell={renderCell}
+          emptyText="No upcoming payments scheduled."
+          getRowKey={(row) => row.id}
         />
-      </div>
-    </>
+      )}
+    </div>
   );
 }

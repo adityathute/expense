@@ -20,7 +20,8 @@ from .models import (
     ServiceSupportingDocument,
     ServiceTransaction, 
     FinanceTransaction,
-    Loan
+    Loan,
+    RecurringPayment
 )
 import uuid
 from .transactions.transactions_serializers import ServiceTransactionSerializer, FinanceTransactionSerializer
@@ -377,3 +378,9 @@ class LoanSerializer(serializers.ModelSerializer):
         loan = super().update(instance, validated_data)
         loan.update_remaining_amount()  # ✅ Call after updating
         return loan
+
+# ---------------------- RECURRING PAYMENTS RELATED SERIALIZER ---------------------- #
+class RecurringPaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RecurringPayment
+        fields = "__all__"

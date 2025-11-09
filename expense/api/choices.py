@@ -1,7 +1,7 @@
 # api/choices.py
 
 CATEGORY_TYPES = [
-    ("persoanl", "Persoanl"),
+    ("personal", "Persoanl"),
     ("shop", "Shop"),
 ]
 
@@ -11,8 +11,12 @@ CORE_CATEGORIES = [
     ("Savings", "Savings"),
     ("Transfer", "Transfer"),
     ("Investments", "Investments"),
-    ("Loans", "Loans"),
     ("Debts", "Debts"),
+]
+
+RECURRENCE_TYPE_CHOICES = [
+    ("standard", "Standard"),
+    ("custom", "Custom"),
 ]
 
 INTEREST_FREQUENCY_CHOICES = [
@@ -123,4 +127,10 @@ FREQUENCY_CHOICES = [
     ('weekly', 'Weekly'),
     ('monthly', 'Monthly'),
     ('yearly', 'Yearly'),
+]
+
+CUSTOM_UNIT_CHOICES = [
+    ("days", "Days"),
+    ("weeks", "Weeks"),
+    ("months", "Months"),
 ]

@@ -12,6 +12,7 @@ router.register(r'service-supporting-documents', views.ServiceSupportingDocument
 router.register(r'service-transactions', views.ServiceTransactionViewSet, basename='service-transaction')
 router.register(r'finance-transactions', views.FinanceTransactionViewSet, basename='finance-transaction')
 router.register(r'loans', views.LoanViewSet, basename='loan')
+router.register(r'recurring-payments', views.RecurringPaymentViewSet, basename='recurring-payment')
 
 urlpatterns = [
     path('api/', include(router.urls)),
@@ -33,6 +34,7 @@ urlpatterns = [
     path('api/accounts/', views.AccountListView.as_view(), name='account-list'),
     path('api/accounts/<int:account_id>/restore/', views.account_restore, name='account-restore'),
     path('api/accounts/<int:account_id>/hard-delete/', views.account_hard_delete, name='account-hard-delete'),
+    path("api/upcoming-payments/", views.upcoming_payments, name="upcoming-payments"),
 
     # PDF Generation
     path('api/generate-pdf/', views.generate_pdf, name='generate_pdf'),

@@ -6,7 +6,7 @@ export default function useFinanceTransaction() {
   const [categoryType, setCategoryType] = useState(false);
   const [allCategories, setAllCategories] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [coreCategories] = useState(["Income", "Expense", "Savings", "Transfer", "Investments", "Loans", "Debts"]);
+  const [coreCategories] = useState(["Income", "Expense", "Savings", "Transfer", "Investments", "Debts"]);
   const [selectedCore, setSelectedCore] = useState("");
   const [selectedLeaf, setSelectedLeaf] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -25,17 +25,6 @@ export default function useFinanceTransaction() {
   const [lastPaymentDate, setLastPaymentDate] = useState("");
   const [groupId, setGroupId] = useState(uuidv4());
   const [status, setStatus] = useState("planned");
-
-  // Loan specific
-  const [emiAmount, setEmiAmount] = useState("");
-  const [interestAmount, setInterestAmount] = useState("");
-  const [totalPayable, setTotalPayable] = useState("");
-  const [principalAmount, setPrincipalAmount] = useState("");
-  const [interestRate, setInterestRate] = useState("");
-  const [tenure, setTenure] = useState("");
-  const [loanId, setLoanId] = useState("");
-  const [partyName, setPartyName] = useState("");
-  const [loanDate, setLoanDate] = useState("");
 
   // Reset splits when core category changes
   useEffect(() => {
@@ -170,7 +159,6 @@ export default function useFinanceTransaction() {
     setSplits(newSplits);
   };
 
-
   const removeSplitRow = (index) => setSplits(splits.filter((_, i) => i !== index));
 
   // Total calculation
@@ -229,15 +217,6 @@ export default function useFinanceTransaction() {
     groupId,
     isTransfer,
     debtType,
-    setDebtType,
-    emiAmount, setEmiAmount,
-    interestAmount, setInterestAmount,
-    totalPayable, setTotalPayable,
-    principalAmount, setPrincipalAmount,
-    interestRate, setInterestRate,
-    tenure, setTenure,
-    loanId, setLoanId,
-    partyName, setPartyName,
-    loanDate, setLoanDate,
+    setDebtType
   };
 }

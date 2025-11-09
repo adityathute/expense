@@ -1,8 +1,8 @@
 from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 from rest_framework import generics, status, viewsets
-from .models import Category, Service, User, Account, Document, ServiceDocumentRequirement, DocumentCategory, SupportingDocument, ServiceSupportingDocument, ServiceTransaction, FinanceTransaction, Loan
-from .serializers import CategorySerializer, UserSerializer, ServiceSerializer, AccountSerializer, DocumentSerializer, ServiceDocumentRequirementSerializer, SupportingDocumentSerializer, ServiceSupportingDocumentSerializer, ServiceTransactionSerializer, FinanceTransactionSerializer, LoanSerializer
+from .models import Category, Service, User, Account, Document, ServiceDocumentRequirement, DocumentCategory, SupportingDocument, ServiceSupportingDocument, ServiceTransaction, FinanceTransaction, Loan, RecurringPayment
+from .serializers import CategorySerializer, UserSerializer, ServiceSerializer, AccountSerializer, DocumentSerializer, ServiceDocumentRequirementSerializer, SupportingDocumentSerializer, ServiceSupportingDocumentSerializer, ServiceTransactionSerializer, FinanceTransactionSerializer, LoanSerializer, RecurringPaymentSerializer
 from .choices import USER_TYPES
 from rest_framework.generics import DestroyAPIView
 from rest_framework.permissions import AllowAny
@@ -16,6 +16,8 @@ from PyPDF2 import PdfReader, PdfWriter
 import os
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+from rest_framework import filters
+from django.utils import timezone
 
 # Register the Gotham font (run once before using it)
 pdfmetrics.registerFont(TTFont('Gotham', os.path.join('static', 'fonts', 'Gotham-Book.ttf')))
@@ -439,3 +441,27 @@ class FinanceTransactionViewSet(viewsets.ModelViewSet):
 class LoanViewSet(viewsets.ModelViewSet):
     queryset = Loan.objects.all().order_by('-loan_date')
     serializer_class = LoanSerializer
+
+# ---------------------- RECURRING PAYMENTS RELATED VIEWS ---------------------- #
+class RecurringPaymentViewSet(viewsets.ModelViewSet):
+    queryset = RecurringPayment.objects.all().order_by("-created_at")
+    serializer_class = RecurringPaymentSerializer
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ["name", "tag", "category", "type"]
+    ordering_fields = ["created_at", "next_due_date"]
+
+@api_view(["GET"])
+def upcoming_payments(request):
+    today = timezone.now().date()
+    current_year = today.year
+    current_month = today.month
+
+    # Filter payments: next_due_date is in current month and in the future
+    payments = RecurringPayment.objects.filter(
+        next_due_date__year=current_year,
+        next_due_date__month=current_month,
+        next_due_date__gte=today
+    ).order_by("next_due_date")
+
+    serializer = RecurringPaymentSerializer(payments, many=True)
+    return Response(serializer.data)

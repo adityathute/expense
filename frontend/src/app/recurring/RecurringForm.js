@@ -29,14 +29,58 @@ export default function RecurringForm({ onClose }) {
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log("📦 Recurring Added:", {
-            ...formData,
-            useDueRange,
+
+        const payload = {
+            name: formData.name,
+            tag: formData.tag,
             type: categoryType ? "personal" : "shop",
-        });
-        onClose();
+            category: formData.category,
+            actual_amount: formData.actualAmount || null,
+            estimated_amount: formData.estimatedAmount || null,
+            recurrence_type: formData.recurrenceType,
+            frequency: formData.frequency,
+            custom_interval: formData.customInterval || null,
+            custom_unit: formData.customUnit,
+            next_due_date: formData.nextDueDate || null,
+            use_due_range: useDueRange,
+            start_date: useDueRange ? formData.startDate || null : null,
+            end_date: useDueRange ? formData.endDate || null : null,
+            description: formData.description,
+        };
+
+        try {
+            const response = await fetch("http://127.0.0.1:8001/api/recurring-payments/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(payload),
+            });
+
+            if (!response.ok) {
+                let errorMessage = "Unknown error";
+                try {
+                    const data = await response.json();
+                    errorMessage = JSON.stringify(data);
+                } catch {
+                    errorMessage = await response.text();
+                }
+                console.error("❌ Failed to create recurring payment:", errorMessage);
+                alert("Error creating recurring payment. Check console for details.");
+                return;
+            }
+
+            const data = await response.json();
+            console.log("✅ Recurring payment saved:", data);
+
+            // Close modal after success
+            onClose();
+        } catch (error) {
+            console.error("❌ Network error:", error);
+            alert("Network error while saving recurring payment.");
+        }
     };
 
     return (
@@ -120,7 +164,7 @@ export default function RecurringForm({ onClose }) {
                         value={formData.actualAmount || ""}
                         onChange={handleChange}
                         className={styles.modalFormInput}
-                        placeholder="(fill later)"
+                        placeholder="Actual amount spent"
                     />
                 </div>
                 <div style={{ flex: 1 }}>
