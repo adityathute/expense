@@ -24,6 +24,8 @@ export default function FinanceForm({
   userOptions,
   debtType,
   setDebtType,
+  dueDate,
+  setDueDate
 }) {
 
   const isTransfer = selectedCore === "Transfer";
@@ -325,8 +327,8 @@ export default function FinanceForm({
               <input
                 type="date"
                 className={styles.modalFormInput}
-                value={nextDueDate || ""}
-                onChange={(e) => setNextDueDate(e.target.value)}
+                value={dueDate || ""}
+                onChange={(e) => setDueDate(e.target.value)}
               />
             </div>
 

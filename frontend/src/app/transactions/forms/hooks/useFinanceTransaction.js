@@ -15,6 +15,7 @@ export default function useFinanceTransaction() {
   const [totalAmount, setTotalAmount] = useState("");
   const isTransfer = selectedCore === "Transfer";
   const [debtType, setDebtType] = useState("");
+  const [dueDate, setDueDate] = useState("");
 
   // Reset splits when core category changes
   useEffect(() => {
@@ -184,6 +185,8 @@ export default function useFinanceTransaction() {
     handleLeafChange,
     isTransfer,
     debtType,
-    setDebtType
+    setDebtType,
+    dueDate,
+    setDueDate
   };
 }

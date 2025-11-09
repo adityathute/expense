@@ -1,82 +1,130 @@
 "use client";
 import "./settings.css";
+import { Settings as SettingsIcon, Database, RotateCcw } from "lucide-react";
+import HeaderWithNewButton from "../components/common/HeaderWithNewButton";
+import { useState } from "react";
+import { UserCircle2, CheckCircle, XCircle } from "lucide-react";
+import Link from "next/link";
 import { DeleteIcon } from "../components/Icons";
 import styles from "../styles/components/modalForm.module.css";
-import Link from "next/link";
-import { ListTree, Store, LineChart, Server, Banknote } from "lucide-react";
 
 export default function Settings() {
+  const [darkMode, setDarkMode] = useState(true);
+  const [notifications, setNotifications] = useState(false);
+  const [autoBackup, setAutoBackup] = useState(true);
+
+  const user = {
+    name: "Aditya Thute",
+    email: "aditya@shivanyams.com",
+    isVerified: true,
+  };
+
   return (
-    <div className="settings">
-      <h1>Settings</h1>
-      <p className="sub-text">Manage your business preferences and configurations.</p>
+    <div className="apple-settings">
+      <HeaderWithNewButton
+        title={
+          <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <SettingsIcon size={22} color="#ced4da" />
+            <span>Settings</span>
+          </span>
+        }
+      />
 
-      <div className="settings-grid">
-
-        {/* Analytics */}
-        <div className="setting-card">
-          <h2 style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
-            <LineChart size={20} style={{ color: "#f59f00" }} />
-            Analytics
-          </h2>
-          <p>View business performance, income/expense trends, and generate reports.</p>
-          <div style={{ display: "flex", justifyContent: "center", marginTop: "1rem" }}>
-            <Link href="/analytics" style={{ width: "100%", maxWidth: "400px" }}>
-              <button className="setting-card-link" style={{ width: "100%" }}>
-                View Analytics
-              </button>
-            </Link>
+      {/* Profile Section — No Background */}
+      <div className="profile-header">
+        <div className="profile-left">
+          <img src="/assets/logo.png" alt="App Logo" className="profile-logo" />
+          <div className="profile-info">
+            <h2>{user.name}</h2>
+            <div className="profile-email">
+              <span>{user.email}</span>
+              {user.isVerified ? (
+                <CheckCircle size={16} color="#51cf66" title="Verified" />
+              ) : (
+                <XCircle size={16} color="#ff6b6b" title="Not Verified" />
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Shop Details */}
-        <div className="setting-card">
-          <h2 style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
-            <Store size={20} style={{ color: "#91a7ff" }} />
-            Shop Details
-          </h2>
-          <p>View and update your shop information including address, contact, and settings.</p>
-          <div style={{ display: "flex", justifyContent: "center", marginTop: "1rem" }}>
-            <Link href="/shop-details" style={{ width: "100%", maxWidth: "400px" }}>
-              <button className="setting-card-link" style={{ width: "100%" }}>
-                Manage Shop Details
-              </button>
-            </Link>
-          </div>
+        <Link href="/edit-profile" className="edit-profile-btn">
+          Edit Profile
+        </Link>
+      </div>
+
+      {/* Preferences Section */}
+      <div className="settings-section">
+        <h3>Preferences</h3>
+
+        <div className="settings-toggle">
+          <span>Dark Mode</span>
+          <label className="switch">
+            <input
+              type="checkbox"
+              checked={darkMode}
+              onChange={() => setDarkMode(!darkMode)}
+            />
+            <span className="slider" />
+          </label>
         </div>
 
-        {/* Recycle Bin */}
-        <div className="setting-card">
-          <h2 style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
-            <DeleteIcon className={styles.icon} />
-            Recycle Bin
-          </h2>
-          <p>View and restore deleted items from your account.</p>
-          <div style={{ display: "flex", justifyContent: "center", marginTop: "1rem" }}>
-            <Link href="/recycle" style={{ width: "100%", maxWidth: "400px" }}>
-              <button className="setting-card-link" style={{ width: "100%" }}>
-                Open Recycle Bin
-              </button>
-            </Link>
-          </div>
+        <div className="settings-toggle">
+          <span>Notifications</span>
+          <label className="switch">
+            <input
+              type="checkbox"
+              checked={notifications}
+              onChange={() => setNotifications(!notifications)}
+            />
+            <span className="slider" />
+          </label>
         </div>
 
-        {/* Backup & Restore */}
-        <div className="setting-card">
-          <h2 style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
-            <Server size={20} style={{ color: "#63e6be" }} />
-            Backup & Restore
-          </h2>
-          <p>Backup your data and restore previous versions to prevent data loss.</p>
-          <div style={{ display: "flex", justifyContent: "center", marginTop: "1rem" }}>
-            <Link href="/backup" style={{ width: "100%", maxWidth: "400px" }}>
-              <button className="setting-card-link" style={{ width: "100%" }}>
-                Backup & Restore
-              </button>
-            </Link>
-          </div>
+        <div className="settings-toggle">
+          <span>Auto Backup</span>
+          <label className="switch">
+            <input
+              type="checkbox"
+              checked={autoBackup}
+              onChange={() => setAutoBackup(!autoBackup)}
+            />
+            <span className="slider" />
+          </label>
         </div>
       </div>
+
+      {/* 🗄️ Backup & Restore Section — same layout style */}
+      <div className="settings-section">
+        <h3>Backup & Restore</h3>
+
+        <div className="backup-row">
+          <p className="backup-text">
+            Securely back up your data or restore from saved backups.
+          </p>
+
+          <Link href="/backup" className="backup-btn">
+            <Database size={16} />
+            <span>Go to Backup</span>
+          </Link>
+        </div>
+      </div>
+
+      {/* 🗑️ Recycle Bin Section — same layout style */}
+      <div className="settings-section">
+        <h3>Recycle Bin</h3>
+
+        <div className="backup-row">
+          <p className="backup-text">
+            You can restore or permanently remove them.
+          </p>
+
+          <Link href="/recycle" className="recycle-btn">
+            <DeleteIcon className={styles.icon} />
+            <span>Go to Recycle Bin</span>
+          </Link>
+        </div>
+      </div>
+
     </div>
   );
 }

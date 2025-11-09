@@ -93,6 +93,8 @@
   opacity: 0;
   width: 0;
   height: 0;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Slider Design */
@@ -113,6 +115,15 @@
   font-size: 16px;
   font-weight: bold;
   color: white;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.slider:focus,
+.switch input:focus + .slider {
+  outline: none;
+  box-shadow: none;
 }
 
 /* Circular Toggle Button */

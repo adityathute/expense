@@ -16,7 +16,7 @@
   position: fixed;
   top: var(--navbar-height, 64px);
   left: 0;
-  width: var(--sidebar-width, 360px);
+  width: var(--sidebar-width, 340px);
   height: calc(100vh - var(--navbar-height, 64px));
   background-color: #151515;
   padding: 1rem;
@@ -25,7 +25,26 @@
   transition: transform 0.3s ease-in-out;
   z-index: 1050;
   transform: translateX(0);
-  /* default: visible */
+  scrollbar-width: thin;
+  scrollbar-color: #333 #111;
+}
+
+/* Smooth, slim scrollbar (WebKit - Chrome, Edge, Safari) */
+.sidebar-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-container::-webkit-scrollbar-track {
+  background: #111;
+}
+
+.sidebar-container::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #333, #222);
+  border-radius: 10px;
+}
+
+.sidebar-container::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #444, #2a2a2a);
 }
 
 .sidebar-blur-overlay {
@@ -66,7 +85,8 @@
   font-size: 1rem;
   padding: 0.4rem 1rem;
   display: flex;
-  align-items: center;  border-radius: 0.5rem;
+  align-items: center;
+  border-radius: 0.5rem;
   transition: background-color 0.2s ease;
 }
 
@@ -122,6 +142,7 @@
 .sidebar-link:hover .sidebar-icon {
   color: var(--sidebar-icon-hover, #fff);
 }
+
 @keyframes fadeInSlide {
   from {
     opacity: 0;
@@ -133,6 +154,7 @@
     transform: translateX(0);
   }
 }
+
 .sidebar-footer {
   margin-top: auto;
   padding-top: 1rem;
@@ -151,6 +173,7 @@
   /* font-family: "San Francisco", "Segoe UI", sans-serif; */
   letter-spacing: 0.5px;
 }
+
 .sidebar-footer-text {
   animation: fadeInFooter 0.4s ease forwards;
 }
@@ -160,6 +183,7 @@
     opacity: 0;
     transform: translateY(6px);
   }
+
   to {
     opacity: 0.8;
     transform: translateY(0);

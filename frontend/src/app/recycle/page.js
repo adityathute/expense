@@ -5,6 +5,8 @@ import { DeleteIcon, RestoreIcon } from "../components/Icons";
 import DeleteServiceModal from "../services/DeleteServiceModal";
 import Pagination from "../components/Pagination";
 import SearchBar from "../components/SearchBar";
+import HeaderWithNewButton from "../components/common/HeaderWithNewButton";
+import styles from "../styles/components/modalForm.module.css";
 
 export default function RecycleBinPage() {
   const [deletedItems, setDeletedItems] = useState([]);
@@ -116,7 +118,14 @@ export default function RecycleBinPage() {
 
   return (
     <div className="recycle-bin-page">
-      <h1>Recycle Bin</h1>
+      <HeaderWithNewButton
+        title={
+          <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <DeleteIcon className={styles.icon} style={{ color: "#7e1710" }} />
+            <span>Recycle Bin</span>
+          </span>
+        }
+      />
 
       <SearchBar
         value={searchTerm}

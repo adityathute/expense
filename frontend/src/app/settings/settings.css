@@ -1,89 +1,337 @@
-.settings h1 {
-  font-size: 2rem;
-  margin-bottom: 0.2rem;
-  color: #ffffff;
-}
-
-.sub-text {
-  font-size: 1rem;
-  color: #a1a1a6;
-  /* Softer Apple gray */
-  margin-bottom: 2rem;
-}
-
-.settings-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+/* Profile Header — NO BACKGROUND */
+.profile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 1.5rem;
+  margin: 2rem auto 1.5rem;
+  border-bottom: 1px solid #2c2c2c;
+  padding-bottom: 1.5rem;
+  background: #1e1e1e;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin: 1.5rem auto;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+  border: 1px solid #2c2c2c;
 }
 
-.setting-card {
-  border-radius: 8px;
-  padding: 0.6rem 0.9rem;
-  background: var(--glass);
-  backdrop-filter: blur(12px);
-  border-radius: var(--radius);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  cursor: context-menu;
-  user-select: none;
+/* Left side (avatar + info) */
+.profile-left {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
 }
 
-.setting-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 5px 20px rgba(51, 153, 255, 0.2);
+/* Name & Email */
+.profile-info h2 {
+  font-size: 1.4rem;
+  color: #f1f3f5;
+  margin: 0 0 0.3rem;
+  font-weight: 600;
 }
 
-.setting-card h2 {
-  margin-bottom: 0.5rem;
-  font-size: 1.2rem;
-  color: #ffffff;
-}
-
-.setting-card p {
+.profile-email {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #adb5bd;
   font-size: 0.95rem;
-  color: #a1a1a6;
-  /* Softer gray for text */
-  flex-grow: 1;
 }
 
-.setting-card-link {
+/* Elegant Apple-style Edit Profile Button */
+.edit-profile-btn {
+  background: linear-gradient(145deg, #2a2a2a, #1c1c1c);
+  color: #e0e0e0;
+  border: 1px solid #2f2f2f;
+  padding: 0.4rem 0.8rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.25s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4),
+    inset 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.edit-profile-btn:hover {
+  background: linear-gradient(145deg, #3a3a3a, #1f1f1f);
+  border-color: #3a3a3a;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.edit-profile-btn:active {
+  transform: scale(0.97);
+  background: #2c2c2c;
+}
+
+/* Centered circular logo with border */
+.profile-logo {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #3a3a3a;
+  /* subtle Apple-style border */
+  background-color: #1c1c1c;
+  padding: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+  display: block;
+  margin: 0 auto;
+  /* centers it horizontally */
+}
+
+.profile-logo:hover {
+  transform: scale(1.05);
+}
+
+/* Apple-style Card Sections */
+.settings-section {
+  background: #1e1e1e;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin: 1.5rem auto;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+  border: 1px solid #2c2c2c;
+}
+
+.settings-section h3 {
+  font-size: 1rem;
+  color: #9ea2a8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 1rem;
+}
+
+/* Toggles */
+.settings-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  color: #d1d5db;
+}
+
+/* Toggle Switch Style */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #444;
+  transition: 0.3s;
+  border-radius: 24px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+input:checked+.slider {
+  background-color: #0a84ff;
+}
+
+input:checked+.slider:before {
+  transform: translateX(20px);
+}
+
+/* Inputs & Buttons */
+.settings-item {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
+
+.settings-item label {
+  color: #b0b4b9;
+  margin-bottom: 0.4rem;
+  font-size: 0.9rem;
+}
+
+.settings-item input {
+  background: #2a2d32;
+  border: none;
+  color: #fff;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  transition: all 0.25s ease;
+}
+
+.settings-item input:focus {
+  outline: none;
+  background: #32363c;
+  box-shadow: 0 0 0 2px #3b82f6;
+}
+
+.save-btn {
+  background: #007aff;
+  border: none;
+  color: white;
+  padding: 0.8rem 1.5rem;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  margin-top: 1rem;
   width: 100%;
-  padding: 0.6rem 1rem;
-  border: none;
-  border-radius: 8px;
+  transition: background 0.25s ease, transform 0.1s ease;
+}
+
+.save-btn:hover {
   background: #0a84ff;
-  /* Apple blue */
-  color: white;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s ease;
 }
 
-.setting-card button {
-  padding: 0.6rem 1rem;
-  border: none;
-  border-radius: 8px;
-  background: #0a84ff;
-  /* Apple blue */
-  color: white;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s ease;
+.save-btn:active {
+  transform: scale(0.98);
 }
 
-.setting-card button:hover {
-  background: #0060df;
-  /* Slightly darker blue */
-}
-
+/* 🔹 Responsive Profile Header for Mobile */
 @media (max-width: 768px) {
-  .settings-grid {
-    grid-template-columns: 1fr;
+  .profile-header {
+    flex-direction: column;
+    /* stack vertically */
+    align-items: center;
+    text-align: center;
+    gap: 1rem;
   }
 
-  .settings {
+  .profile-left {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .profile-info h2 {
+    font-size: 1.2rem;
+  }
+
+  .profile-email {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.9rem;
+    white-space: nowrap;
+  }
+
+  .edit-profile-btn {
+    width: 100%;
+    text-align: center;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+  }
+}
+
+/* 🗄️ Backup Section - same style as settings section */
+.backup-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.backup-text {
+  color: #adb5bd;
+  font-size: 0.9rem;
+  flex: 1;
+}
+
+.recycle-btn,
+.backup-btn {
+  background: linear-gradient(145deg, #1c1c1e, #2c2c2e);
+  color: #f5f5f7;
+  border: 1px solid #3a3a3c;
+  padding: 0.4rem 0.8rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.25s ease;
+  text-decoration: none;
+}
+
+.backup-btn:hover {
+  background: #007aff;
+  color: #fff;
+  border-color: #007aff;
+  transform: scale(1.03);
+}
+
+.recycle-btn:hover {
+  background: linear-gradient(145deg, #ff4d4d, #c92a2a);
+  color: #fff;
+  border-color: #ff6b6b;
+  transform: scale(1.03);
+}
+
+/* 📱 Mobile View: center text & move button below */
+@media (max-width: 768px) {
+  .backup-row {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .recycle-btn,
+  .backup-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+}
+
+/* 🔹 Extra small screens (like phones <480px) */
+@media (max-width: 480px) {
+  .profile-logo {
+    width: 70px;
+    height: 70px;
+  }
+
+  .profile-header {
     padding: 1rem;
   }
+
+  .edit-profile-btn {
+    font-size: 0.85rem;
+    padding: 0.5rem 1rem;
+  }
+
+  .settings-section h3 {
+    width: 100%;
+    text-align: center;
+  }
+
+  .backup-text {
+  text-align: center;
+}
 }

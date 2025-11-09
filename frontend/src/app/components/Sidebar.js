@@ -29,6 +29,8 @@ export default function Sidebar({ isOpen, onClose, sidebarRef }) {
     { path: "/users", label: "Users", icon: <Users size={18} />, color: "#f783ac" },
     { path: "/categories", label: "Categories", icon: <ListTree size={18} />, color: "#50b5ff" },
     { path: "/accounts", label: "Accounts", icon: <Banknote size={18} />, color: "#34d399" },
+    { path: "/analytics", label: "Analytics", icon: <LineChart size={18} />, color: "#f59f00" },
+    { path: "/shop-details", label: "Shop Details", icon: <Store size={18} />, color: "#91a7ff" },
     { path: "/settings", label: "Settings", icon: <Settings size={18} />, color: "#ced4da" },
   ];
 

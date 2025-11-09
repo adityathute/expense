@@ -87,11 +87,11 @@ export default function NewFinanceTransactionForm({ onSubmit }) {
 
     if (finance.selectedCore === "Debts") {
       if (!finance.debtType) return alert("Please select debt type");
-      if (!finance.nextDueDate) return alert("Please select due date");
+      if (!finance.dueDate) return alert("Please select due date");
       payload.is_debt = true;
       payload.debt_type = finance.debtType;
       payload.interest_amount = Number(finance.splits[0]?.interest || 0);
-      payload.due_date = finance.nextDueDate;
+      payload.due_date = finance.dueDate;
     }
 
     try {
@@ -131,6 +131,8 @@ export default function NewFinanceTransactionForm({ onSubmit }) {
         userOptions={userOptions}
         debtType={finance.debtType}
         setDebtType={finance.setDebtType}
+        dueDate={finance.dueDate}
+        setDueDate={finance.setDueDate}
       />
 
       <label style={{ marginTop: "0.75rem", display: "block" }}>Description</label>
