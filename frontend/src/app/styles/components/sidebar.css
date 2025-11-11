@@ -16,7 +16,7 @@
   position: fixed;
   top: var(--navbar-height, 64px);
   left: 0;
-  width: var(--sidebar-width, 340px);
+  width: var(--sidebar-width, 280px);
   height: calc(100vh - var(--navbar-height, 64px));
   background-color: #151515;
   padding: 1rem;

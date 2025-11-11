@@ -23,7 +23,7 @@ export default function BackupPage() {
                     <h2>Backup Data</h2>
                     <p>Create a complete backup of all your data, including services, categories, and settings.</p>
                     <div className="backup-btn-container">
-                        <button className="backup-btn backup" onClick={handleBackup}>
+                        <button className="backup1-btn" onClick={handleBackup}>
                             Start Backup
                         </button>
                     </div>
@@ -33,7 +33,7 @@ export default function BackupPage() {
                     <h2>Restore Data</h2>
                     <p>Restore your data from a previous backup to recover lost information or revert changes.</p>
                     <div className="backup-btn-container">
-                        <button className="backup-btn restore" onClick={handleRestore}>
+                        <button className="restore-btn" onClick={handleRestore}>
                             Start Restore
                         </button>
                     </div>
