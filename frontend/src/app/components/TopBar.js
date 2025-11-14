@@ -1,13 +1,22 @@
-// components/TopBar.js
 "use client";
 
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Plus, User, LogOut } from "lucide-react";
 import "../styles/components/topbar.css";
 import Image from "next/image";
-import { Plus, User } from "lucide-react"; // ✅ import icons
+
+import useAuth from "../hooks/useAuth";
+import useLogout from "../hooks/useLogout";
 
 export default function TopBar({ isSidebarOpen, onToggleSidebar }) {
+  const isLoggedIn = useAuth();        // ✅ FIX — you forgot this line
+  const { logout, loading } = useLogout();
+
+  // Prevent flash before auth loaded
+  if (isLoggedIn === null) {
+    return null; // Global loader will show
+  }
+
   return (
     <header className="topbar-header">
       <nav className="topbar-nav">
@@ -19,6 +28,7 @@ export default function TopBar({ isSidebarOpen, onToggleSidebar }) {
               <Menu size={28} className="toggle-icon open" />
             )}
           </button>
+
           <Link href="/" className="topbar-logo">
             <div className="topbar-logo-image">
               <Image
@@ -32,29 +42,35 @@ export default function TopBar({ isSidebarOpen, onToggleSidebar }) {
             <span className="topbar-logo-text">Shivanya</span>
           </Link>
         </div>
+
         <div className="topbar-buttons flex gap-2">
-          <Link
-            href="/add-transactions"
-            style={{ textDecoration: "none", color: "inherit" }}
-          >
-            <button className="topbar-btn primary flex items-center gap-1">
-              <Plus size={16} />
-              <span className="btn-text">Add</span>
-            </button>
-          </Link>
 
-          <Link
-            href="/login"
-            style={{ textDecoration: "none", color: "inherit" }}
+          {isLoggedIn && (
+            <Link href="/add-transactions">
+              <button className="topbar-btn primary flex items-center gap-1">
+                <Plus size={16} />
+                <span className="btn-text">Add</span>
+              </button>
+            </Link>
+          )}
 
-          >
-            <button className="topbar-btn secondary flex flex-row items-center gap-1">
-              <User size={16} />
-              <span className="btn-text">Login</span>
+          {isLoggedIn ? (
+            <button
+              onClick={logout}
+              className="topbar-btn secondary flex flex-row items-center gap-1"
+            >
+              <LogOut size={16} />
+              <span className="btn-text">Logout</span>
             </button>
-          </Link>
+          ) : (
+            <Link href="/login">
+              <button className="topbar-btn secondary flex flex-row items-center gap-1">
+                <User size={16} />
+                <span className="btn-text">Login</span>
+              </button>
+            </Link>
+          )}
         </div>
-
       </nav>
     </header>
   );

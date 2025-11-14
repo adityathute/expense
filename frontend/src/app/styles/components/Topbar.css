@@ -5,7 +5,7 @@
   left: 0;
   width: 100%;
   z-index: 1200;
-  background-color: #1d1d1f;
+  background-color: #1d1d1f !important; /* force consistent color */
   box-shadow: var(--shadow-md);
 }
 

@@ -1,8 +1,11 @@
-// app/page.js
 "use client";
+
 import "./landing.css";
+import useAuth from "./hooks/useAuth";
 
 export default function Home() {
+  const isLoggedIn = useAuth();
+
   return (
     <div className="shivanya-landing">
       <div className="shivanya-hero">
@@ -10,7 +13,11 @@ export default function Home() {
         <p className="shivanya-subtitle">
           Track your income, expenses, services, and balance with ease.
         </p>
-        <a href="#get-started" className="shivanya-btn">Get Started</a>
+
+        {/* 👇 Hide "Get Started" button if user is logged in */}
+        {isLoggedIn === false && (
+          <a href="/login" className="shivanya-btn">Get Started</a>
+        )}
       </div>
 
       <div className="shivanya-features">
@@ -33,4 +40,3 @@ export default function Home() {
     </div>
   );
 }
-

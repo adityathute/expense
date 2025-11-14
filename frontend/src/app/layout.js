@@ -1,6 +1,9 @@
 import "./styles/base.css";
 import "./styles/layout.css";
 import "./styles/components/components.css";
+
+import { LoadingProvider } from "./context/LoadingContext";
+import GlobalLoader from "./components/GlobalLoader";
 import ClientLayout from "./components/ClientLayout";
 
 export const metadata = {
@@ -18,8 +21,11 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>
-        <ClientLayout>{children}</ClientLayout>
+      <body style={{ backgroundColor: "#2e2e38" }} suppressHydrationWarning={true}>
+        <LoadingProvider>
+          <GlobalLoader />
+          <ClientLayout>{children}</ClientLayout>
+        </LoadingProvider>
       </body>
     </html>
   );

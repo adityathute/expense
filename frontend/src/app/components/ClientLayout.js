@@ -1,30 +1,46 @@
-// components/ClientLayout.js
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { usePathname } from "next/navigation";
+import { useLoading } from "../context/LoadingContext";
+
+import useAuth from "../hooks/useAuth";
+import { shouldHideLayout } from "../utils/layoutRules";
+
 import TopBar from "./TopBar";
 import Sidebar from "./Sidebar";
 
 export default function ClientLayout({ children }) {
-  const [isSidebarOpen, setSidebarOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(null); // <-- initially null
+  const pathname = usePathname();
   const sidebarRef = useRef(null);
 
+  const { showLoading, hideLoading } = useLoading();
+  const isLoggedIn = useAuth();
+  const [isMobile, setIsMobile] = useState(null);
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
+
+  // ⭐ GLOBAL LOADER ON PATH CHANGE
   useEffect(() => {
-    const checkMobile = () => {
+    showLoading();
+    const timer = setTimeout(() => hideLoading(), 400);
+    return () => clearTimeout(timer);
+  }, [pathname, showLoading, hideLoading]);
+
+  // Screen size check
+  useEffect(() => {
+    const updateScreen = () => {
       const mobile = window.innerWidth <= 768;
       setIsMobile(mobile);
-      if (mobile) {
-        setSidebarOpen(false); // ensure it's closed on mobile
-      }
+      if (mobile) setSidebarOpen(false);
     };
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
+    updateScreen();
+    window.addEventListener("resize", updateScreen);
+    return () => window.removeEventListener("resize", updateScreen);
   }, []);
 
+  // Close sidebar when clicking outside
   useEffect(() => {
-    function handleClickOutside(e) {
+    const handleClickOutside = (e) => {
       if (
         isSidebarOpen &&
         sidebarRef.current &&
@@ -32,31 +48,48 @@ export default function ClientLayout({ children }) {
       ) {
         setSidebarOpen(false);
       }
-    }
+    };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () =>
+      document.removeEventListener("mousedown", handleClickOutside);
   }, [isSidebarOpen]);
 
-  // Wait for device check to complete before rendering
+  // ⭐ AUTH LOADER HANDLING
+  useEffect(() => {
+    if (isLoggedIn === null) {
+      showLoading();
+    } else {
+      hideLoading();
+    }
+  }, [isLoggedIn, showLoading, hideLoading]);
+
   if (isMobile === null) return null;
+
+  if (shouldHideLayout(pathname, isLoggedIn)) {
+    return <>{children}</>;
+  }
 
   return (
     <div className="app-shell">
       <TopBar
         isSidebarOpen={isSidebarOpen}
-        onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
+        onToggleSidebar={() => setSidebarOpen((s) => !s)}
       />
+
       <div className="layout-body">
         <Sidebar
           isOpen={!isMobile || isSidebarOpen}
           onClose={() => setSidebarOpen(false)}
           sidebarRef={sidebarRef}
         />
+
         {isMobile && (
           <div
-            className={`sidebar-blur-overlay ${isSidebarOpen ? "show" : ""}`}
-          ></div>
+            className={`sidebar-blur-overlay ${isSidebarOpen ? "show" : ""
+              }`}
+          />
         )}
+
         <main className="layout-main">{children}</main>
       </div>
     </div>
